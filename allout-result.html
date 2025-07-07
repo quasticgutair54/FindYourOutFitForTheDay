@@ -9,12 +9,11 @@
     html, body {
       margin: 0;
       padding: 0;
-      background: url('Untitled design (1).png') no-repeat center center fixed;
-      background-size: cover;
       font-family: 'Tan Nimbus', sans-serif;
       color: #111;
+      background: url('Untitled design (1).png') no-repeat center center fixed;
+      background-size: cover;
       display: flex;
-      flex-direction: column;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
@@ -93,7 +92,9 @@
     }
 
     document.addEventListener("click", () => {
-      audio.play().catch(() => {});
+      if (audio.paused) {
+        audio.play().catch(() => {});
+      }
     }, { once: true });
 
     setInterval(() => {
@@ -109,3 +110,4 @@
 
 </body>
 </html>
+
