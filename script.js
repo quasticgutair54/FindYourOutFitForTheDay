@@ -1,4 +1,3 @@
-// Wait for user interaction to play audio
 let hasInteracted = false;
 
 function setupAudio() {
@@ -11,10 +10,9 @@ function setupAudio() {
   }
 
   audio.play().catch(() => {
-    // Will wait until interaction
+    // Will auto-play on first user interaction
   });
 
-  // Save current time regularly
   setInterval(() => {
     if (!audio.paused) {
       localStorage.setItem('music-time', audio.currentTime);
