@@ -1,117 +1,112 @@
+<!-- allout-q1.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>All Out – Q1</title>
+  <title>All Out - Q1</title>
   <link href="https://fonts.googleapis.com/css2?family=Comic+Sans+MS&family=Tan+Nimbus&display=swap" rel="stylesheet">
   <style>
-    html, body {
+    body {
       margin: 0;
-      padding: 0;
-      font-family: 'Comic Sans MS', cursive;
-      background: linear-gradient(-45deg, #fffb00, #ff00d4, #ffee93, #ffb3ec);
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      background: linear-gradient(-45deg, #ff00ff, #ffff00, #ff00ff, #ffff00);
       background-size: 400% 400%;
-      animation: fireflow 10s ease infinite;
+      animation: fireFlow 8s ease infinite;
       color: black;
-    }
-
-    @keyframes fireflow {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
-    .container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
       padding: 2rem;
       text-align: center;
     }
 
-    .question-heading {
+    @keyframes fireFlow {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
+    }
+
+    h1 {
       font-family: 'Tan Nimbus', sans-serif;
       font-size: 1.8rem;
-      margin-bottom: 1rem;
+      font-weight: bold;
+      margin-bottom: 1.5rem;
     }
 
     select {
-      font-family: 'Comic Sans MS', cursive;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
       font-size: 1rem;
       padding: 0.6rem;
       border-radius: 8px;
-      border: 1px solid #222;
-      max-width: 300px;
+      border: 2px solid #000;
+      margin-bottom: 1.5rem;
       width: 80%;
+      max-width: 400px;
     }
 
-    .next-button {
-      margin-top: 2rem;
-      padding: 0.7rem 1.5rem;
+    button {
+      padding: 0.7rem 1.4rem;
       font-size: 1rem;
+      font-weight: bold;
       border: none;
       border-radius: 8px;
       background-color: black;
       color: white;
       cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #333;
     }
 
     @media (max-width: 600px) {
-      .question-heading {
+      h1 {
         font-size: 1.4rem;
       }
-
       select {
         font-size: 0.9rem;
       }
-
-      .next-button {
+      button {
         font-size: 0.9rem;
       }
     }
   </style>
 </head>
 <body>
-
   <audio id="bg-music" src="running out of time.mp3" loop></audio>
-
-  <div class="container">
-    <h2 class="question-heading">When you step out, what’s your vibe screaming?</h2>
-    
-    <select>
-      <option>Select your vibe</option>
-      <option>“I’m here to blind you with brilliance.”</option>
-      <option>“I’m louder than your thoughts.”</option>
-      <option>“Watch and learn, darlings.”</option>
-      <option>“Yes, this outfit has a fan club.”</option>
-    </select>
-
-    <br />
-    <a href="allout-q2.html"><button class="next-button">Next</button></a>
-  </div>
-
+  <h1>What would you wear to a grocery store at 3am?</h1>
+  <select>
+    <option disabled selected>Select your answer</option>
+    <option>A sequined jumpsuit</option>
+    <option>Neon cargo pants and fur coat</option>
+    <option>An LED jacket with platform shoes</option>
+    <option>All of the above, with glitter on top</option>
+  </select>
+  <br />
+  <button onclick="goToNext()">Next</button>
   <script>
-    // Seamless music player with localStorage time syncing
+    function goToNext() {
+      window.location.href = "allout-q2.html";
+    }
     const audio = document.getElementById("bg-music");
     const storedTime = localStorage.getItem("music-time");
-
-    if (storedTime) {
-      audio.currentTime = parseFloat(storedTime);
-    }
-
+    if (storedTime) audio.currentTime = parseFloat(storedTime);
     document.addEventListener("click", () => {
-      audio.play().catch(() => {});
+      if (audio.paused) audio.play().catch(() => {});
     }, { once: true });
-
     setInterval(() => {
-      if (!audio.paused) {
-        localStorage.setItem("music-time", audio.currentTime);
-      }
+      if (!audio.paused) localStorage.setItem("music-time", audio.currentTime);
     }, 500);
-
     window.addEventListener("beforeunload", () => {
       localStorage.setItem("music-time", audio.currentTime);
     });
   </script>
-
 </body>
 </html>
+
+
 
