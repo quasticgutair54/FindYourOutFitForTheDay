@@ -1,0 +1,117 @@
+<!-- never-q5.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Never - Q5</title>
+  <link href="https://fonts.googleapis.com/css2?family=Comic+Sans+MS&family=Tan+Nimbus&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      background: linear-gradient(-45deg, #000, #333, #000, #111);
+      background-size: 400% 400%;
+      animation: fireFlow 10s ease infinite;
+      color: #f2f2f2;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    @keyframes fireFlow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    h1 {
+      font-family: 'Tan Nimbus', sans-serif;
+      font-size: 1.8rem;
+      font-weight: bold;
+      margin-bottom: 1.5rem;
+    }
+
+    select {
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      font-size: 1rem;
+      padding: 0.6rem;
+      border-radius: 8px;
+      border: 2px solid #fff;
+      margin-bottom: 1.5rem;
+      width: 80%;
+      max-width: 400px;
+      background: #111;
+      color: #f2f2f2;
+    }
+
+    button {
+      padding: 0.7rem 1.4rem;
+      font-size: 1rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      background-color: #fff;
+      color: #000;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #ddd;
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 1.4rem;
+      }
+      select {
+        font-size: 0.9rem;
+      }
+      button {
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <audio id="bg-music" src="running out of time.mp3" loop></audio>
+
+  <h1>Pick an aesthetic:</h1>
+  <select>
+    <option disabled selected>Select your answer</option>
+    <option>Monochrome Mondays</option>
+    <option>Low-key layers</option>
+    <option>Unbranded but iconic</option>
+    <option>Whatever’s clean and fits</option>
+  </select>
+  <br />
+  <button onclick="goToNext()">Next</button>
+
+  <script>
+    function goToNext() {
+      window.location.href = "never-result.html";
+    }
+
+    const audio = document.getElementById("bg-music");
+    const storedTime = localStorage.getItem("music-time");
+    if (storedTime) audio.currentTime = parseFloat(storedTime);
+
+    document.addEventListener("click", () => {
+      if (audio.paused) audio.play().catch(() => {});
+    }, { once: true });
+
+    setInterval(() => {
+      if (!audio.paused) localStorage.setItem("music-time", audio.currentTime);
+    }, 500);
+
+    window.addEventListener("beforeunload", () => {
+      localStorage.setItem("music-time", audio.currentTime);
+    });
+  </script>
+</body>
+</html>
