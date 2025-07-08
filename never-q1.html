@@ -3,67 +3,78 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>All Out Result</title>
-  <link href="https://fonts.googleapis.com/css2?family=Tan+Nimbus&display=swap" rel="stylesheet">
+  <title>Never - Q1</title>
+  <link href="https://fonts.googleapis.com/css2?family=Comic+Sans+MS&family=Tan+Nimbus&display=swap" rel="stylesheet">
   <style>
-    html, body {
+    body {
       margin: 0;
-      padding: 0;
-      font-family: 'Tan Nimbus', sans-serif;
-      background: url('Untitled design (1).png') no-repeat center center fixed;
-      background-size: cover;
+      background: linear-gradient(-45deg, #000, #222, #444, #000);
+      background-size: 400% 400%;
+      animation: fireFlow 8s ease infinite;
+      color: #f2f2f2;
+      font-family: 'Comic Sans MS', cursive;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
-      min-height: 100vh;
+      justify-content: center;
+      height: 100vh;
       text-align: center;
-    }
-
-    .result-box {
-      background-color: rgba(255, 255, 255, 0.88);
       padding: 2rem;
-      border-radius: 20px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.15);
-      max-width: 600px;
-      width: 90%;
     }
 
-    .certified {
-      font-size: 1.2rem;
-      margin-top: 1rem;
-      background: #000;
-      color: #fff;
-      padding: 0.5rem 1rem;
-      border-radius: 12px;
-      display: inline-block;
+    @keyframes fireFlow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
 
-    .cta-button {
-      display: inline-block;
-      margin-top: 2rem;
-      padding: 0.8rem 1.6rem;
-      font-size: 1rem;
-      color: white;
-      background-color: black;
-      border: none;
-      border-radius: 10px;
-      text-decoration: none;
+    h1 {
+      font-family: 'Tan Nimbus', sans-serif;
+      font-size: 1.8rem;
       font-weight: bold;
+      margin-bottom: 1.5rem;
+    }
+
+    select {
+      font-family: 'Comic Sans MS', cursive;
+      font-size: 1rem;
+      padding: 0.6rem;
+      border-radius: 8px;
+      border: 2px solid #ccc;
+      margin-bottom: 1.5rem;
+      width: 80%;
+      max-width: 400px;
+      background: #111;
+      color: #f2f2f2;
+    }
+
+    button {
+      padding: 0.7rem 1.4rem;
+      font-size: 1rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      background-color: #f2f2f2;
+      color: #111;
+      cursor: pointer;
       transition: background-color 0.3s ease;
     }
 
-    .cta-button:hover {
-      background-color: #333;
+    button:hover {
+      background-color: #ddd;
     }
 
     @media (max-width: 600px) {
-      .result-box {
-        padding: 1.2rem;
+      h1 {
+        font-size: 1.4rem;
       }
 
-      .cta-button {
+      select {
         font-size: 0.9rem;
-        padding: 0.7rem 1.2rem;
+      }
+
+      button {
+        font-size: 0.9rem;
       }
     }
   </style>
@@ -72,23 +83,26 @@
 
   <audio id="bg-music" src="running out of time.mp3" loop></audio>
 
-  <div class="result-box">
-    <h1>You’re an All Out Anomaly.</h1>
-    <p>Fashion rules? You probably use them as confetti.<br>
-    Your closet is a wonderland of colors, chaos, and unmatched confidence.</p>
-    <p><strong>In the end, it’s your decision to choose what you choose. So be you.</strong></p>
-    <div class="certified">99.101% NotTheBest Certified</div>
-    <br />
-    <a class="cta-button" href="https://www.notthebestplacetobuystuff.in/randomodium-unisex-sweatshirt" target="_blank">Reveal your outfit</a>
-  </div>
+  <h1>What does your wardrobe mostly consist of?</h1>
+  <select>
+    <option disabled selected>Select your answer</option>
+    <option>Black, grey, and more black</option>
+    <option>Plain tees and neat trousers</option>
+    <option>One hoodie for all occasions</option>
+    <option>Anything clean and comfy</option>
+  </select>
+  <br />
+  <button onclick="goToNext()">Next</button>
 
   <script>
-    const audio = document.getElementById("bg-music");
-    const storedTime = localStorage.getItem("music-time");
-
-    if (storedTime) {
-      audio.currentTime = parseFloat(storedTime);
+    function goToNext() {
+      localStorage.setItem("music-time", document.getElementById("bg-music").currentTime);
+      window.location.href = "never-q2.html";
     }
+
+    const audio = document.getElementById("bg-music");
+    const savedTime = localStorage.getItem("music-time");
+    if (savedTime) audio.currentTime = parseFloat(savedTime);
 
     document.addEventListener("click", () => {
       if (audio.paused) {
@@ -109,4 +123,5 @@
 
 </body>
 </html>
+
 
