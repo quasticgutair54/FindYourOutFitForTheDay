@@ -84,34 +84,33 @@
   </div>
 
   <script>
-    const audio = document.getElementById("bg-music");
+  const audio = document.getElementById("bg-music");
+
+  // Try auto-play immediately (may fail silently due to browser policies)
+  window.addEventListener("DOMContentLoaded", () => {
     const storedTime = localStorage.getItem("music-time");
-
-    if (storedTime) {
-      audio.currentTime = parseFloat(storedTime);
-    }
-
-    function tryPlay() {
-      audio.play().catch(() => {
-        // Still blocked, retry on next interaction
-        document.addEventListener("click", tryPlay, { once: true });
-      });
-    }
-
-    // Initial play attempt
-    tryPlay();
-
-    // Save time every 500ms
-    setInterval(() => {
-      if (!audio.paused) {
-        localStorage.setItem("music-time", audio.currentTime);
-      }
-    }, 500);
-
-    window.addEventListener("beforeunload", () => {
-      localStorage.setItem("music-time", audio.currentTime);
+    if (storedTime) audio.currentTime = parseFloat(storedTime);
+    audio.play().catch(() => {
+      // Wait for first user interaction if autoplay fails
+      document.addEventListener("click", () => {
+        audio.play().catch(() => {});
+      }, { once: true });
     });
-  </script>
+  });
+
+  // Save progress every 500ms
+  setInterval(() => {
+    if (!audio.paused) {
+      localStorage.setItem("music-time", audio.currentTime);
+    }
+  }, 500);
+
+  // Save before unload as backup
+  window.addEventListener("beforeunload", () => {
+    localStorage.setItem("music-time", audio.currentTime);
+  });
+</script>
+
 
 </body>
 </html>
