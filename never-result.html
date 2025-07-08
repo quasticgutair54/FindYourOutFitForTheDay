@@ -1,19 +1,19 @@
-<!-- never-result.html -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Never Result</title>
-  <link href="https://fonts.googleapis.com/css2?family=Tan+Nimbus&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Tan+Nimbus&display=swap" rel="stylesheet">
   <style>
     html, body {
       margin: 0;
       padding: 0;
       font-family: 'Tan Nimbus', sans-serif;
+      color: #111;
       background: url('Untitled design (1).png') no-repeat center center fixed;
       background-size: cover;
-      color: #111;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -22,7 +22,7 @@
     }
 
     .result-box {
-      background-color: rgba(255, 255, 255, 0.85);
+      background-color: rgba(255, 255, 255, 0.88);
       padding: 2rem;
       border-radius: 20px;
       box-shadow: 0 0 20px rgba(0,0,0,0.15);
@@ -76,43 +76,38 @@
 
   <div class="result-box">
     <h1>You’re a Never Necessity.</h1>
-    <p>Simplicity isn’t boring — it’s brilliant.<br>
-    Your fashion sense whispers comfort and confidence, not chaos.</p>
+    <p>You don’t need the spotlight to shine.<br>
+    Your vibe is soft, steady, and secretly powerful.</p>
     <p><strong>In the end, it’s your decision to choose what you choose. So be you.</strong></p>
-    <div class="certified">98.5% NotTheBest Certified</div>
+    <div class="certified">92.47% NotTheBest Certified</div>
     <br />
     <a class="cta-button" href="https://www.notthebestplacetobuystuff.in/notthebest-t-shirt" target="_blank">Reveal your outfit</a>
   </div>
 
   <script>
-  const audio = document.getElementById("bg-music");
+    const audio = document.getElementById("bg-music");
+    const savedTime = localStorage.getItem("music-time");
+    if (savedTime) audio.currentTime = parseFloat(savedTime);
 
-  // Try auto-play immediately (may fail silently due to browser policies)
-  window.addEventListener("DOMContentLoaded", () => {
-    const storedTime = localStorage.getItem("music-time");
-    if (storedTime) audio.currentTime = parseFloat(storedTime);
-    audio.play().catch(() => {
-      // Wait for first user interaction if autoplay fails
-      document.addEventListener("click", () => {
+    document.addEventListener("click", () => {
+      if (audio.paused) {
         audio.play().catch(() => {});
-      }, { once: true });
-    });
-  });
+      }
+    }, { once: true });
 
-  // Save progress every 500ms
-  setInterval(() => {
-    if (!audio.paused) {
+    setInterval(() => {
+      if (!audio.paused) {
+        localStorage.setItem("music-time", audio.currentTime);
+      }
+    }, 500);
+
+    window.addEventListener("beforeunload", () => {
       localStorage.setItem("music-time", audio.currentTime);
-    }
-  }, 500);
-
-  // Save before unload as backup
-  window.addEventListener("beforeunload", () => {
-    localStorage.setItem("music-time", audio.currentTime);
-  });
-</script>
-
+    });
+  </script>
 
 </body>
 </html>
+
+
 
