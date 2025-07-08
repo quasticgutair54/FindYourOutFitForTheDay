@@ -102,8 +102,8 @@
 </head>
 <body>
 
-  <!-- 🔊 Seamless Background Music -->
-  <audio id="bg-music" src="running out of time.mp3" autoplay loop playsinline></audio>
+  <!-- 🔊 Embedded background music -->
+  <audio id="bg-music" src="running out of time.mp3" autoplay loop></audio>
 
   <div class="overlay">
     <h1 class="main-heading">Since you scanned it, might as well check your personal outfit.</h1>
@@ -132,34 +132,40 @@
     </div>
   </div>
 
-<script>
-  const audio = document.getElementById("bg-music");
+  <script>
+    const audio = document.getElementById("bg-music");
 
-  // Always start fresh on homepage
-  localStorage.setItem("music-time", 0);
-
-  // Start music after user interacts
-  const tryPlay = () => {
-    audio.currentTime = 0;
-    audio.play().catch(() => {});
-  };
-
-  window.addEventListener("DOMContentLoaded", tryPlay);
-  document.addEventListener("click", tryPlay, { once: true });
-
-  // Save progress every 500ms
-  setInterval(() => {
-    if (!audio.paused) {
-      localStorage.setItem("music-time", audio.currentTime);
+    // Resume music from previous time
+    const storedTime = localStorage.getItem("music-time");
+    if (storedTime) {
+      audio.currentTime = parseFloat(storedTime);
     }
-  }, 500);
 
-  window.addEventListener("beforeunload", () => {
-    localStorage.setItem("music-time", audio.currentTime);
-  });
-</script>
+    // Attempt to autoplay on load
+    window.addEventListener("load", () => {
+      audio.play().catch(() => {
+        // On some browsers, autoplay requires user interaction
+        const clickToPlay = () => {
+          audio.play().then(() => {
+            document.removeEventListener("click", clickToPlay);
+          });
+        };
+        document.addEventListener("click", clickToPlay);
+      });
+    });
 
+    // Save current time every 500ms
+    setInterval(() => {
+      if (!audio.paused) {
+        localStorage.setItem("music-time", audio.currentTime);
+      }
+    }, 500);
+
+    // Save music time on exit
+    window.addEventListener("beforeunload", () => {
+      localStorage.setItem("music-time", audio.currentTime);
+    });
+  </script>
 
 </body>
 </html>
-    
