@@ -132,32 +132,25 @@
     </div>
   </div>
 
-  <script>
-    window.addEventListener("load", () => {
-      const audio = document.getElementById("bg-music");
-      const storedTime = localStorage.getItem("music-time");
-      if (storedTime) audio.currentTime = parseFloat(storedTime);
+ <script>
+  const audio = document.getElementById("bg-music");
 
-      audio.play().then(() => {
-        // Autoplay worked
-      }).catch((err) => {
-        // Fallback: try again after user interacts
-        document.addEventListener("click", () => {
-          audio.play().catch(() => {});
-        }, { once: true });
-      });
+  // Always start from beginning on index.html
+  audio.currentTime = 0;
 
-      setInterval(() => {
-        if (!audio.paused) {
-          localStorage.setItem("music-time", audio.currentTime);
-        }
-      }, 500);
-
-      window.addEventListener("beforeunload", () => {
-        localStorage.setItem("music-time", audio.currentTime);
-      });
+  // Try auto-play immediately
+  window.addEventListener("DOMContentLoaded", () => {
+    audio.play().catch(() => {
+      // Fallback: wait for user click if autoplay blocked
+      document.addEventListener("click", () => {
+        audio.play().catch(() => {});
+      }, { once: true });
     });
-  </script>
+  });
+
+  // Do NOT save time on index.html – that’s only for inner pages
+</script>
+
 
 </body>
 </html>
