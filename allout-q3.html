@@ -10,14 +10,19 @@
       margin: 0;
       padding: 0;
       height: 100%;
-      font-family: 'Comic Sans MS', cursive;
-      background: linear-gradient(-45deg, #fffb00, #ff0090, #fffb00, #ff0090);
-      background-size: 400% 400%;
-      animation: fireFlow 8s ease infinite;
+      color: black;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      overflow: hidden;
+    }
+
+    body {
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
-      color: black;
+      background: linear-gradient(270deg, #ff00ff, #ffff00);
+      background-size: 400% 400%;
+      animation: fireFlow 8s ease infinite;
     }
 
     @keyframes fireFlow {
@@ -27,79 +32,83 @@
     }
 
     .question-box {
-      background: rgba(255, 255, 255, 0.85);
-      padding: 2rem;
-      border-radius: 20px;
       text-align: center;
-      max-width: 600px;
-      width: 90%;
+      color: black;
     }
 
     h1 {
       font-family: 'Tan Nimbus', sans-serif;
+      font-size: 2rem;
       font-weight: bold;
-      font-size: 1.8rem;
       margin-bottom: 1.5rem;
     }
 
     select {
-      font-family: 'Comic Sans MS', cursive;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
       padding: 0.5rem;
       font-size: 1rem;
       border-radius: 8px;
-      border: 1px solid #ccc;
-      width: 80%;
+      border: 1px solid #333;
+      margin-bottom: 1.5rem;
+      width: 100%;
+      max-width: 300px;
     }
 
-    .next-button {
-      margin-top: 2rem;
-      padding: 0.6rem 1.4rem;
-      font-size: 1rem;
-      background: black;
+    button {
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      background-color: black;
       color: white;
       border: none;
+      padding: 0.7rem 1.5rem;
+      font-size: 1rem;
       border-radius: 10px;
       cursor: pointer;
-      font-weight: bold;
     }
 
-    .next-button:hover {
-      background: #333;
+    button:hover {
+      background-color: #333;
     }
 
     @media (max-width: 600px) {
-      .question-box {
-        padding: 1.2rem;
-      }
-
       h1 {
         font-size: 1.4rem;
       }
 
       select {
-        width: 100%;
+        font-size: 0.95rem;
+      }
+
+      button {
+        font-size: 0.95rem;
+        padding: 0.6rem 1.2rem;
       }
     }
   </style>
 </head>
 <body>
 
-  <audio id="bg-music" src="running out of time.mp3" autoplay loop></audio>
+  <audio id="bg-music" src="running out of time.mp3" loop></audio>
 
   <div class="question-box">
-    <h1><b>You walk into a room and people stare. You:</b></h1>
-    <select id="answer">
-      <option value="" disabled selected>Select your answer</option>
+    <h1>You walk into a room and people stare. You:</h1>
+    <select>
       <option>Pose harder</option>
       <option>Add a hat</option>
       <option>Assume they love the drama</option>
       <option>Start moonwalking</option>
     </select>
     <br />
-    <button class="next-button" onclick="goToNext('allout-q4.html')">Next</button>
+    <button onclick="goToNext()">Next</button>
   </div>
 
   <script>
+    function goToNext() {
+      localStorage.setItem("music-time", document.getElementById("bg-music").currentTime);
+      setTimeout(() => {
+        window.location.href = "allout-q4.html";
+      }, 200);
+    }
+
     const audio = document.getElementById("bg-music");
     const storedTime = localStorage.getItem("music-time");
 
@@ -107,25 +116,15 @@
       audio.currentTime = parseFloat(storedTime);
     }
 
-    audio.play().catch(() => {}); // autoplay attempt
+    audio.play().catch(() => {});
 
     setInterval(() => {
       if (!audio.paused) {
         localStorage.setItem("music-time", audio.currentTime);
       }
     }, 500);
-
-    window.addEventListener("beforeunload", () => {
-      localStorage.setItem("music-time", audio.currentTime);
-    });
-
-    function goToNext(url) {
-      localStorage.setItem("music-time", audio.currentTime);
-      setTimeout(() => {
-        window.location.href = url;
-      }, 100);
-    }
   </script>
 
 </body>
 </html>
+
