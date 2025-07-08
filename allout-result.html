@@ -70,7 +70,7 @@
 </head>
 <body>
 
-  <audio id="bg-music" src="running out of time.mp3" loop></audio>
+  <audio id="bg-music" src="running out of time.mp3" autoplay loop></audio>
 
   <div class="result-box">
     <h1>You’re an All Out Anomaly.</h1>
@@ -82,31 +82,26 @@
     <a class="cta-button" href="https://www.notthebestplacetobuystuff.in/randomodium-unisex-sweatshirt" target="_blank">Reveal your outfit</a>
   </div>
 
-<script>
-  const audio = document.getElementById("bg-music");
-  const storedTime = localStorage.getItem("music-time");
+  <script>
+    const audio = document.getElementById("bg-music");
+    const storedTime = localStorage.getItem("music-time");
 
-  if (storedTime) {
-    audio.currentTime = parseFloat(storedTime);
-  }
-
-  const tryPlay = () => {
-    audio.play().catch(() => {});
-  };
-
-  window.addEventListener("DOMContentLoaded", tryPlay);
-  document.addEventListener("click", tryPlay, { once: true });
-
-  setInterval(() => {
-    if (!audio.paused) {
-      localStorage.setItem("music-time", audio.currentTime);
+    if (storedTime && !isNaN(storedTime)) {
+      audio.currentTime = parseFloat(storedTime);
     }
-  }, 500);
 
-  window.addEventListener("beforeunload", () => {
-    localStorage.setItem("music-time", audio.currentTime);
-  });
-</script>
+    audio.play().catch(() => {});
+
+    setInterval(() => {
+      if (!audio.paused) {
+        localStorage.setItem("music-time", audio.currentTime);
+      }
+    }, 500);
+
+    window.addEventListener("beforeunload", () => {
+      localStorage.setItem("music-time", audio.currentTime);
+    });
+  </script>
+
 </body>
 </html>
-
