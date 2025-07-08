@@ -3,113 +3,130 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>All Out - Q5</title>
+  <title>All Out – Q5</title>
   <link href="https://fonts.googleapis.com/css2?family=Comic+Sans+MS&family=Tan+Nimbus&display=swap" rel="stylesheet">
   <style>
-    body {
+    html, body {
       margin: 0;
-      font-family: 'Comic Sans MS', cursive, sans-serif;
-      background: linear-gradient(-45deg, #ff00ff, #ffff00, #ff00ff, #ffff00);
+      padding: 0;
+      height: 100%;
+      font-family: 'Comic Sans MS', cursive;
+      background: linear-gradient(-45deg, #fffb00, #ff0090, #fffb00, #ff0090);
       background-size: 400% 400%;
       animation: fireFlow 8s ease infinite;
-      color: black;
       display: flex;
-      flex-direction: column;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-      padding: 2rem;
-      text-align: center;
+      color: black;
     }
 
     @keyframes fireFlow {
-      0% {background-position: 0% 50%;}
-      50% {background-position: 100% 50%;}
-      100% {background-position: 0% 50%;}
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .question-box {
+      background: rgba(255, 255, 255, 0.85);
+      padding: 2rem;
+      border-radius: 20px;
+      text-align: center;
+      max-width: 600px;
+      width: 90%;
     }
 
     h1 {
       font-family: 'Tan Nimbus', sans-serif;
-      font-size: 1.8rem;
       font-weight: bold;
+      font-size: 1.8rem;
       margin-bottom: 1.5rem;
     }
 
     select {
-      font-family: 'Comic Sans MS', cursive, sans-serif;
+      font-family: 'Comic Sans MS', cursive;
+      padding: 0.5rem;
       font-size: 1rem;
-      padding: 0.6rem;
       border-radius: 8px;
-      border: 2px solid #000;
-      margin-bottom: 1.5rem;
+      border: 1px solid #ccc;
       width: 80%;
-      max-width: 400px;
     }
 
-    button {
-      padding: 0.7rem 1.4rem;
+    .next-button {
+      margin-top: 2rem;
+      padding: 0.6rem 1.4rem;
       font-size: 1rem;
-      font-weight: bold;
-      border: none;
-      border-radius: 8px;
-      background-color: black;
+      background: black;
       color: white;
+      border: none;
+      border-radius: 10px;
       cursor: pointer;
-      transition: background-color 0.3s ease;
+      font-weight: bold;
     }
 
-    button:hover {
-      background-color: #333;
+    .next-button:hover {
+      background: #333;
     }
 
     @media (max-width: 600px) {
-      h1 { font-size: 1.4rem; }
-      select { font-size: 0.9rem; }
-      button { font-size: 0.9rem; }
+      .question-box {
+        padding: 1.2rem;
+      }
+
+      h1 {
+        font-size: 1.4rem;
+      }
+
+      select {
+        width: 100%;
+      }
     }
   </style>
 </head>
 <body>
 
-  <audio id="bg-music" src="running out of time.mp3" loop></audio>
+  <audio id="bg-music" src="running out of time.mp3" autoplay loop></audio>
 
-  <h1>Pick an accessory:</h1>
-  <select>
-    <option disabled selected>Select your answer</option>
-    <option>Spiked crown</option>
-    <option>Rainbow feather fan</option>
-    <option>Diamond-studded cape</option>
-    <option>A literal disco ball</option>
-  </select>
-  <br />
-  <button onclick="goToNext('allout-result.html')">Next</button>
+  <div class="question-box">
+    <h1><b>Pick an accessory:</b></h1>
+    <select id="answer">
+      <option value="" disabled selected>Select your answer</option>
+      <option>Spiked crown</option>
+      <option>Rainbow feather fan</option>
+      <option>Diamond-studded cape</option>
+      <option>A literal disco ball</option>
+    </select>
+    <br />
+    <button class="next-button" onclick="goToNext('allout-result.html')">Get Result</button>
+  </div>
 
- <script>
-  const audio = document.getElementById("bg-music");
-  const storedTime = localStorage.getItem("music-time");
+  <script>
+    const audio = document.getElementById("bg-music");
+    const storedTime = localStorage.getItem("music-time");
 
-  if (storedTime) {
-    audio.currentTime = parseFloat(storedTime);
-  }
-
-  const tryPlay = () => {
-    audio.play().catch(() => {});
-  };
-
-  window.addEventListener("DOMContentLoaded", tryPlay);
-  document.addEventListener("click", tryPlay, { once: true });
-
-  setInterval(() => {
-    if (!audio.paused) {
-      localStorage.setItem("music-time", audio.currentTime);
+    if (storedTime && !isNaN(storedTime)) {
+      audio.currentTime = parseFloat(storedTime);
     }
-  }, 500);
 
-  window.addEventListener("beforeunload", () => {
-    localStorage.setItem("music-time", audio.currentTime);
-  });
-</script>
+    audio.play().catch(() => {});
+
+    setInterval(() => {
+      if (!audio.paused) {
+        localStorage.setItem("music-time", audio.currentTime);
+      }
+    }, 500);
+
+    window.addEventListener("beforeunload", () => {
+      localStorage.setItem("music-time", audio.currentTime);
+    });
+
+    function goToNext(url) {
+      localStorage.setItem("music-time", audio.currentTime);
+      setTimeout(() => {
+        window.location.href = url;
+      }, 100);
+    }
+  </script>
+
 </body>
 </html>
-
 
