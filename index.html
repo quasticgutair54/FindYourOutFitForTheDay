@@ -103,7 +103,7 @@
 <body>
 
   <!-- 🔊 Seamless Background Music -->
-  <audio id="bg-music" src="running out of time.mp3" loop></audio>
+  <audio id="bg-music" src="running out of time.mp3" autoplay loop playsinline></audio>
 
   <div class="overlay">
     <h1 class="main-heading">Since you scanned it, might as well check your personal outfit.</h1>
@@ -133,34 +133,32 @@
   </div>
 
   <script>
-    const audio = document.getElementById("bg-music");
-    const storedTime = localStorage.getItem("music-time");
+    window.addEventListener("load", () => {
+      const audio = document.getElementById("bg-music");
+      const storedTime = localStorage.getItem("music-time");
+      if (storedTime) audio.currentTime = parseFloat(storedTime);
 
-    if (storedTime) {
-      audio.currentTime = parseFloat(storedTime);
-    }
+      audio.play().then(() => {
+        // Autoplay worked
+      }).catch((err) => {
+        // Fallback: try again after user interacts
+        document.addEventListener("click", () => {
+          audio.play().catch(() => {});
+        }, { once: true });
+      });
 
-    // Allow music to play only once user interacts (required on many browsers)
-    document.addEventListener("click", () => {
-      if (audio.paused) {
-        audio.play().catch(() => {});
-      }
-    }, { once: true });
+      setInterval(() => {
+        if (!audio.paused) {
+          localStorage.setItem("music-time", audio.currentTime);
+        }
+      }, 500);
 
-    // Save progress every 500ms
-    setInterval(() => {
-      if (!audio.paused) {
+      window.addEventListener("beforeunload", () => {
         localStorage.setItem("music-time", audio.currentTime);
-      }
-    }, 500);
-
-    // Save on exit
-    window.addEventListener("beforeunload", () => {
-      localStorage.setItem("music-time", audio.currentTime);
+      });
     });
   </script>
 
 </body>
 </html>
-
-
+    
