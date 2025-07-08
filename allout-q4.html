@@ -84,38 +84,31 @@
   <br />
   <button onclick="goToNext('allout-q5.html')">Next</button>
 
-  <script>
-    const audio = document.getElementById("bg-music");
-    const storedTime = localStorage.getItem("music-time");
+ <script>
+  const audio = document.getElementById("bg-music");
+  const storedTime = localStorage.getItem("music-time");
 
-    if (storedTime) {
-      audio.currentTime = parseFloat(storedTime);
-    }
+  if (storedTime) {
+    audio.currentTime = parseFloat(storedTime);
+  }
 
-    document.addEventListener("click", () => {
-      if (audio.paused) {
-        audio.play().catch(() => {});
-      }
-    }, { once: true });
+  const tryPlay = () => {
+    audio.play().catch(() => {});
+  };
 
-    setInterval(() => {
-      if (!audio.paused) {
-        localStorage.setItem("music-time", audio.currentTime);
-      }
-    }, 500);
+  window.addEventListener("DOMContentLoaded", tryPlay);
+  document.addEventListener("click", tryPlay, { once: true });
 
-    window.addEventListener("beforeunload", () => {
+  setInterval(() => {
+    if (!audio.paused) {
       localStorage.setItem("music-time", audio.currentTime);
-    });
-
-    function goToNext(nextPage) {
-      localStorage.setItem("music-time", audio.currentTime);
-      setTimeout(() => {
-        window.location.href = nextPage;
-      }, 100);
     }
-  </script>
+  }, 500);
 
+  window.addEventListener("beforeunload", () => {
+    localStorage.setItem("music-time", audio.currentTime);
+  });
+</script>
 </body>
 </html>
 
