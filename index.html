@@ -100,9 +100,9 @@
     }
   </style>
 </head>
-
 <body>
 
+  <!-- 🔊 Seamless Background Music -->
   <audio id="bg-music" src="running out of time.mp3" loop></audio>
 
   <div class="overlay">
@@ -132,7 +132,35 @@
     </div>
   </div>
 
-  <script src="script.js"></script>
+  <script>
+    const audio = document.getElementById("bg-music");
+    const storedTime = localStorage.getItem("music-time");
+
+    if (storedTime) {
+      audio.currentTime = parseFloat(storedTime);
+    }
+
+    // Allow music to play only once user interacts (required on many browsers)
+    document.addEventListener("click", () => {
+      if (audio.paused) {
+        audio.play().catch(() => {});
+      }
+    }, { once: true });
+
+    // Save progress every 500ms
+    setInterval(() => {
+      if (!audio.paused) {
+        localStorage.setItem("music-time", audio.currentTime);
+      }
+    }, 500);
+
+    // Save on exit
+    window.addEventListener("beforeunload", () => {
+      localStorage.setItem("music-time", audio.currentTime);
+    });
+  </script>
+
 </body>
 </html>
+
 
