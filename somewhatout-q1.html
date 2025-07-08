@@ -1,42 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Somewhat Out - Q1</title>
   <link href="https://fonts.googleapis.com/css2?family=Comic+Sans+MS&family=Tan+Nimbus&display=swap" rel="stylesheet">
   <style>
     body {
       margin: 0;
-      background: linear-gradient(-45deg, #00ff99, #00ccff, #00ff99, #00ccff);
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      background: linear-gradient(-45deg, #00ffb3, #00d4ff, #00ffb3, #00d4ff);
       background-size: 400% 400%;
       animation: fireFlow 8s ease infinite;
       color: black;
-      font-family: 'Comic Sans MS', cursive, sans-serif;
       display: flex;
       flex-direction: column;
-      align-items: center;
       justify-content: center;
+      align-items: center;
       height: 100vh;
-      text-align: center;
       padding: 2rem;
+      text-align: center;
     }
 
     @keyframes fireFlow {
-      0% {background-position: 0% 50%;}
-      50% {background-position: 100% 50%;}
-      100% {background-position: 0% 50%;}
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
 
     h1 {
       font-family: 'Tan Nimbus', sans-serif;
-      font-weight: bold;
       font-size: 1.8rem;
+      font-weight: bold;
       margin-bottom: 1.5rem;
     }
 
     select {
-      font-family: 'Comic Sans MS', cursive;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
       font-size: 1rem;
       padding: 0.6rem;
       border-radius: 8px;
@@ -76,46 +76,50 @@
   </style>
 </head>
 <body>
+
   <audio id="bg-music" src="running out of time.mp3" loop></audio>
 
-  <h1>What’s your strategy when dressing bold but not loud?</h1>
+  <h1>When you step out, what’s your vibe screaming?</h1>
+
   <select>
     <option disabled selected>Select your answer</option>
-    <option>One statement piece, then chill</option>
-    <option>Colors? Sure. Just not all at once.</option>
-    <option>I match chaos with calm</option>
-    <option>My shoes speak, my shirt listens</option>
+    <option>I didn’t come to whisper</option>
+    <option>Balanced but brave</option>
+    <option>I make comfort look loud</option>
+    <option>Vibe check passed</option>
   </select>
   <br />
   <button onclick="goToNext()">Next</button>
 
   <script>
-  const audio = document.getElementById("bg-music");
-
-  // Try auto-play immediately (may fail silently due to browser policies)
-  window.addEventListener("DOMContentLoaded", () => {
-    const storedTime = localStorage.getItem("music-time");
-    if (storedTime) audio.currentTime = parseFloat(storedTime);
-    audio.play().catch(() => {
-      // Wait for first user interaction if autoplay fails
-      document.addEventListener("click", () => {
-        audio.play().catch(() => {});
-      }, { once: true });
-    });
-  });
-
-  // Save progress every 500ms
-  setInterval(() => {
-    if (!audio.paused) {
-      localStorage.setItem("music-time", audio.currentTime);
+    function goToNext() {
+      localStorage.setItem("music-time", document.getElementById("bg-music").currentTime);
+      window.location.href = "somewhatout-q2.html";
     }
-  }, 500);
 
-  // Save before unload as backup
-  window.addEventListener("beforeunload", () => {
-    localStorage.setItem("music-time", audio.currentTime);
-  });
-</script>
+    const audio = document.getElementById("bg-music");
+    const storedTime = localStorage.getItem("music-time");
 
+    if (storedTime) {
+      audio.currentTime = parseFloat(storedTime);
+    }
+
+    document.addEventListener("click", () => {
+      if (audio.paused) {
+        audio.play().catch(() => {});
+      }
+    }, { once: true });
+
+    setInterval(() => {
+      if (!audio.paused) {
+        localStorage.setItem("music-time", audio.currentTime);
+      }
+    }, 500);
+
+    window.addEventListener("beforeunload", () => {
+      localStorage.setItem("music-time", audio.currentTime);
+    });
+  </script>
 </body>
 </html>
+
