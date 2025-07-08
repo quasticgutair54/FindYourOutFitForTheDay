@@ -1,26 +1,26 @@
-<!-- never-q5.html -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Never - Q5</title>
+  <title>Never - Q4</title>
   <link href="https://fonts.googleapis.com/css2?family=Comic+Sans+MS&family=Tan+Nimbus&display=swap" rel="stylesheet">
   <style>
     body {
       margin: 0;
-      font-family: 'Comic Sans MS', cursive, sans-serif;
-      background: linear-gradient(-45deg, #000, #333, #000, #111);
+      background: linear-gradient(-45deg, #111, #222, #333, #111);
       background-size: 400% 400%;
-      animation: fireFlow 10s ease infinite;
+      animation: fireFlow 8s ease infinite;
       color: #f2f2f2;
+      font-family: 'Comic Sans MS', cursive;
       display: flex;
       flex-direction: column;
-      justify-content: center;
       align-items: center;
+      justify-content: center;
       height: 100vh;
-      padding: 2rem;
       text-align: center;
+      padding: 2rem;
     }
 
     @keyframes fireFlow {
@@ -37,11 +37,11 @@
     }
 
     select {
-      font-family: 'Comic Sans MS', cursive, sans-serif;
+      font-family: 'Comic Sans MS', cursive;
       font-size: 1rem;
       padding: 0.6rem;
       border-radius: 8px;
-      border: 2px solid #fff;
+      border: 2px solid #ccc;
       margin-bottom: 1.5rem;
       width: 80%;
       max-width: 400px;
@@ -55,8 +55,8 @@
       font-weight: bold;
       border: none;
       border-radius: 8px;
-      background-color: #fff;
-      color: #000;
+      background-color: #f2f2f2;
+      color: #111;
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
@@ -69,9 +69,11 @@
       h1 {
         font-size: 1.4rem;
       }
+
       select {
         font-size: 0.9rem;
       }
+
       button {
         font-size: 0.9rem;
       }
@@ -79,46 +81,5 @@
   </style>
 </head>
 <body>
-  <audio id="bg-music" src="running out of time.mp3" loop></audio>
 
-  <h1>Pick an aesthetic:</h1>
-  <select>
-    <option disabled selected>Select your answer</option>
-    <option>Monochrome Mondays</option>
-    <option>Low-key layers</option>
-    <option>Unbranded but iconic</option>
-    <option>Whatever’s clean and fits</option>
-  </select>
-  <br />
-  <button onclick="goToNext()">Next</button>
-
-  <script>
-  const audio = document.getElementById("bg-music");
-
-  // Try auto-play immediately (may fail silently due to browser policies)
-  window.addEventListener("DOMContentLoaded", () => {
-    const storedTime = localStorage.getItem("music-time");
-    if (storedTime) audio.currentTime = parseFloat(storedTime);
-    audio.play().catch(() => {
-      // Wait for first user interaction if autoplay fails
-      document.addEventListener("click", () => {
-        audio.play().catch(() => {});
-      }, { once: true });
-    });
-  });
-
-  // Save progress every 500ms
-  setInterval(() => {
-    if (!audio.paused) {
-      localStorage.setItem("music-time", audio.currentTime);
-    }
-  }, 500);
-
-  // Save before unload as backup
-  window.addEventListener("beforeunload", () => {
-    localStorage.setItem("music-time", audio.currentTime);
-  });
-</script>
-
-</body>
-</html>
+  <audio id="bg-music" src="
