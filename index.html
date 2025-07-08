@@ -132,23 +132,31 @@
     </div>
   </div>
 
- <script>
+<script>
   const audio = document.getElementById("bg-music");
 
-  // Always start from beginning on index.html
-  audio.currentTime = 0;
+  // Always start fresh on homepage
+  localStorage.setItem("music-time", 0);
 
-  // Try auto-play immediately
-  window.addEventListener("DOMContentLoaded", () => {
-    audio.play().catch(() => {
-      // Fallback: wait for user click if autoplay blocked
-      document.addEventListener("click", () => {
-        audio.play().catch(() => {});
-      }, { once: true });
-    });
+  // Start music after user interacts
+  const tryPlay = () => {
+    audio.currentTime = 0;
+    audio.play().catch(() => {});
+  };
+
+  window.addEventListener("DOMContentLoaded", tryPlay);
+  document.addEventListener("click", tryPlay, { once: true });
+
+  // Save progress every 500ms
+  setInterval(() => {
+    if (!audio.paused) {
+      localStorage.setItem("music-time", audio.currentTime);
+    }
+  }, 500);
+
+  window.addEventListener("beforeunload", () => {
+    localStorage.setItem("music-time", audio.currentTime);
   });
-
-  // Do NOT save time on index.html – that’s only for inner pages
 </script>
 
 
