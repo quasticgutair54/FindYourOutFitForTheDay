@@ -1,124 +1,112 @@
-<!-- never-q1.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Never - Q1</title>
-  <link href="https://fonts.googleapis.com/css2?family=Comic+Sans+MS&family=Tan+Nimbus&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>All Out Result</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tan+Nimbus&display=swap" rel="stylesheet">
   <style>
-    body {
+    html, body {
       margin: 0;
-      font-family: 'Comic Sans MS', cursive, sans-serif;
-      background: linear-gradient(-45deg, #000, #222, #000, #444);
-      background-size: 400% 400%;
-      animation: fireFlow 10s ease infinite;
-      color: #f2f2f2;
+      padding: 0;
+      font-family: 'Tan Nimbus', sans-serif;
+      background: url('Untitled design (1).png') no-repeat center center fixed;
+      background-size: cover;
       display: flex;
-      flex-direction: column;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-      padding: 2rem;
+      min-height: 100vh;
       text-align: center;
     }
 
-    @keyframes fireFlow {
-      0% {background-position: 0% 50%;}
-      50% {background-position: 100% 50%;}
-      100% {background-position: 0% 50%;}
+    .result-box {
+      background-color: rgba(255, 255, 255, 0.88);
+      padding: 2rem;
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.15);
+      max-width: 600px;
+      width: 90%;
     }
 
-    h1 {
-      font-family: 'Tan Nimbus', sans-serif;
-      font-size: 1.8rem;
-      font-weight: bold;
-      margin-bottom: 1.5rem;
+    .certified {
+      font-size: 1.2rem;
+      margin-top: 1rem;
+      background: #000;
+      color: #fff;
+      padding: 0.5rem 1rem;
+      border-radius: 12px;
+      display: inline-block;
     }
 
-    select {
-      font-family: 'Comic Sans MS', cursive, sans-serif;
+    .cta-button {
+      display: inline-block;
+      margin-top: 2rem;
+      padding: 0.8rem 1.6rem;
       font-size: 1rem;
-      padding: 0.6rem;
-      border-radius: 8px;
-      border: 2px solid #fff;
-      margin-bottom: 1.5rem;
-      width: 80%;
-      max-width: 400px;
-      background: #111;
-      color: #f2f2f2;
-    }
-
-    button {
-      padding: 0.7rem 1.4rem;
-      font-size: 1rem;
-      font-weight: bold;
+      color: white;
+      background-color: black;
       border: none;
-      border-radius: 8px;
-      background-color: #fff;
-      color: #000;
-      cursor: pointer;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: bold;
       transition: background-color 0.3s ease;
     }
 
-    button:hover {
-      background-color: #ddd;
+    .cta-button:hover {
+      background-color: #333;
     }
 
     @media (max-width: 600px) {
-      h1 {
-        font-size: 1.4rem;
+      .result-box {
+        padding: 1.2rem;
       }
-      select {
+
+      .cta-button {
         font-size: 0.9rem;
-      }
-      button {
-        font-size: 0.9rem;
+        padding: 0.7rem 1.2rem;
       }
     }
   </style>
 </head>
 <body>
+
   <audio id="bg-music" src="running out of time.mp3" loop></audio>
 
-  <h1>Minimalist challenge: What’s your go-to uniform?</h1>
-  <select>
-    <option disabled selected>Select your answer</option>
-    <option>Black tee, black jeans, black mood</option>
-    <option>White shirt + sneakers. Period.</option>
-    <option>Neutral tones until the end of time</option>
-    <option>Anything that doesn’t shout</option>
-  </select>
-  <br />
-  <button onclick="goToNext()">Next</button>
+  <div class="result-box">
+    <h1>You’re an All Out Anomaly.</h1>
+    <p>Fashion rules? You probably use them as confetti.<br>
+    Your closet is a wonderland of colors, chaos, and unmatched confidence.</p>
+    <p><strong>In the end, it’s your decision to choose what you choose. So be you.</strong></p>
+    <div class="certified">99.101% NotTheBest Certified</div>
+    <br />
+    <a class="cta-button" href="https://www.notthebestplacetobuystuff.in/randomodium-unisex-sweatshirt" target="_blank">Reveal your outfit</a>
+  </div>
 
- <script>
-  const audio = document.getElementById("bg-music");
-
-  // Try auto-play immediately (may fail silently due to browser policies)
-  window.addEventListener("DOMContentLoaded", () => {
+  <script>
+    const audio = document.getElementById("bg-music");
     const storedTime = localStorage.getItem("music-time");
-    if (storedTime) audio.currentTime = parseFloat(storedTime);
-    audio.play().catch(() => {
-      // Wait for first user interaction if autoplay fails
-      document.addEventListener("click", () => {
-        audio.play().catch(() => {});
-      }, { once: true });
-    });
-  });
 
-  // Save progress every 500ms
-  setInterval(() => {
-    if (!audio.paused) {
-      localStorage.setItem("music-time", audio.currentTime);
+    if (storedTime) {
+      audio.currentTime = parseFloat(storedTime);
     }
-  }, 500);
 
-  // Save before unload as backup
-  window.addEventListener("beforeunload", () => {
-    localStorage.setItem("music-time", audio.currentTime);
-  });
-</script>
+    document.addEventListener("click", () => {
+      if (audio.paused) {
+        audio.play().catch(() => {});
+      }
+    }, { once: true });
+
+    setInterval(() => {
+      if (!audio.paused) {
+        localStorage.setItem("music-time", audio.currentTime);
+      }
+    }, 500);
+
+    window.addEventListener("beforeunload", () => {
+      localStorage.setItem("music-time", audio.currentTime);
+    });
+  </script>
 
 </body>
 </html>
+
