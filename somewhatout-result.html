@@ -10,9 +10,9 @@
       margin: 0;
       padding: 0;
       font-family: 'Tan Nimbus', sans-serif;
+      color: #111;
       background: url('Untitled design (1).png') no-repeat center center fixed;
       background-size: cover;
-      color: #111;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -21,7 +21,7 @@
     }
 
     .result-box {
-      background-color: rgba(255, 255, 255, 0.88);
+      background-color: rgba(255, 255, 255, 0.85);
       padding: 2rem;
       border-radius: 20px;
       box-shadow: 0 0 20px rgba(0,0,0,0.1);
@@ -74,42 +74,39 @@
   <audio id="bg-music" src="running out of time.mp3" loop></audio>
 
   <div class="result-box">
-    <h1>You’re stylishly selective.</h1>
-    <p>You make bold feel balanced — just enough spice without the chaos.<br>
-    You don’t dress to shout, but you definitely speak volumes.</p>
+    <h1>You’re Somewhat Out — and we love that for you.</h1>
+    <p>You flirt with the spotlight but always on your terms.<br>
+    You serve contrast, intention, and occasional chaos — perfectly balanced.</p>
     <p><strong>In the end, it’s your decision to choose what you choose. So be you.</strong></p>
-    <div class="certified">99.101% AlmostExtra Certified</div>
+    <div class="certified">88.8% NotTheBest Certified</div>
     <br />
     <a class="cta-button" href="https://www.notthebestplacetobuystuff.in/your-toast-unisex-oversized-tee" target="_blank">Reveal your outfit</a>
   </div>
-<script>
-  const audio = document.getElementById("bg-music");
 
-  // Try auto-play immediately (may fail silently due to browser policies)
-  window.addEventListener("DOMContentLoaded", () => {
+  <script>
+    const audio = document.getElementById("bg-music");
     const storedTime = localStorage.getItem("music-time");
-    if (storedTime) audio.currentTime = parseFloat(storedTime);
-    audio.play().catch(() => {
-      // Wait for first user interaction if autoplay fails
-      document.addEventListener("click", () => {
-        audio.play().catch(() => {});
-      }, { once: true });
-    });
-  });
 
-  // Save progress every 500ms
-  setInterval(() => {
-    if (!audio.paused) {
-      localStorage.setItem("music-time", audio.currentTime);
+    if (storedTime) {
+      audio.currentTime = parseFloat(storedTime);
     }
-  }, 500);
 
-  // Save before unload as backup
-  window.addEventListener("beforeunload", () => {
-    localStorage.setItem("music-time", audio.currentTime);
-  });
-</script>
+    document.addEventListener("click", () => {
+      if (audio.paused) {
+        audio.play().catch(() => {});
+      }
+    }, { once: true });
 
+    setInterval(() => {
+      if (!audio.paused) {
+        localStorage.setItem("music-time", audio.currentTime);
+      }
+    }, 500);
+
+    window.addEventListener("beforeunload", () => {
+      localStorage.setItem("music-time", audio.currentTime);
+    });
+  </script>
 
 </body>
 </html>
