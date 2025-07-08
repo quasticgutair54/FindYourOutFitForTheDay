@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>All Out – Q4</title>
+  <title>All Out – Q5</title>
   <link href="https://fonts.googleapis.com/css2?family=Comic+Sans+MS&family=Tan+Nimbus&display=swap" rel="stylesheet">
   <style>
     html, body {
@@ -90,22 +90,22 @@
   <audio id="bg-music" src="running out of time.mp3" loop></audio>
 
   <div class="question-box">
-    <h1>You see someone wearing beige. You think:</h1>
+    <h1>Pick an accessory:</h1>
     <select>
-      <option>Are they okay?</option>
-      <option>Must be laundry day</option>
-      <option>Let me lend them a feather boa</option>
-      <option>Beige? That’s my sleepwear</option>
+      <option>Spiked crown</option>
+      <option>Rainbow feather fan</option>
+      <option>Diamond-studded cape</option>
+      <option>A literal disco ball</option>
     </select>
     <br />
-    <button onclick="goToNext()">Next</button>
+    <button onclick="goToNext()">See Result</button>
   </div>
 
   <script>
     function goToNext() {
       localStorage.setItem("music-time", document.getElementById("bg-music").currentTime);
       setTimeout(() => {
-        window.location.href = "allout-q5.html";
+        window.location.href = "allout-result.html";
       }, 200);
     }
 
