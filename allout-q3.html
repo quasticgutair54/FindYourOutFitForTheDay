@@ -63,20 +63,16 @@
     }
 
     @media (max-width: 600px) {
-      h1 {
-        font-size: 1.4rem;
-      }
-      select {
-        font-size: 0.9rem;
-      }
-      button {
-        font-size: 0.9rem;
-      }
+      h1 { font-size: 1.4rem; }
+      select { font-size: 0.9rem; }
+      button { font-size: 0.9rem; }
     }
   </style>
 </head>
 <body>
+
   <audio id="bg-music" src="running out of time.mp3" loop></audio>
+
   <h1>You walk into a room and people stare. You:</h1>
   <select>
     <option disabled selected>Select your answer</option>
@@ -86,35 +82,41 @@
     <option>Start moonwalking</option>
   </select>
   <br />
-  <button onclick="goToNext()">Next</button>
+  <button onclick="goToNext('allout-q4.html')">Next</button>
+
   <script>
-  const audio = document.getElementById("bg-music");
-
-  // Try auto-play immediately (may fail silently due to browser policies)
-  window.addEventListener("DOMContentLoaded", () => {
+    const audio = document.getElementById("bg-music");
     const storedTime = localStorage.getItem("music-time");
-    if (storedTime) audio.currentTime = parseFloat(storedTime);
-    audio.play().catch(() => {
-      // Wait for first user interaction if autoplay fails
-      document.addEventListener("click", () => {
-        audio.play().catch(() => {});
-      }, { once: true });
-    });
-  });
 
-  // Save progress every 500ms
-  setInterval(() => {
-    if (!audio.paused) {
-      localStorage.setItem("music-time", audio.currentTime);
+    if (storedTime) {
+      audio.currentTime = parseFloat(storedTime);
     }
-  }, 500);
 
-  // Save before unload as backup
-  window.addEventListener("beforeunload", () => {
-    localStorage.setItem("music-time", audio.currentTime);
-  });
-</script>
+    document.addEventListener("click", () => {
+      if (audio.paused) {
+        audio.play().catch(() => {});
+      }
+    }, { once: true });
+
+    setInterval(() => {
+      if (!audio.paused) {
+        localStorage.setItem("music-time", audio.currentTime);
+      }
+    }, 500);
+
+    window.addEventListener("beforeunload", () => {
+      localStorage.setItem("music-time", audio.currentTime);
+    });
+
+    function goToNext(nextPage) {
+      localStorage.setItem("music-time", audio.currentTime);
+      setTimeout(() => {
+        window.location.href = nextPage;
+      }, 100);
+    }
+  </script>
 
 </body>
 </html>
+
 
