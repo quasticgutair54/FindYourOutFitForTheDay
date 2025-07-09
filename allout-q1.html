@@ -3,153 +3,208 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>All Out – Question 1</title>
-  <link href="https://fonts.googleapis.com/css2?family=Comic+Neue&family=Tan+Nimbus&display=swap" rel="stylesheet">
+  <title>All Out – Q1</title>
+  <link href="https://fonts.googleapis.com/css2?family=Comic+Sans+MS&family=Tan+Nimbus&display=swap" rel="stylesheet">
   <style>
     html, body {
       margin: 0;
       padding: 0;
       height: 100%;
-      font-family: 'Tan Nimbus', sans-serif;
-      background: linear-gradient(-45deg, #feda75, #fa7e1e, #d62976, #962fbf);
-      background-size: 400% 400%;
-      animation: fireFlow 10s ease infinite;
-      color: black;
+      font-family: 'Comic Sans MS', cursive;
+      overflow-x: hidden;
     }
 
-    @keyframes fireFlow {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+    body {
+      color: black;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(270deg, #ff0080, #ff8c00, #ffff00, #ff0080);
+      background-size: 800% 800%;
+      animation: flow 12s ease infinite;
+    }
+
+    @keyframes flow {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
     }
 
     .container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 2rem 1rem;
-      min-height: 100vh;
-      box-sizing: border-box;
+      max-width: 600px;
+      width: 90%;
+      padding: 2rem;
+      border-radius: 20px;
+      backdrop-filter: blur(15px);
+      background-color: rgba(255, 255, 255, 0.25);
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
+      text-align: center;
     }
 
-    .question {
+    .progress {
       font-family: 'Tan Nimbus', sans-serif;
-      font-size: 1.8rem;
+      background-color: rgba(0,0,0,0.7);
+      color: white;
+      display: inline-block;
+      padding: 0.3rem 1rem;
+      border-radius: 999px;
+      margin-bottom: 1.5rem;
+      font-size: 1rem;
+    }
+
+    h1 {
+      font-family: 'Tan Nimbus', sans-serif;
+      font-size: 1.5rem;
       font-weight: bold;
-      margin-bottom: 2rem;
-      text-align: center;
+      margin-bottom: 1.5rem;
     }
 
     .option {
-      font-family: 'Comic Neue', cursive, sans-serif;
-      background: rgba(255, 255, 255, 0.35);
-      border: 2px solid rgba(0, 0, 0, 0.1);
+      background-color: rgba(255, 255, 255, 0.3);
       padding: 1rem;
-      margin: 0.6rem 0;
-      width: 100%;
-      max-width: 500px;
-      border-radius: 12px;
+      border-radius: 15px;
+      margin: 1rem 0;
       cursor: pointer;
-      text-align: center;
-      transition: all 0.3s ease;
+      font-size: 1rem;
+      transition: 0.3s;
+      border: 2px solid transparent;
+      position: relative;
     }
 
     .option:hover {
-      background: rgba(255, 255, 255, 0.5);
+      background-color: rgba(255, 255, 255, 0.5);
+      transform: translateY(-2px);
     }
 
     .option.selected {
-      border: 2px solid black;
-      background: rgba(255, 255, 255, 0.8);
+      border-color: black;
+      background-color: rgba(255, 255, 255, 0.7);
+    }
+
+    .emoji {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.2rem;
+      display: none;
+    }
+
+    .option.selected .emoji {
+      display: inline;
     }
 
     button {
       margin-top: 2rem;
-      padding: 0.9rem 2rem;
+      padding: 0.8rem 1.8rem;
       font-size: 1rem;
       font-weight: bold;
-      border: none;
-      border-radius: 10px;
       background-color: black;
       color: white;
-      cursor: not-allowed;
-      opacity: 0.5;
-      transition: all 0.3s ease;
-    }
-
-    button.enabled {
+      border: none;
+      border-radius: 10px;
       cursor: pointer;
-      opacity: 1;
+      display: none;
     }
 
     @media (max-width: 600px) {
-      .question {
-        font-size: 1.4rem;
+      .container {
+        padding: 1.2rem;
+      }
+
+      h1 {
+        font-size: 1.2rem;
       }
 
       .option {
         font-size: 0.95rem;
-      }
-
-      button {
-        font-size: 0.95rem;
+        padding: 0.8rem;
       }
     }
   </style>
 </head>
 <body>
+
   <audio id="bg-music" src="running out of time.mp3" loop></audio>
 
   <div class="container">
-    <div class="question">What would you wear to a grocery store at 3 AM?</div>
-    <div class="option">A sequined jumpsuit</div>
-    <div class="option">Neon cargo pants and a fur coat</div>
-    <div class="option">An LED jacket with platform shoes</div>
-    <div class="option">All of the above with glitter on top</div>
+    <div class="progress">Question 1 of 5</div>
+    <h1>What would you wear to a grocery store at 3 AM?</h1>
 
-    <button id="next-btn">Next</button>
+    <div class="option" onclick="selectOption(this)">
+      A sequined jumpsuit <span class="emoji">✨</span>
+    </div>
+    <div class="option" onclick="selectOption(this)">
+      Neon cargo pants and a fur coat <span class="emoji">🦄</span>
+    </div>
+    <div class="option" onclick="selectOption(this)">
+      An LED jacket with platform shoes <span class="emoji">💡</span>
+    </div>
+    <div class="option" onclick="selectOption(this)">
+      All of the above with glitter on top <span class="emoji">🌈</span>
+    </div>
+
+    <button id="nextBtn" onclick="goToNext()">Next</button>
   </div>
 
   <script>
-    const options = document.querySelectorAll('.option');
-    const nextBtn = document.getElementById('next-btn');
-    const audio = document.getElementById('bg-music');
-
-    const savedTime = localStorage.getItem('music-time');
-    if (savedTime) audio.currentTime = parseFloat(savedTime);
-    audio.play().catch(() => {});
-
+    // Music Resume Logic
+    const audio = document.getElementById("bg-music");
+    const storedTime = localStorage.getItem("music-time");
+    if (storedTime) audio.currentTime = parseFloat(storedTime);
+    window.addEventListener("load", () => audio.play().catch(() => {}));
     setInterval(() => {
       if (!audio.paused) {
-        localStorage.setItem('music-time', audio.currentTime);
+        localStorage.setItem("music-time", audio.currentTime);
       }
     }, 500);
-
-    window.addEventListener('beforeunload', () => {
-      localStorage.setItem('music-time', audio.currentTime);
+    window.addEventListener("beforeunload", () => {
+      localStorage.setItem("music-time", audio.currentTime);
     });
 
-    let selected = null;
-    options.forEach(opt => {
-      opt.addEventListener('click', () => {
-        options.forEach(o => o.classList.remove('selected'));
-        opt.classList.add('selected');
-        selected = opt.textContent;
-        nextBtn.classList.add('enabled');
-        nextBtn.disabled = false;
-        nextBtn.style.cursor = "pointer";
-      });
-    });
+    // Confetti Setup
+    function launchConfetti() {
+      const emoji = ['✨','🎉','🌈','🔥','⭐️'];
+      for (let i = 0; i < 20; i++) {
+        const conf = document.createElement("div");
+        conf.innerText = emoji[Math.floor(Math.random() * emoji.length)];
+        conf.style.position = 'fixed';
+        conf.style.left = Math.random() * window.innerWidth + 'px';
+        conf.style.top = '-20px';
+        conf.style.fontSize = '20px';
+        conf.style.opacity = '1';
+        conf.style.transition = 'top 2s ease, opacity 2s ease';
+        document.body.appendChild(conf);
+        setTimeout(() => {
+          conf.style.top = window.innerHeight + 'px';
+          conf.style.opacity = '0';
+        }, 100);
+        setTimeout(() => conf.remove(), 2100);
+      }
+    }
 
-    nextBtn.addEventListener('click', () => {
+    // Option select logic
+    function selectOption(element) {
+      document.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
+      element.classList.add('selected');
+      document.getElementById('nextBtn').style.display = 'inline-block';
+      launchConfetti();
+    }
+
+    // Go to next page
+    function goToNext() {
+      const selected = document.querySelector('.option.selected');
       if (!selected) return;
-      window.location.href = "allout-q2.html";
-    });
-
-    nextBtn.disabled = true;
+      localStorage.setItem("music-time", audio.currentTime);
+      setTimeout(() => {
+        window.location.href = "allout-q2.html";
+      }, 200);
+    }
   </script>
+
 </body>
 </html>
+
 
 
 
