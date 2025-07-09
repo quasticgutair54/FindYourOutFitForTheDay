@@ -4,115 +4,120 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>All Out – Q1</title>
-  <link href="https://fonts.googleapis.com/css2?family=Comic+Sans+MS&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Comic+Sans+MS&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Tan+Nimbus&display=swap" rel="stylesheet">
   <style>
-    html, body {
+    body {
       margin: 0;
-      padding: 0;
-      height: 100vh;
       font-family: 'Comic Sans MS', cursive, sans-serif;
-      color: black;
-      background: linear-gradient(-45deg, #fffc00, #ff0080, #fffc00, #ff0080);
-      background-size: 400% 400%;
-      animation: fireflow 6s ease infinite;
+      background: linear-gradient(135deg, #ffcc00, #ff3399);
+      min-height: 100vh;
       display: flex;
-      align-items: center;
       justify-content: center;
+      align-items: center;
+      color: black;
     }
 
-    @keyframes fireflow {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
-    .question-container {
-      background-color: rgba(255, 255, 255, 0.85);
+    .container {
+      background: rgba(255,255,255,0.85);
       padding: 2rem;
       border-radius: 20px;
-      max-width: 90%;
-      width: 500px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.2);
+      max-width: 600px;
+      width: 90%;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
       text-align: center;
     }
 
     h2 {
       font-family: 'Tan Nimbus', sans-serif;
       font-weight: bold;
-      font-size: 1.5rem;
+      font-size: 1.6rem;
+      margin-bottom: 2rem;
+    }
+
+    .option {
+      padding: 1rem;
       margin-bottom: 1rem;
+      border: 2px solid #333;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      font-size: 1rem;
     }
 
-    select {
-      font-family: 'Comic Sans MS', cursive, sans-serif;
-      font-size: 1rem;
-      padding: 0.6rem;
-      border-radius: 8px;
-      width: 100%;
-      margin-bottom: 1.5rem;
+    .option:hover,
+    .option.selected {
+      background: #000;
+      color: white;
     }
 
-    button {
-      font-family: 'Tan Nimbus', sans-serif;
-      font-size: 1rem;
-      padding: 0.7rem 1.5rem;
+    .next-btn {
+      margin-top: 1.5rem;
+      padding: 0.8rem 2rem;
+      background: black;
+      color: white;
       border: none;
       border-radius: 10px;
-      background-color: black;
-      color: white;
       font-weight: bold;
       cursor: pointer;
-      transition: background-color 0.3s ease;
+      font-size: 1rem;
+      transition: background 0.3s ease;
     }
 
-    button:hover {
-      background-color: #333;
+    .next-btn:hover {
+      background: #333;
     }
 
-    @media (max-width: 500px) {
-      h2 {
-        font-size: 1.2rem;
+    @media (max-width: 600px) {
+      .container {
+        padding: 1.5rem;
       }
 
-      button {
-        font-size: 0.9rem;
+      h2 {
+        font-size: 1.3rem;
+      }
+
+      .option {
+        font-size: 0.95rem;
+      }
+
+      .next-btn {
+        font-size: 0.95rem;
+        padding: 0.7rem 1.6rem;
       }
     }
   </style>
 </head>
 <body>
+  <audio id="bg-music" src="running out of time.mp3" loop></audio>
 
-  <!-- Background music -->
-  <audio id="bg-music" src="running out of time.mp3" autoplay loop></audio>
+  <div class="container">
+    <div class="question-header">Question 1 of 5</div>
+    <h2>What’s your ideal outfit vibe?</h2>
 
-  <div class="question-container">
-    <h2>What would you wear to a grocery store at 3am?</h2>
-    <select id="answer">
-      <option value="">-- Select your answer --</option>
-      <option value="A sequined jumpsuit">A sequined jumpsuit</option>
-      <option value="Neon cargo pants and fur coat">Neon cargo pants and fur coat</option>
-      <option value="An LED jacket with platform shoes">An LED jacket with platform shoes</option>
-      <option value="All of the above, with glitter on top">All of the above, with glitter on top</option>
-    </select>
-    <br />
-    <button onclick="validateAndNext()">Next</button>
+    <div class="option">Louder than my playlist</div>
+    <div class="option">Unexpected but iconic</div>
+    <div class="option">Like I’m my own mood board</div>
+    <div class="option">Bold with no apology</div>
+
+    <button class="next-btn" onclick="goToNext()">Next</button>
   </div>
 
   <script>
-    // Music Resume Logic
+    const options = document.querySelectorAll('.option');
+    const nextBtn = document.querySelector('.next-btn');
     const audio = document.getElementById('bg-music');
-    const lastTime = localStorage.getItem('music-time');
-    if (lastTime) {
-      audio.currentTime = parseFloat(lastTime);
-    }
 
-    audio.volume = 1.0;
+    // Restore audio position
+    const storedTime = localStorage.getItem("music-time");
+    if (storedTime) {
+      audio.currentTime = parseFloat(storedTime);
+    }
     audio.play().catch(() => {});
 
     setInterval(() => {
       if (!audio.paused) {
-        localStorage.setItem('music-time', audio.currentTime);
+        localStorage.setItem("music-time", audio.currentTime);
       }
     }, 500);
 
@@ -120,19 +125,23 @@
       localStorage.setItem("music-time", audio.currentTime);
     });
 
-    // Prevent moving forward without selection
-    function validateAndNext() {
-      const selected = document.getElementById("answer").value;
+    let selected = false;
+    options.forEach(opt => {
+      opt.addEventListener('click', () => {
+        options.forEach(o => o.classList.remove('selected'));
+        opt.classList.add('selected');
+        selected = true;
+      });
+    });
+
+    function goToNext() {
       if (!selected) {
-        alert("Please select an answer before moving on.");
+        alert("Please select an answer to continue.");
         return;
       }
-      setTimeout(() => {
-        window.location.href = 'allout-q2.html';
-      }, 300);
+      window.location.href = "allout-q2.html";
     }
   </script>
-
 </body>
 </html>
 
