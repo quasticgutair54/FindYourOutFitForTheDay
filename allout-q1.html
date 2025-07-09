@@ -4,125 +4,133 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>All Out – Q1</title>
-  <link href="https://fonts.googleapis.com/css2?family=Comic+Sans+MS&family=Tan+Nimbus&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Comic+Sans+MS&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Tan+Nimbus&display=swap" rel="stylesheet">
   <style>
     html, body {
       margin: 0;
       padding: 0;
-      height: 100%;
-      color: black;
+      height: 100vh;
       font-family: 'Comic Sans MS', cursive, sans-serif;
-      overflow: hidden;
-    }
-
-    body {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      background: linear-gradient(270deg, #ff00ff, #ffff00);
+      color: black;
+      background: linear-gradient(-45deg, #fffc00, #ff0080, #fffc00, #ff0080);
       background-size: 400% 400%;
-      animation: fireFlow 8s ease infinite;
+      animation: fireflow 6s ease infinite;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    @keyframes fireFlow {
+    @keyframes fireflow {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
 
-    .question-box {
+    .question-container {
+      background-color: rgba(255, 255, 255, 0.85);
+      padding: 2rem;
+      border-radius: 20px;
+      max-width: 90%;
+      width: 500px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
       text-align: center;
-      color: black;
     }
 
-    h1 {
+    h2 {
       font-family: 'Tan Nimbus', sans-serif;
-      font-size: 2rem;
       font-weight: bold;
-      margin-bottom: 1.5rem;
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
     }
 
     select {
       font-family: 'Comic Sans MS', cursive, sans-serif;
-      padding: 0.5rem;
       font-size: 1rem;
+      padding: 0.6rem;
       border-radius: 8px;
-      border: 1px solid #333;
-      margin-bottom: 1.5rem;
       width: 100%;
-      max-width: 300px;
+      margin-bottom: 1.5rem;
     }
 
     button {
-      font-family: 'Comic Sans MS', cursive, sans-serif;
+      font-family: 'Tan Nimbus', sans-serif;
+      font-size: 1rem;
+      padding: 0.7rem 1.5rem;
+      border: none;
+      border-radius: 10px;
       background-color: black;
       color: white;
-      border: none;
-      padding: 0.7rem 1.5rem;
-      font-size: 1rem;
-      border-radius: 10px;
+      font-weight: bold;
       cursor: pointer;
+      transition: background-color 0.3s ease;
     }
 
     button:hover {
       background-color: #333;
     }
 
-    @media (max-width: 600px) {
-      h1 {
-        font-size: 1.4rem;
-      }
-
-      select {
-        font-size: 0.95rem;
+    @media (max-width: 500px) {
+      h2 {
+        font-size: 1.2rem;
       }
 
       button {
-        font-size: 0.95rem;
-        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
       }
     }
   </style>
 </head>
 <body>
 
-  <audio id="bg-music" src="running out of time.mp3" loop></audio>
+  <!-- Background music -->
+  <audio id="bg-music" src="running out of time.mp3" autoplay loop></audio>
 
-  <div class="question-box">
-    <h1>What would you wear to a grocery store at 3am?</h1>
-    <select>
-      <option>A sequined jumpsuit</option>
-      <option>Neon cargo pants and fur coat</option>
-      <option>An LED jacket with platform shoes</option>
-      <option>All of the above, with glitter on top</option>
+  <div class="question-container">
+    <h2>What would you wear to a grocery store at 3am?</h2>
+    <select id="answer">
+      <option value="">-- Select your answer --</option>
+      <option value="A sequined jumpsuit">A sequined jumpsuit</option>
+      <option value="Neon cargo pants and fur coat">Neon cargo pants and fur coat</option>
+      <option value="An LED jacket with platform shoes">An LED jacket with platform shoes</option>
+      <option value="All of the above, with glitter on top">All of the above, with glitter on top</option>
     </select>
     <br />
-    <button onclick="goToNext()">Next</button>
+    <button onclick="validateAndNext()">Next</button>
   </div>
 
   <script>
-    function goToNext() {
-      localStorage.setItem("music-time", document.getElementById("bg-music").currentTime);
-      setTimeout(() => {
-        window.location.href = "allout-q2.html";
-      }, 200);
+    // Music Resume Logic
+    const audio = document.getElementById('bg-music');
+    const lastTime = localStorage.getItem('music-time');
+    if (lastTime) {
+      audio.currentTime = parseFloat(lastTime);
     }
 
-    const audio = document.getElementById("bg-music");
-    const storedTime = localStorage.getItem("music-time");
-
-    if (storedTime && !isNaN(storedTime)) {
-      audio.currentTime = parseFloat(storedTime);
-    }
-
+    audio.volume = 1.0;
     audio.play().catch(() => {});
 
     setInterval(() => {
       if (!audio.paused) {
-        localStorage.setItem("music-time", audio.currentTime);
+        localStorage.setItem('music-time', audio.currentTime);
       }
     }, 500);
+
+    window.addEventListener("beforeunload", () => {
+      localStorage.setItem("music-time", audio.currentTime);
+    });
+
+    // Prevent moving forward without selection
+    function validateAndNext() {
+      const selected = document.getElementById("answer").value;
+      if (!selected) {
+        alert("Please select an answer before moving on.");
+        return;
+      }
+      setTimeout(() => {
+        window.location.href = 'allout-q2.html';
+      }, 300);
+    }
   </script>
 
 </body>
