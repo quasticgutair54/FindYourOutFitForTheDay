@@ -91,15 +91,10 @@
       audio.currentTime = parseFloat(storedTime);
     }
 
-    // Start music on first interaction
-    const tryPlay = () => {
+    window.addEventListener("load", () => {
       audio.play().catch(() => {});
-    };
+    });
 
-    window.addEventListener("DOMContentLoaded", tryPlay);
-    document.addEventListener("click", tryPlay, { once: true });
-
-    // Save music progress
     setInterval(() => {
       if (!audio.paused) {
         localStorage.setItem("music-time", audio.currentTime);
@@ -113,3 +108,4 @@
 
 </body>
 </html>
+
