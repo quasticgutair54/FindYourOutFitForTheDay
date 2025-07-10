@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Somewhat Out - Q1</title>
+  <title>Somewhat Out - Q2</title>
   <link href="https://fonts.googleapis.com/css2?family=Comic+Sans+MS&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Tan+Nimbus&display=swap" rel="stylesheet" />
   <style>
@@ -122,12 +121,12 @@
   <audio id="bg-music" src="running out of time.mp3" loop></audio>
 
   <div class="container">
-    <h1>How would you style a statement blazer?</h1>
+    <h1>Which shoe speaks your vibe?</h1>
     <div class="options">
-      <button class="option-btn" onclick="selectOption(this)">With leather pants and an attitude</button>
-      <button class="option-btn" onclick="selectOption(this)">Over a hoodie because irony</button>
-      <button class="option-btn" onclick="selectOption(this)">With matching statement socks</button>
-      <button class="option-btn" onclick="selectOption(this)">No clue, but I’ll make it work</button>
+      <button class="option-btn" onclick="selectOption(this)">Chunky sneakers that make a statement</button>
+      <button class="option-btn" onclick="selectOption(this)">Loafers, but make it ironic</button>
+      <button class="option-btn" onclick="selectOption(this)">Combat boots for contrast</button>
+      <button class="option-btn" onclick="selectOption(this)">Color-blocked crocs, obviously</button>
     </div>
     <button class="next-btn" onclick="goToNext()">Next</button>
   </div>
@@ -197,10 +196,8 @@
       judgment.style.left = `${x}px`;
       judgment.style.top = `${y}px`;
 
-      // Auto remove after 2s
       setTimeout(() => judgment.remove(), 2000);
 
-      // Show next
       document.querySelector(".next-btn").style.display = "inline-block";
 
       // Micro confetti
@@ -222,9 +219,11 @@
     }
 
     function goToNext() {
-      window.location.href = "somewhatout-q2.html";
+      window.location.href = "somewhatout-q3.html";
     }
   </script>
 
 </body>
 </html>
+
+
