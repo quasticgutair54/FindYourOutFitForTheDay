@@ -4,80 +4,106 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>All Out – Q2</title>
-  <link href="https://fonts.googleapis.com/css2?family=Comic+Sans+MS&family=Tan+Nimbus&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Comic+Sans+MS&family=Tan+Nimbus&display=swap" rel="stylesheet" />
   <style>
     html, body {
       margin: 0;
       padding: 0;
-      font-family: 'Comic Sans MS', cursive;
-      background: linear-gradient(270deg, #fffb00, #ff0080);
+      font-family: 'Tan Nimbus', sans-serif;
+      background: linear-gradient(-45deg, #ff0080, #ffff00, #ff0080, #ffff00);
       background-size: 400% 400%;
-      animation: fireFlow 10s ease infinite;
-      color: black;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      animation: fireflow 12s ease infinite;
       min-height: 100vh;
-      text-align: center;
+      color: black;
     }
 
-    @keyframes fireFlow {
+    @keyframes fireflow {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
 
-    .question-box {
-      background-color: rgba(255, 255, 255, 0.9);
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       padding: 2rem;
-      border-radius: 20px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.1);
-      width: 90%;
-      max-width: 600px;
+      min-height: 100vh;
+      text-align: center;
     }
 
     h1 {
+      font-size: 1.8rem;
       font-family: 'Tan Nimbus', sans-serif;
-      font-weight: bold;
-      font-size: 1.6rem;
-      margin-bottom: 1.5rem;
+      margin-bottom: 2rem;
     }
 
-    select {
-      font-family: 'Comic Sans MS', cursive;
-      font-size: 1rem;
-      padding: 0.6rem;
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
       width: 100%;
-      margin-bottom: 1.5rem;
-      border-radius: 8px;
-      border: 1px solid #888;
+      max-width: 500px;
     }
 
-    button {
-      font-family: 'Tan Nimbus', sans-serif;
+    .option {
+      font-family: 'Comic Sans MS', cursive;
+      padding: 1rem;
+      border-radius: 10px;
+      border: 2px solid black;
+      background: rgba(255,255,255,0.5);
+      cursor: pointer;
+      transition: transform 0.2s, background 0.2s;
+    }
+
+    .option:hover {
+      transform: scale(1.03);
+      background: rgba(255,255,255,0.7);
+    }
+
+    .option.selected {
+      background: rgba(0,0,0,0.9);
+      color: white;
+    }
+
+    #nextBtn {
+      margin-top: 2rem;
+      padding: 0.8rem 2rem;
+      font-size: 1rem;
       background: black;
       color: white;
-      padding: 0.8rem 1.6rem;
       border: none;
       border-radius: 10px;
       cursor: pointer;
-      font-size: 1rem;
-      transition: background 0.3s;
+      display: none;
     }
 
-    button:hover {
-      background: #333;
+    .emoji-pop {
+      font-size: 2rem;
+      animation: pop 0.5s ease-out;
+      position: absolute;
     }
 
-    @media (max-width: 600px) {
-      h1 {
-        font-size: 1.3rem;
-      }
+    @keyframes pop {
+      0% { transform: scale(0); opacity: 0; }
+      100% { transform: scale(1.5); opacity: 1; }
+    }
 
-      button {
-        font-size: 0.9rem;
-        padding: 0.6rem 1.2rem;
-      }
+    .judgment {
+      position: absolute;
+      background: rgba(0,0,0,0.8);
+      color: #fff;
+      padding: 0.7rem 1rem;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      max-width: 250px;
+      animation: fadeIn 0.6s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
@@ -85,52 +111,122 @@
 
 <audio id="bg-music" src="running out of time.mp3" loop></audio>
 
-<div class="question-box">
-  <h1>Your outfit speaks before you do. What does it scream?</h1>
-  <select id="answer">
-    <option value="">Select your answer</option>
-    <option>I’m louder than your playlist</option>
-    <option>Subtlety who?</option>
-    <option>I invented colors</option>
-    <option>Fashion apocalypse survivor</option>
-  </select>
-  <br>
-  <button onclick="goToNext()">Next</button>
+<div class="container">
+  <h1>What's your reaction to a mirror selfie in socks and sandals?</h1>
+
+  <div class="options">
+    <div class="option">Frame it</div>
+    <div class="option">Make it your phone wallpaper</div>
+    <div class="option">Post it with #StyleIcon</div>
+    <div class="option">Already done it, twice</div>
+  </div>
+
+  <button id="nextBtn" onclick="goToNext()">Next</button>
 </div>
 
 <script>
   const audio = document.getElementById("bg-music");
   const storedTime = localStorage.getItem("music-time");
 
-  if (storedTime) {
-    audio.currentTime = parseFloat(storedTime);
-  }
+  if (storedTime) audio.currentTime = parseFloat(storedTime);
+  window.addEventListener("load", () => audio.play().catch(() => {}));
+  setInterval(() => { if (!audio.paused) localStorage.setItem("music-time", audio.currentTime); }, 500);
+  window.addEventListener("beforeunload", () => localStorage.setItem("music-time", audio.currentTime));
 
-  window.addEventListener("load", () => {
-    audio.play().catch(() => {});
-  });
+  const options = document.querySelectorAll(".option");
+  const nextBtn = document.getElementById("nextBtn");
 
-  setInterval(() => {
-    if (!audio.paused) {
-      localStorage.setItem("music-time", audio.currentTime);
-    }
-  }, 500);
+  const sentences = [
+    "Would Jeff Bezos choose this?",
+    "That’s a bold choice… or is it?",
+    "Yikes. Even your shadow disagrees.",
+    "Congrats, you broke the algorithm.",
+    "Braver than the Marines.",
+    "No cap? Full clown mode.",
+    "I met a random guy yesterday who chose better than this.",
+    "This option just reported itself.",
+    "Your outfit chose violence.",
+    "Someone’s definitely overcompensating.",
+    "How to lose friends and scare strangers 101.",
+    "Bold. Questionable. Iconic?",
+    "Honestly, that was unexpected.",
+    "Your ancestors blinked twice.",
+    "This choice just got cancelled.",
+    "Can’t unsee this now.",
+    "Therapist: And how does that make you feel?",
+    "Alexa, delete this option.",
+    "Somewhere, Tim Gunn just fainted.",
+    "Even Crocs have limits."
+  ];
 
-  window.addEventListener("beforeunload", () => {
-    localStorage.setItem("music-time", audio.currentTime);
+  options.forEach(option => {
+    option.addEventListener("click", () => {
+      options.forEach(opt => opt.classList.remove("selected"));
+      option.classList.add("selected");
+
+      showEmoji(option);
+      showRandomJudgment();
+      nextBtn.style.display = "inline-block";
+      launchConfetti();
+    });
   });
 
   function goToNext() {
-    const selected = document.getElementById("answer").value;
-    if (selected === "") {
-      alert("Please select your answer before continuing.");
-      return;
-    }
-    setTimeout(() => {
-      window.location.href = "allout-q3.html";
-    }, 300);
+    window.location.href = "allout-q3.html";
   }
+
+  function showEmoji(el) {
+    const emoji = document.createElement("div");
+    emoji.textContent = "🔥";
+    emoji.classList.add("emoji-pop");
+
+    const rect = el.getBoundingClientRect();
+    emoji.style.left = `${rect.left + rect.width / 2}px`;
+    emoji.style.top = `${rect.top - 30}px`;
+    emoji.style.position = 'fixed';
+
+    document.body.appendChild(emoji);
+    setTimeout(() => emoji.remove(), 1000);
+  }
+
+  function showRandomJudgment() {
+    const judgment = document.createElement("div");
+    judgment.classList.add("judgment");
+    judgment.textContent = sentences[Math.floor(Math.random() * sentences.length)];
+
+    judgment.style.left = `${Math.random() * 80 + 10}%`;
+    judgment.style.top = `${Math.random() * 70 + 10}%`;
+    judgment.style.position = "fixed";
+
+    document.body.appendChild(judgment);
+    setTimeout(() => judgment.remove(), 3000);
+  }
+
+  function launchConfetti() {
+    for (let i = 0; i < 10; i++) {
+      const conf = document.createElement("div");
+      conf.textContent = "✨";
+      conf.style.position = "fixed";
+      conf.style.left = Math.random() * window.innerWidth + "px";
+      conf.style.top = "-20px";
+      conf.style.fontSize = "1.2rem";
+      conf.style.opacity = "0.8";
+      conf.style.animation = `fall ${Math.random() * 2 + 2}s ease-out forwards`;
+      document.body.appendChild(conf);
+
+      conf.addEventListener("animationend", () => conf.remove());
+    }
+  }
+
+  const styleSheet = document.createElement("style");
+  styleSheet.innerHTML = `
+    @keyframes fall {
+      to { transform: translateY(100vh); opacity: 0; }
+    }
+  `;
+  document.head.appendChild(styleSheet);
 </script>
 
 </body>
 </html>
+
