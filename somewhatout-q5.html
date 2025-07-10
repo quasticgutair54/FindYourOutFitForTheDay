@@ -4,22 +4,21 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Somewhat Out - Q5</title>
-  <link href="https://fonts.googleapis.com/css2?family=Comic+Sans+MS&family=Tan+Nimbus&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Comic+Sans+MS&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Tan+Nimbus&display=swap" rel="stylesheet">
   <style>
-    body {
+    html, body {
       margin: 0;
-      font-family: 'Comic Sans MS', cursive, sans-serif;
-      background: linear-gradient(-45deg, #00ffb3, #00d4ff, #00ffb3, #00d4ff);
+      padding: 0;
+      font-family: 'Tan Nimbus', sans-serif;
+      background: linear-gradient(-45deg, #00ff9f, #0061ff, #00ff9f, #0061ff);
       background-size: 400% 400%;
-      animation: fireFlow 8s ease infinite;
-      color: black;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
+      animation: fireFlow 10s infinite linear;
       height: 100vh;
-      padding: 2rem;
-      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: black;
     }
 
     @keyframes fireFlow {
@@ -28,98 +27,197 @@
       100% { background-position: 0% 50%; }
     }
 
+    .container {
+      text-align: center;
+      width: 90%;
+      max-width: 600px;
+    }
+
     h1 {
       font-family: 'Tan Nimbus', sans-serif;
       font-size: 1.8rem;
-      font-weight: bold;
-      margin-bottom: 1.5rem;
+      margin-bottom: 2rem;
     }
 
-    select {
-      font-family: 'Comic Sans MS', cursive, sans-serif;
-      font-size: 1rem;
-      padding: 0.6rem;
-      border-radius: 8px;
-      border: 2px solid #000;
-      margin-bottom: 1.5rem;
-      width: 80%;
-      max-width: 400px;
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
     }
 
-    button {
-      padding: 0.7rem 1.4rem;
+    .option-btn {
+      background-color: rgba(255,255,255,0.25);
+      border: 2px solid black;
+      padding: 1rem;
+      font-family: 'Comic Sans MS', cursive;
       font-size: 1rem;
-      font-weight: bold;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.3s ease;
+      position: relative;
+    }
+
+    .option-btn:hover {
+      background-color: rgba(255,255,255,0.4);
+      transform: translateY(-2px);
+    }
+
+    .emoji {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.4rem;
+    }
+
+    .judgment {
+      position: fixed;
+      background: rgba(0,0,0,0.8);
+      color: #fff;
+      padding: 0.6rem 1rem;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      z-index: 10;
+      animation: floatUp 2s ease-out forwards;
+    }
+
+    @keyframes floatUp {
+      0% { opacity: 0; transform: translateY(20px); }
+      20% { opacity: 1; }
+      100% { opacity: 0; transform: translateY(-40px); }
+    }
+
+    .next-btn {
+      margin-top: 2rem;
+      padding: 0.8rem 2rem;
+      background: black;
+      color: white;
+      font-family: 'Tan Nimbus', sans-serif;
+      font-size: 1rem;
       border: none;
       border-radius: 8px;
-      background-color: black;
-      color: white;
       cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-
-    button:hover {
-      background-color: #333;
+      display: none;
     }
 
     @media (max-width: 600px) {
       h1 {
-        font-size: 1.4rem;
+        font-size: 1.5rem;
       }
-      select {
-        font-size: 0.9rem;
+
+      .option-btn {
+        font-size: 0.95rem;
+        padding: 0.8rem;
       }
-      button {
-        font-size: 0.9rem;
+
+      .next-btn {
+        width: 100%;
       }
     }
   </style>
 </head>
 <body>
 
-  <audio id="bg-music" src="running out of time.mp3" loop></audio>
+<audio id="bg-music" src="running out of time.mp3" loop></audio>
 
-  <h1>Pick a motto:</h1>
+<div class="container">
+  <h1>What’s your relationship with prints?</h1>
+  <div class="options">
+    <button class="option-btn" onclick="selectOption(this)">Graphic tees with meaning</button>
+    <button class="option-btn" onclick="selectOption(this)">Bold but balanced prints</button>
+    <button class="option-btn" onclick="selectOption(this)">Art museum, but wearable</button>
+    <button class="option-btn" onclick="selectOption(this)">Patterns that match the chaos within</button>
+  </div>
+  <button class="next-btn" onclick="goToNext()">See My Result</button>
+</div>
 
-  <select>
-    <option disabled selected>Select your answer</option>
-    <option>Style is strategy</option>
-    <option>I match moods, not trends</option>
-    <option>Half bold, half chill</option>
-    <option>Subtle, not silent</option>
-  </select>
-  <br />
-  <button onclick="goToNext()">Show Result</button>
-
-  <script>
-    function goToNext() {
-      localStorage.setItem("music-time", document.getElementById("bg-music").currentTime);
-      window.location.href = "somewhatout-result.html";
-    }
-
-    const audio = document.getElementById("bg-music");
-    const storedTime = localStorage.getItem("music-time");
-
-    if (storedTime) {
-      audio.currentTime = parseFloat(storedTime);
-    }
-
-    document.addEventListener("click", () => {
-      if (audio.paused) {
-        audio.play().catch(() => {});
-      }
-    }, { once: true });
-
-    setInterval(() => {
-      if (!audio.paused) {
-        localStorage.setItem("music-time", audio.currentTime);
-      }
-    }, 500);
-
-    window.addEventListener("beforeunload", () => {
+<script>
+  const audio = document.getElementById("bg-music");
+  const storedTime = localStorage.getItem("music-time");
+  if (storedTime) audio.currentTime = parseFloat(storedTime);
+  window.addEventListener("load", () => {
+    audio.play().catch(() => {});
+  });
+  setInterval(() => {
+    if (!audio.paused) {
       localStorage.setItem("music-time", audio.currentTime);
+    }
+  }, 500);
+  window.addEventListener("beforeunload", () => {
+    localStorage.setItem("music-time", audio.currentTime);
+  });
+
+  const emojis = ['🖼️','🌀','🎨','💥','🧃'];
+  const judgments = [
+    "Would Jeff Bezos choose this?",
+    "Bold of you to go with that.",
+    "Hey, I met a random guy who picked better.",
+    "Is that your final answer?",
+    "I expected more from someone scanning a T-shirt.",
+    "What the hell are you doing?",
+    "You call this taste?",
+    "Kanye would be disappointed.",
+    "Even your grandma dresses bolder.",
+    "Oof. Risky move.",
+    "Interesting… let’s go with that.",
+    "Okay fashion rebel 👀",
+    "Style icon? Debatable.",
+    "Wow. You’re really doing this.",
+    "Hope this isn’t your first choice always.",
+    "Well, someone had to pick it.",
+    "Ballsy.",
+    "This might start drama.",
+    "All the stylists just gasped.",
+    "You sure tho?"
+  ];
+
+  function selectOption(btn) {
+    document.querySelectorAll(".option-btn").forEach(b => {
+      b.classList.remove("selected");
+      const e = b.querySelector(".emoji");
+      if (e) e.remove();
     });
-  </script>
+
+    btn.classList.add("selected");
+    const emoji = document.createElement("span");
+    emoji.className = "emoji";
+    emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    btn.appendChild(emoji);
+
+    const judgment = document.createElement("div");
+    judgment.className = "judgment";
+    judgment.textContent = judgments[Math.floor(Math.random() * judgments.length)];
+    document.body.appendChild(judgment);
+    judgment.style.left = Math.random() * (window.innerWidth - 200) + 'px';
+    judgment.style.top = Math.random() * (window.innerHeight - 100) + 'px';
+    setTimeout(() => judgment.remove(), 2000);
+
+    document.querySelector(".next-btn").style.display = "inline-block";
+
+    // Micro confetti
+    for (let i = 0; i < 20; i++) {
+      const c = document.createElement("div");
+      c.style.position = "fixed";
+      c.style.width = "6px";
+      c.style.height = "6px";
+      c.style.borderRadius = "50%";
+      c.style.background = `hsl(${Math.random() * 360}, 80%, 60%)`;
+      c.style.left = `${Math.random() * 100}%`;
+      c.style.top = `${Math.random() * 100}%`;
+      c.style.animation = `float ${1 + Math.random()}s ease-out forwards`;
+      c.style.opacity = 0.7;
+      c.style.zIndex = 999;
+      document.body.appendChild(c);
+      setTimeout(() => c.remove(), 1200);
+    }
+  }
+
+  function goToNext() {
+    window.location.href = "somewhatout-result.html";
+  }
+</script>
+
 </body>
 </html>
+
 
