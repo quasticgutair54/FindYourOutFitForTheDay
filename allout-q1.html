@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>All Out – Q1</title>
+  <title>Somewhat Out – Q1</title>
   <link href="https://fonts.googleapis.com/css2?family=Comic+Sans+MS&family=Tan+Nimbus&display=swap" rel="stylesheet" />
   <style>
     html, body {
       margin: 0;
       padding: 0;
       font-family: 'Tan Nimbus', sans-serif;
-      background: linear-gradient(-45deg, #ff0080, #ffff00, #ff0080, #ffff00);
+      background: linear-gradient(-45deg, #00c3ff, #00ff88, #00c3ff, #00ff88);
       background-size: 400% 400%;
       animation: fireflow 12s ease infinite;
       min-height: 100vh;
@@ -91,7 +91,7 @@
     }
 
     .judgment {
-      position: absolute;
+      position: fixed;
       background: rgba(0,0,0,0.8);
       color: #fff;
       padding: 0.7rem 1rem;
@@ -99,6 +99,7 @@
       font-size: 0.9rem;
       max-width: 250px;
       animation: fadeIn 0.6s ease;
+      z-index: 1000;
     }
 
     @keyframes fadeIn {
@@ -112,13 +113,13 @@
 <audio id="bg-music" src="running out of time.mp3" loop></audio>
 
 <div class="container">
-  <h1>What would you wear to a grocery store at 3AM?</h1>
+  <h1>What’s your default reaction to a fashion compliment?</h1>
 
   <div class="options">
-    <div class="option">A sequined jumpsuit</div>
-    <div class="option">Neon cargo pants and fur coat</div>
-    <div class="option">An LED jacket with platform shoes</div>
-    <div class="option">All of the above, with glitter on top</div>
+    <div class="option">“I know, right?”</div>
+    <div class="option">“It’s just something I threw on…”</div>
+    <div class="option">“Got it on sale but made it fashion.”</div>
+    <div class="option">Nod humbly, but scream inside.</div>
   </div>
 
   <button id="nextBtn" onclick="goToNext()">Next</button>
@@ -127,7 +128,6 @@
 <script>
   const audio = document.getElementById("bg-music");
   const storedTime = localStorage.getItem("music-time");
-
   if (storedTime) audio.currentTime = parseFloat(storedTime);
   window.addEventListener("load", () => audio.play().catch(() => {}));
   setInterval(() => { if (!audio.paused) localStorage.setItem("music-time", audio.currentTime); }, 500);
@@ -172,12 +172,12 @@
   });
 
   function goToNext() {
-    window.location.href = "allout-q2.html";
+    window.location.href = "somewhatout-q2.html";
   }
 
   function showEmoji(el) {
     const emoji = document.createElement("div");
-    emoji.textContent = "🔥";
+    emoji.textContent = "✨";
     emoji.classList.add("emoji-pop");
 
     const rect = el.getBoundingClientRect();
@@ -196,8 +196,6 @@
 
     judgment.style.left = `${Math.random() * 80 + 10}%`;
     judgment.style.top = `${Math.random() * 70 + 10}%`;
-    judgment.style.position = "fixed";
-
     document.body.appendChild(judgment);
     setTimeout(() => judgment.remove(), 3000);
   }
@@ -205,7 +203,7 @@
   function launchConfetti() {
     for (let i = 0; i < 10; i++) {
       const conf = document.createElement("div");
-      conf.textContent = "✨";
+      conf.textContent = "🎉";
       conf.style.position = "fixed";
       conf.style.left = Math.random() * window.innerWidth + "px";
       conf.style.top = "-20px";
@@ -218,7 +216,6 @@
     }
   }
 
-  // Confetti falling animation
   const styleSheet = document.createElement("style");
   styleSheet.innerHTML = `
     @keyframes fall {
@@ -230,6 +227,7 @@
 
 </body>
 </html>
+
 
 
 
