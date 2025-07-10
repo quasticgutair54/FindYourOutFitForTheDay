@@ -3,25 +3,25 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Somewhat Out - Q1</title>
-  <link href="https://fonts.googleapis.com/css2?family=Comic+Sans+MS&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Tan+Nimbus&display=swap" rel="stylesheet" />
+  <title>Somewhat Out – Q2</title>
+  <link href="https://fonts.googleapis.com/css2?family=Comic+Sans+MS&family=Tan+Nimbus&display=swap" rel="stylesheet">
   <style>
     html, body {
       margin: 0;
       padding: 0;
       font-family: 'Tan Nimbus', sans-serif;
-      background: radial-gradient(circle at center, #00ff9f, #0061ff);
-      animation: flow 8s infinite linear;
+      height: 100vh;
+      background: linear-gradient(-45deg, #ffe2ec, #c5fff8, #ffefd6, #ffe1e1);
       background-size: 400% 400%;
-      min-height: 100vh;
+      animation: gradientFlow 12s ease infinite;
       display: flex;
-      align-items: center;
       justify-content: center;
+      align-items: center;
       color: black;
+      overflow: hidden;
     }
 
-    @keyframes flow {
+    @keyframes gradientFlow {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
@@ -30,12 +30,13 @@
     .container {
       text-align: center;
       width: 90%;
-      max-width: 600px;
+      max-width: 800px;
     }
 
     h1 {
-      font-size: 1.8rem;
       font-family: 'Tan Nimbus', sans-serif;
+      font-size: 2rem;
+      font-weight: bold;
       margin-bottom: 2rem;
     }
 
@@ -45,74 +46,64 @@
       gap: 1rem;
     }
 
-    .option-btn {
-      background-color: rgba(255, 255, 255, 0.3);
-      border: 2px solid black;
+    .option {
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      background-color: rgba(255,255,255,0.65);
       padding: 1rem;
-      font-family: 'Comic Sans MS', cursive;
-      font-size: 1rem;
+      border-radius: 12px;
       cursor: pointer;
-      border-radius: 10px;
-      transition: 0.3s ease;
-      position: relative;
+      transition: background 0.3s ease;
+      font-size: 1.1rem;
     }
 
-    .option-btn:hover {
-      background-color: rgba(255, 255, 255, 0.5);
-      transform: translateY(-2px);
-    }
-
-    .emoji {
-      position: absolute;
-      right: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 1.5rem;
-    }
-
-    .judgment {
-      position: fixed;
-      background: rgba(0,0,0,0.8);
-      color: #fff;
-      padding: 0.6rem 1rem;
-      border-radius: 10px;
-      font-size: 0.9rem;
-      z-index: 10;
-      animation: floatUp 2s ease-out forwards;
-    }
-
-    @keyframes floatUp {
-      0% { opacity: 0; transform: translateY(20px); }
-      20% { opacity: 1; }
-      100% { opacity: 0; transform: translateY(-40px); }
+    .option:hover {
+      background-color: rgba(255,255,255,0.85);
     }
 
     .next-btn {
       margin-top: 2rem;
-      padding: 0.8rem 2rem;
+      padding: 0.8rem 1.5rem;
+      font-size: 1rem;
+      font-weight: bold;
       background: black;
       color: white;
-      font-family: 'Tan Nimbus', sans-serif;
-      font-size: 1rem;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
       cursor: pointer;
       display: none;
     }
 
+    .emoji {
+      font-size: 2rem;
+      position: absolute;
+      animation: floatUp 1s ease forwards;
+    }
+
+    @keyframes floatUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(-30px); }
+    }
+
+    .judgment {
+      position: absolute;
+      background: rgba(255,255,255,0.9);
+      color: black;
+      padding: 0.5rem 1rem;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      max-width: 200px;
+      animation: fadeIn 1s ease-out forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
     @media (max-width: 600px) {
-      h1 {
-        font-size: 1.4rem;
-      }
-
-      .option-btn {
-        font-size: 0.95rem;
-        padding: 0.8rem;
-      }
-
-      .next-btn {
-        width: 100%;
-      }
+      h1 { font-size: 1.4rem; }
+      .option { font-size: 1rem; }
+      .next-btn { font-size: 0.9rem; }
     }
   </style>
 </head>
@@ -121,22 +112,106 @@
   <audio id="bg-music" src="running out of time.mp3" loop></audio>
 
   <div class="container">
-    <h1>How would you style a statement blazer?</h1>
+    <h1>If your outfit could talk, what would it say?</h1>
     <div class="options">
-      <button class="option-btn" onclick="selectOption(this)">With leather pants and an attitude</button>
-      <button class="option-btn" onclick="selectOption(this)">Over a hoodie because irony</button>
-      <button class="option-btn" onclick="selectOption(this)">With matching statement socks</button>
-      <button class="option-btn" onclick="selectOption(this)">No clue, but I’ll make it work</button>
+      <div class="option">“Look but don’t copy.”</div>
+      <div class="option">“It’s giving main character.”</div>
+      <div class="option">“I tried, but make it effortless.”</div>
+      <div class="option">“All vibes. No rules.”</div>
     </div>
-    <button class="next-btn" onclick="goToNext()">Next</button>
+    <button class="next-btn" onclick="goToNext('somewhatout-q3.html')">Next</button>
   </div>
 
   <script>
+    const options = document.querySelectorAll('.option');
+    const nextBtn = document.querySelector('.next-btn');
+    const body = document.body;
+
+    const emojis = ['💃','😎','🧢','👑','🎭'];
+    const judgments = [
+      "Would Jeff Bezos choose this?",
+      "This choice is... something.",
+      "You okay, bestie?",
+      "Even your ex chose better.",
+      "Brave. Bold. Maybe bad.",
+      "Was this a dare?",
+      "That’s... a statement.",
+      "Hope you’re proud of this.",
+      "No words. Literally.",
+      "This ain’t it.",
+      "Yikes in HD.",
+      "Is this a cry for help?",
+      "You tried. Kinda.",
+      "Wow. Just wow.",
+      "Siri, how to dress like a disaster?",
+      "Bold of you to assume this works.",
+      "Do you want to be seen?",
+      "Even a coin toss would do better.",
+      "You just invented a new level.",
+      "That’s fashion? Allegedly."
+    ];
+
+    function randomPosition() {
+      const top = Math.random() * 80 + 5;
+      const left = Math.random() * 80 + 5;
+      return { top, left };
+    }
+
+    options.forEach(option => {
+      option.addEventListener('click', () => {
+        options.forEach(opt => opt.style.border = 'none');
+        option.style.border = '2px solid black';
+        nextBtn.style.display = 'inline-block';
+
+        // Add emoji
+        const emoji = document.createElement('div');
+        emoji.className = 'emoji';
+        emoji.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+        emoji.style.left = `${option.offsetLeft + option.offsetWidth / 2}px`;
+        emoji.style.top = `${option.offsetTop}px`;
+        body.appendChild(emoji);
+
+        // Add floating judgment
+        const judgment = document.createElement('div');
+        judgment.className = 'judgment';
+        judgment.innerText = judgments[Math.floor(Math.random() * judgments.length)];
+        const pos = randomPosition();
+        judgment.style.top = `${pos.top}%`;
+        judgment.style.left = `${pos.left}%`;
+        body.appendChild(judgment);
+
+        // Confetti
+        for (let i = 0; i < 15; i++) {
+          const conf = document.createElement('div');
+          conf.style.position = 'absolute';
+          conf.style.width = '6px';
+          conf.style.height = '6px';
+          conf.style.borderRadius = '50%';
+          conf.style.background = `hsl(${Math.random()*360}, 100%, 60%)`;
+          conf.style.left = `${Math.random()*100}%`;
+          conf.style.top = `${Math.random()*100}%`;
+          conf.style.opacity = 0.7;
+          conf.style.transition = 'all 1s ease-out';
+          body.appendChild(conf);
+          setTimeout(() => {
+            conf.style.transform = `translateY(${Math.random()*-80}px)`;
+            conf.style.opacity = 0;
+          }, 10);
+        }
+      });
+    });
+
+    function goToNext(url) {
+      localStorage.setItem("music-time", document.getElementById("bg-music").currentTime);
+      setTimeout(() => {
+        window.location.href = url;
+      }, 300);
+    }
+
     const audio = document.getElementById("bg-music");
     const storedTime = localStorage.getItem("music-time");
-
     if (storedTime) audio.currentTime = parseFloat(storedTime);
-    window.addEventListener("load", () => {
+    window.addEventListener("DOMContentLoaded", () => {
       audio.play().catch(() => {});
     });
     setInterval(() => {
@@ -144,88 +219,10 @@
         localStorage.setItem("music-time", audio.currentTime);
       }
     }, 500);
-    window.addEventListener("beforeunload", () => {
-      localStorage.setItem("music-time", audio.currentTime);
-    });
-
-    const emojis = ['🔥', '😎', '🤯', '💅', '🎯'];
-    const judgments = [
-      "Would Jeff Bezos choose this?",
-      "Bold of you to go with that.",
-      "Hey, I met a random guy who picked better.",
-      "Is that your final answer?",
-      "I expected more from someone scanning a T-shirt.",
-      "What the hell are you doing?",
-      "You call this taste?",
-      "Kanye would be disappointed.",
-      "Even your grandma dresses bolder.",
-      "Oof. Risky move.",
-      "Interesting… let’s go with that.",
-      "Okay fashion rebel 👀",
-      "Style icon? Debatable.",
-      "Wow. You’re really doing this.",
-      "Hope this isn’t your first choice always.",
-      "Well, someone had to pick it.",
-      "Ballsy.",
-      "This might start drama.",
-      "All the stylists just gasped.",
-      "You sure tho?"
-    ];
-
-    function selectOption(btn) {
-      document.querySelectorAll(".option-btn").forEach(b => {
-        b.classList.remove("selected");
-        const emoji = b.querySelector(".emoji");
-        if (emoji) emoji.remove();
-      });
-      btn.classList.add("selected");
-
-      // Add emoji
-      const emoji = document.createElement("span");
-      emoji.className = "emoji";
-      emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-      btn.appendChild(emoji);
-
-      // Add floating judgment
-      const judgment = document.createElement("div");
-      judgment.className = "judgment";
-      judgment.textContent = judgments[Math.floor(Math.random() * judgments.length)];
-      document.body.appendChild(judgment);
-      const x = Math.random() * (window.innerWidth - 200);
-      const y = Math.random() * (window.innerHeight - 100);
-      judgment.style.left = `${x}px`;
-      judgment.style.top = `${y}px`;
-
-      // Auto remove after 2s
-      setTimeout(() => judgment.remove(), 2000);
-
-      // Show next
-      document.querySelector(".next-btn").style.display = "inline-block";
-
-      // Micro confetti
-      for (let i = 0; i < 20; i++) {
-        const confetti = document.createElement("div");
-        confetti.style.position = "fixed";
-        confetti.style.width = "6px";
-        confetti.style.height = "6px";
-        confetti.style.borderRadius = "50%";
-        confetti.style.background = `hsl(${Math.random() * 360}, 80%, 60%)`;
-        confetti.style.left = `${Math.random() * 100}%`;
-        confetti.style.top = `${Math.random() * 100}%`;
-        confetti.style.animation = `float ${1 + Math.random()}s ease-out forwards`;
-        confetti.style.opacity = 0.7;
-        confetti.style.zIndex = 999;
-        document.body.appendChild(confetti);
-        setTimeout(() => confetti.remove(), 1200);
-      }
-    }
-
-    function goToNext() {
-      window.location.href = "somewhatout-q2.html";
-    }
   </script>
 
 </body>
 </html>
+
 
 
