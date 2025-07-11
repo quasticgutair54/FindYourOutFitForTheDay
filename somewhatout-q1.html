@@ -3,68 +3,75 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Somewhat Out – Q2</title>
-  <link href="https://fonts.googleapis.com/css2?family=Comic+Sans+MS&family=Tan+Nimbus&display=swap" rel="stylesheet">
+  <title>Somewhat Out – Q1</title>
+  <link href="https://fonts.googleapis.com/css2?family=Comic+Sans+MS&family=Tan+Nimbus&display=swap" rel="stylesheet" />
   <style>
     html, body {
       margin: 0;
       padding: 0;
       font-family: 'Tan Nimbus', sans-serif;
-      height: 100vh;
-      background: linear-gradient(-45deg, #ffe2ec, #c5fff8, #ffefd6, #ffe1e1);
+      background: linear-gradient(-45deg, #00ffcc, #00ff00, #00ccff, #00ffcc);
       background-size: 400% 400%;
-      animation: gradientFlow 12s ease infinite;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      animation: fireflow 12s ease infinite;
+      min-height: 100vh;
       color: black;
-      overflow: hidden;
     }
 
-    @keyframes gradientFlow {
+    @keyframes fireflow {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
 
     .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      min-height: 100vh;
       text-align: center;
-      width: 90%;
-      max-width: 800px;
     }
 
     h1 {
+      font-size: 1.8rem;
       font-family: 'Tan Nimbus', sans-serif;
-      font-size: 2rem;
-      font-weight: bold;
       margin-bottom: 2rem;
+      color: black;
     }
 
     .options {
       display: flex;
       flex-direction: column;
       gap: 1rem;
+      width: 100%;
+      max-width: 500px;
     }
 
     .option {
-      font-family: 'Comic Sans MS', cursive, sans-serif;
-      background-color: rgba(255,255,255,0.65);
+      font-family: 'Comic Sans MS', cursive;
       padding: 1rem;
-      border-radius: 12px;
+      border-radius: 10px;
+      border: 2px solid black;
+      background: rgba(255,255,255,0.3);
       cursor: pointer;
-      transition: background 0.3s ease;
-      font-size: 1.1rem;
+      transition: transform 0.2s, background 0.2s;
     }
 
     .option:hover {
-      background-color: rgba(255,255,255,0.85);
+      transform: scale(1.03);
+      background: rgba(255,255,255,0.5);
     }
 
-    .next-btn {
+    .option.selected {
+      background: rgba(0,0,0,0.9);
+      color: white;
+    }
+
+    #nextBtn {
       margin-top: 2rem;
-      padding: 0.8rem 1.5rem;
+      padding: 0.8rem 2rem;
       font-size: 1rem;
-      font-weight: bold;
       background: black;
       color: white;
       border: none;
@@ -73,156 +80,153 @@
       display: none;
     }
 
-    .emoji {
+    .emoji-pop {
       font-size: 2rem;
+      animation: pop 0.5s ease-out;
       position: absolute;
-      animation: floatUp 1s ease forwards;
     }
 
-    @keyframes floatUp {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(-30px); }
+    @keyframes pop {
+      0% { transform: scale(0); opacity: 0; }
+      100% { transform: scale(1.5); opacity: 1; }
     }
 
     .judgment {
-      position: absolute;
-      background: rgba(255,255,255,0.9);
-      color: black;
-      padding: 0.5rem 1rem;
+      position: fixed;
+      background: rgba(0,0,0,0.85);
+      color: #fff;
+      padding: 0.7rem 1rem;
       border-radius: 10px;
       font-size: 0.9rem;
-      max-width: 200px;
-      animation: fadeIn 1s ease-out forwards;
+      max-width: 250px;
+      animation: fadeIn 0.6s ease;
+      z-index: 1000;
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    @media (max-width: 600px) {
-      h1 { font-size: 1.4rem; }
-      .option { font-size: 1rem; }
-      .next-btn { font-size: 0.9rem; }
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
 <body>
 
-  <audio id="bg-music" src="running out of time.mp3" loop></audio>
+<audio id="bg-music" src="running out of time.mp3" loop></audio>
 
-  <div class="container">
-    <h1>If your outfit could talk, what would it say?</h1>
-    <div class="options">
-      <div class="option">“Look but don’t copy.”</div>
-      <div class="option">“It’s giving main character.”</div>
-      <div class="option">“I tried, but make it effortless.”</div>
-      <div class="option">“All vibes. No rules.”</div>
-    </div>
-    <button class="next-btn" onclick="goToNext('somewhatout-q3.html')">Next</button>
+<div class="container">
+  <h1>What’s your default reaction to a fashion compliment?</h1>
+
+  <div class="options">
+    <div class="option">“I know, right?”</div>
+    <div class="option">“It’s just something I threw on…”</div>
+    <div class="option">“Got it on sale but made it fashion.”</div>
+    <div class="option">Nod humbly, but scream inside.</div>
   </div>
 
-  <script>
-    const options = document.querySelectorAll('.option');
-    const nextBtn = document.querySelector('.next-btn');
-    const body = document.body;
+  <button id="nextBtn" onclick="goToNext()">Next</button>
+</div>
 
-    const emojis = ['💃','😎','🧢','👑','🎭'];
-    const judgments = [
-      "Would Jeff Bezos choose this?",
-      "This choice is... something.",
-      "You okay, bestie?",
-      "Even your ex chose better.",
-      "Brave. Bold. Maybe bad.",
-      "Was this a dare?",
-      "That’s... a statement.",
-      "Hope you’re proud of this.",
-      "No words. Literally.",
-      "This ain’t it.",
-      "Yikes in HD.",
-      "Is this a cry for help?",
-      "You tried. Kinda.",
-      "Wow. Just wow.",
-      "Siri, how to dress like a disaster?",
-      "Bold of you to assume this works.",
-      "Do you want to be seen?",
-      "Even a coin toss would do better.",
-      "You just invented a new level.",
-      "That’s fashion? Allegedly."
-    ];
+<script>
+  const audio = document.getElementById("bg-music");
+  const storedTime = localStorage.getItem("music-time");
+  if (storedTime) audio.currentTime = parseFloat(storedTime);
+  window.addEventListener("load", () => audio.play().catch(() => {}));
+  setInterval(() => { if (!audio.paused) localStorage.setItem("music-time", audio.currentTime); }, 500);
+  window.addEventListener("beforeunload", () => localStorage.setItem("music-time", audio.currentTime));
 
-    function randomPosition() {
-      const top = Math.random() * 80 + 5;
-      const left = Math.random() * 80 + 5;
-      return { top, left };
-    }
+  const options = document.querySelectorAll(".option");
+  const nextBtn = document.getElementById("nextBtn");
 
-    options.forEach(option => {
-      option.addEventListener('click', () => {
-        options.forEach(opt => opt.style.border = 'none');
-        option.style.border = '2px solid black';
-        nextBtn.style.display = 'inline-block';
+  const sentences = [
+    "Would Jeff Bezos choose this?",
+    "That’s a bold choice… or is it?",
+    "Yikes. Even your shadow disagrees.",
+    "Congrats, you broke the algorithm.",
+    "Braver than the Marines.",
+    "No cap? Full clown mode.",
+    "I met a random guy yesterday who chose better than this.",
+    "This option just reported itself.",
+    "Your outfit chose violence.",
+    "Someone’s definitely overcompensating.",
+    "How to lose friends and scare strangers 101.",
+    "Bold. Questionable. Iconic?",
+    "Honestly, that was unexpected.",
+    "Your ancestors blinked twice.",
+    "This choice just got cancelled.",
+    "Can’t unsee this now.",
+    "Therapist: And how does that make you feel?",
+    "Alexa, delete this option.",
+    "Somewhere, Tim Gunn just fainted.",
+    "Even Crocs have limits."
+  ];
 
-        // Add emoji
-        const emoji = document.createElement('div');
-        emoji.className = 'emoji';
-        emoji.innerText = emojis[Math.floor(Math.random() * emojis.length)];
-        emoji.style.left = `${option.offsetLeft + option.offsetWidth / 2}px`;
-        emoji.style.top = `${option.offsetTop}px`;
-        body.appendChild(emoji);
+  options.forEach(option => {
+    option.addEventListener("click", () => {
+      options.forEach(opt => opt.classList.remove("selected"));
+      option.classList.add("selected");
 
-        // Add floating judgment
-        const judgment = document.createElement('div');
-        judgment.className = 'judgment';
-        judgment.innerText = judgments[Math.floor(Math.random() * judgments.length)];
-        const pos = randomPosition();
-        judgment.style.top = `${pos.top}%`;
-        judgment.style.left = `${pos.left}%`;
-        body.appendChild(judgment);
-
-        // Confetti
-        for (let i = 0; i < 15; i++) {
-          const conf = document.createElement('div');
-          conf.style.position = 'absolute';
-          conf.style.width = '6px';
-          conf.style.height = '6px';
-          conf.style.borderRadius = '50%';
-          conf.style.background = `hsl(${Math.random()*360}, 100%, 60%)`;
-          conf.style.left = `${Math.random()*100}%`;
-          conf.style.top = `${Math.random()*100}%`;
-          conf.style.opacity = 0.7;
-          conf.style.transition = 'all 1s ease-out';
-          body.appendChild(conf);
-          setTimeout(() => {
-            conf.style.transform = `translateY(${Math.random()*-80}px)`;
-            conf.style.opacity = 0;
-          }, 10);
-        }
-      });
+      showEmoji(option);
+      showRandomJudgment();
+      nextBtn.style.display = "inline-block";
+      launchConfetti();
     });
+  });
 
-    function goToNext(url) {
-      localStorage.setItem("music-time", document.getElementById("bg-music").currentTime);
-      setTimeout(() => {
-        window.location.href = url;
-      }, 300);
+  function goToNext() {
+    window.location.href = "somewhatout-q2.html";
+  }
+
+  function showEmoji(el) {
+    const emoji = document.createElement("div");
+    emoji.textContent = "🧊";
+    emoji.classList.add("emoji-pop");
+
+    const rect = el.getBoundingClientRect();
+    emoji.style.left = `${rect.left + rect.width / 2}px`;
+    emoji.style.top = `${rect.top - 30}px`;
+    emoji.style.position = 'fixed';
+
+    document.body.appendChild(emoji);
+    setTimeout(() => emoji.remove(), 1000);
+  }
+
+  function showRandomJudgment() {
+    const judgment = document.createElement("div");
+    judgment.classList.add("judgment");
+    judgment.textContent = sentences[Math.floor(Math.random() * sentences.length)];
+    judgment.style.left = `${Math.random() * 80 + 10}%`;
+    judgment.style.top = `${Math.random() * 70 + 10}%`;
+    document.body.appendChild(judgment);
+    setTimeout(() => judgment.remove(), 3000);
+  }
+
+  function launchConfetti() {
+    for (let i = 0; i < 10; i++) {
+      const conf = document.createElement("div");
+      conf.textContent = "✨";
+      conf.style.position = "fixed";
+      conf.style.left = Math.random() * window.innerWidth + "px";
+      conf.style.top = "-20px";
+      conf.style.fontSize = "1.2rem";
+      conf.style.opacity = "0.8";
+      conf.style.animation = `fall ${Math.random() * 2 + 2}s ease-out forwards`;
+      document.body.appendChild(conf);
+      conf.addEventListener("animationend", () => conf.remove());
     }
+  }
 
-    const audio = document.getElementById("bg-music");
-    const storedTime = localStorage.getItem("music-time");
-    if (storedTime) audio.currentTime = parseFloat(storedTime);
-    window.addEventListener("DOMContentLoaded", () => {
-      audio.play().catch(() => {});
-    });
-    setInterval(() => {
-      if (!audio.paused) {
-        localStorage.setItem("music-time", audio.currentTime);
-      }
-    }, 500);
-  </script>
+  const styleSheet = document.createElement("style");
+  styleSheet.innerHTML = `
+    @keyframes fall {
+      to { transform: translateY(100vh); opacity: 0; }
+    }
+  `;
+  document.head.appendChild(styleSheet);
+</script>
 
 </body>
 </html>
+
 
 
 
