@@ -3,39 +3,39 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Somewhat Out - Q3</title>
-  <link href="https://fonts.googleapis.com/css2?family=Comic+Sans+MS&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Tan+Nimbus&display=swap" rel="stylesheet">
+  <title>Somewhat Out – Q3</title>
+  <link href="https://fonts.googleapis.com/css2?family=Comic+Sans+MS&family=Tan+Nimbus&display=swap" rel="stylesheet" />
   <style>
     html, body {
       margin: 0;
       padding: 0;
       font-family: 'Tan Nimbus', sans-serif;
-      background: linear-gradient(-45deg, #00ff9f, #0061ff, #00ff9f, #0061ff);
+      background: linear-gradient(-45deg, #00ffcc, #00ff00, #00ccff, #00ffcc);
       background-size: 400% 400%;
-      animation: fireFlow 10s infinite linear;
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      animation: fireflow 12s ease infinite;
+      min-height: 100vh;
       color: black;
     }
 
-    @keyframes fireFlow {
+    @keyframes fireflow {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
 
     .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      min-height: 100vh;
       text-align: center;
-      width: 90%;
-      max-width: 600px;
     }
 
     h1 {
-      font-family: 'Tan Nimbus', sans-serif;
       font-size: 1.8rem;
+      font-family: 'Tan Nimbus', sans-serif;
       margin-bottom: 2rem;
     }
 
@@ -43,76 +43,68 @@
       display: flex;
       flex-direction: column;
       gap: 1rem;
+      width: 100%;
+      max-width: 500px;
     }
 
-    .option-btn {
-      background-color: rgba(255,255,255,0.25);
-      border: 2px solid black;
-      padding: 1rem;
+    .option {
       font-family: 'Comic Sans MS', cursive;
-      font-size: 1rem;
+      padding: 1rem;
       border-radius: 10px;
+      border: 2px solid black;
+      background: rgba(255,255,255,0.3);
       cursor: pointer;
-      transition: 0.3s ease;
-      position: relative;
+      transition: transform 0.2s, background 0.2s;
     }
 
-    .option-btn:hover {
-      background-color: rgba(255,255,255,0.4);
-      transform: translateY(-2px);
+    .option:hover {
+      transform: scale(1.03);
+      background: rgba(255,255,255,0.5);
     }
 
-    .emoji {
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 1.4rem;
+    .option.selected {
+      background: rgba(0,0,0,0.9);
+      color: white;
     }
 
-    .judgment {
-      position: fixed;
-      background: rgba(0,0,0,0.8);
-      color: #fff;
-      padding: 0.6rem 1rem;
-      border-radius: 10px;
-      font-size: 0.9rem;
-      z-index: 10;
-      animation: floatUp 2s ease-out forwards;
-    }
-
-    @keyframes floatUp {
-      0% { opacity: 0; transform: translateY(20px); }
-      20% { opacity: 1; }
-      100% { opacity: 0; transform: translateY(-40px); }
-    }
-
-    .next-btn {
+    #nextBtn {
       margin-top: 2rem;
       padding: 0.8rem 2rem;
+      font-size: 1rem;
       background: black;
       color: white;
-      font-family: 'Tan Nimbus', sans-serif;
-      font-size: 1rem;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
       cursor: pointer;
       display: none;
     }
 
-    @media (max-width: 600px) {
-      h1 {
-        font-size: 1.5rem;
-      }
+    .emoji-pop {
+      font-size: 2rem;
+      animation: pop 0.5s ease-out;
+      position: absolute;
+    }
 
-      .option-btn {
-        font-size: 0.95rem;
-        padding: 0.8rem;
-      }
+    @keyframes pop {
+      0% { transform: scale(0); opacity: 0; }
+      100% { transform: scale(1.5); opacity: 1; }
+    }
 
-      .next-btn {
-        width: 100%;
-      }
+    .judgment {
+      position: fixed;
+      background: rgba(0,0,0,0.85);
+      color: #fff;
+      padding: 0.7rem 1rem;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      max-width: 250px;
+      animation: fadeIn 0.6s ease;
+      z-index: 1000;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
@@ -121,64 +113,118 @@
 <audio id="bg-music" src="running out of time.mp3" loop></audio>
 
 <div class="container">
-  <h1>Which print pattern best defines your indecision?</h1>
+  <h1>Your ideal statement piece is...</h1>
+
   <div class="options">
-    <button class="option-btn" onclick="selectOption(this)">Half zebra, half polka-dot</button>
-    <button class="option-btn" onclick="selectOption(this)">Floral camo with glitch effect</button>
-    <button class="option-btn" onclick="selectOption(this)">Minimalist stripes in neon</button>
-    <button class="option-btn" onclick="selectOption(this)">Checkered chaos (yes, that’s a thing)</button>
+    <div class="option">Metallic pants with poetry on them</div>
+    <div class="option">Custom jacket with 5 zippers</div>
+    <div class="option">Tie-dye sneakers that talk (not literally)</div>
+    <div class="option">Vintage cape from a flea market</div>
   </div>
-  <button class="next-btn" onclick="goToNext()">Next</button>
+
+  <button id="nextBtn" onclick="goToNext()">Next</button>
 </div>
 
 <script>
   const audio = document.getElementById("bg-music");
   const storedTime = localStorage.getItem("music-time");
   if (storedTime) audio.currentTime = parseFloat(storedTime);
-  window.addEventListener("load", () => {
-    audio.play().catch(() => {});
-  });
-  setInterval(() => {
-    if (!audio.paused) {
-      localStorage.setItem("music-time", audio.currentTime);
-    }
-  }, 500);
-  window.addEventListener("beforeunload", () => {
-    localStorage.setItem("music-time", audio.currentTime);
-  });
+  window.addEventListener("load", () => audio.play().catch(() => {}));
+  setInterval(() => { if (!audio.paused) localStorage.setItem("music-time", audio.currentTime); }, 500);
+  window.addEventListener("beforeunload", () => localStorage.setItem("music-time", audio.currentTime));
 
-  const emojis = ['🤡','😵','😏','💥','🧩'];
-  const judgments = [
+  const options = document.querySelectorAll(".option");
+  const nextBtn = document.getElementById("nextBtn");
+
+  const sentences = [
     "Would Jeff Bezos choose this?",
-    "Bold of you to go with that.",
-    "Hey, I met a random guy who picked better.",
-    "Is that your final answer?",
-    "I expected more from someone scanning a T-shirt.",
-    "What the hell are you doing?",
-    "You call this taste?",
-    "Kanye would be disappointed.",
-    "Even your grandma dresses bolder.",
-    "Oof. Risky move.",
-    "Interesting… let’s go with that.",
-    "Okay fashion rebel 👀",
-    "Style icon? Debatable.",
-    "Wow. You’re really doing this.",
-    "Hope this isn’t your first choice always.",
-    "Well, someone had to pick it.",
-    "Ballsy.",
-    "This might start drama.",
-    "All the stylists just gasped.",
-    "You sure tho?"
+    "That’s a bold choice… or is it?",
+    "Yikes. Even your shadow disagrees.",
+    "Congrats, you broke the algorithm.",
+    "Braver than the Marines.",
+    "No cap? Full clown mode.",
+    "I met a random guy yesterday who chose better than this.",
+    "This option just reported itself.",
+    "Your outfit chose violence.",
+    "Someone’s definitely overcompensating.",
+    "How to lose friends and scare strangers 101.",
+    "Bold. Questionable. Iconic?",
+    "Honestly, that was unexpected.",
+    "Your ancestors blinked twice.",
+    "This choice just got cancelled.",
+    "Can’t unsee this now.",
+    "Therapist: And how does that make you feel?",
+    "Alexa, delete this option.",
+    "Somewhere, Tim Gunn just fainted.",
+    "Even Crocs have limits."
   ];
 
-  function selectOption(btn) {
-    document.querySelectorAll(".option-btn").forEach(b => {
-      b.classList.remove("selected");
-      const e = b.querySelector(".emoji");
-      if (e) e.remove();
-    });
+  options.forEach(option => {
+    option.addEventListener("click", () => {
+      options.forEach(opt => opt.classList.remove("selected"));
+      option.classList.add("selected");
 
-    btn.classList.add("selected");
-    const emoji = document
+      showEmoji(option);
+      showRandomJudgment();
+      nextBtn.style.display = "inline-block";
+      launchConfetti();
+    });
+  });
+
+  function goToNext() {
+    window.location.href = "somewhatout-q4.html";
+  }
+
+  function showEmoji(el) {
+    const emoji = document.createElement("div");
+    emoji.textContent = "🧊";
+    emoji.classList.add("emoji-pop");
+
+    const rect = el.getBoundingClientRect();
+    emoji.style.left = `${rect.left + rect.width / 2}px`;
+    emoji.style.top = `${rect.top - 30}px`;
+    emoji.style.position = 'fixed';
+
+    document.body.appendChild(emoji);
+    setTimeout(() => emoji.remove(), 1000);
+  }
+
+  function showRandomJudgment() {
+    const judgment = document.createElement("div");
+    judgment.classList.add("judgment");
+    judgment.textContent = sentences[Math.floor(Math.random() * sentences.length)];
+    judgment.style.left = `${Math.random() * 80 + 10}%`;
+    judgment.style.top = `${Math.random() * 70 + 10}%`;
+    document.body.appendChild(judgment);
+    setTimeout(() => judgment.remove(), 3000);
+  }
+
+  function launchConfetti() {
+    for (let i = 0; i < 10; i++) {
+      const conf = document.createElement("div");
+      conf.textContent = "✨";
+      conf.style.position = "fixed";
+      conf.style.left = Math.random() * window.innerWidth + "px";
+      conf.style.top = "-20px";
+      conf.style.fontSize = "1.2rem";
+      conf.style.opacity = "0.8";
+      conf.style.animation = `fall ${Math.random() * 2 + 2}s ease-out forwards`;
+      document.body.appendChild(conf);
+      conf.addEventListener("animationend", () => conf.remove());
+    }
+  }
+
+  const styleSheet = document.createElement("style");
+  styleSheet.innerHTML = `
+    @keyframes fall {
+      to { transform: translateY(100vh); opacity: 0; }
+    }
+  `;
+  document.head.appendChild(styleSheet);
+</script>
+
+</body>
+</html>
+
 
 
