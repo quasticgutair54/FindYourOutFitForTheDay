@@ -4,47 +4,46 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Style Quiz</title>
-  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Tan+Nimbus&display=swap" rel="stylesheet" />
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Tan+Nimbus&display=swap');
-
     html, body {
       margin: 0;
       padding: 0;
       font-family: 'Tan Nimbus', sans-serif;
-      background: black;
       overflow: hidden;
-      min-height: 100vh;
-      color: black;
     }
 
     body {
       display: flex;
-      flex-direction: column;
-      align-items: center;
       justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      position: relative;
     }
 
-    video#bgVideo {
+    video#bg-video {
       position: fixed;
       top: 0;
       left: 0;
-      z-index: -1;
-      min-width: 100%;
-      min-height: 100%;
+      width: 100%;
+      height: 100%;
       object-fit: cover;
+      z-index: -2;
+    }
+
+    audio {
+      display: none;
     }
 
     .overlay {
-      width: 100%;
+      z-index: 2;
+      width: 90%;
       max-width: 1200px;
       padding: 2rem;
-      margin: 0 auto;
       text-align: center;
-      background-color: rgba(255, 255, 255, 0.65);
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      background-color: rgba(255, 255, 255, 0.6);
+      box-shadow: 0 0 10px rgba(0,0,0,0.15);
       border-radius: 10px;
-      z-index: 1;
     }
 
     .main-heading {
@@ -85,6 +84,30 @@
       font-family: 'Tan Nimbus', sans-serif;
     }
 
+    .popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.85);
+      color: white;
+      padding: 1.5rem 2rem;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      z-index: 999;
+      text-align: center;
+      max-width: 90%;
+      animation: fadeout 1s ease forwards;
+      animation-delay: 3s;
+    }
+
+    @keyframes fadeout {
+      to {
+        opacity: 0;
+        visibility: hidden;
+      }
+    }
+
     @media (max-width: 768px) {
       .overlay {
         padding: 1rem;
@@ -106,96 +129,85 @@
         gap: 1rem;
       }
     }
-
-    .popup {
-      position: fixed;
-      top: 30px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.8);
-      color: white;
-      padding: 1.2rem 2rem;
-      border-radius: 10px;
-      font-size: 1rem;
-      font-family: 'Comic Sans MS', cursive;
-      z-index: 999;
-      animation: fadeOut 1s ease-out 3s forwards;
-    }
-
-    @keyframes fadeOut {
-      to { opacity: 0; transform: translateX(-50%) translateY(-20px); }
-    }
   </style>
 </head>
 <body>
 
-<!-- 🔁 Video Background -->
-<video autoplay muted loop id="bgVideo">
-  <source src="loop-bg.mp4" type="video/mp4" />
-</video>
+  <!-- 🔥 Background video -->
+  <video id="bg-video" autoplay loop muted playsinline>
+    <source src="loop-bg.mp4" type="video/mp4" />
+    Your browser does not support HTML5 video.
+  </video>
 
-<!-- 🔊 Background Music -->
-<audio id="bg-music" src="running out of time.mp3" autoplay loop></audio>
+  <!-- 🎧 Background music -->
+  <audio id="bg-music" src="running out of time.mp3" autoplay loop></audio>
 
-<!-- 💬 Popup -->
-<div class="popup">
-  Why did you scan this? Are you really going to be in this website? If not, please go away right now. If you are interested enough to see what is inside, please stay and enjoy.
-</div>
-
-<div class="overlay">
-  <h1 class="main-heading">Since you scanned it, might as well check your personal outfit.</h1>
-
-  <div class="personality-options">
-    <a href="allout-q1.html" class="personality-card">
-      <img src="allout.jpeg" alt="All Out" />
-      <div class="personality-name">All Out</div>
-    </a>
-    <a href="somewhatout-q1.html" class="personality-card">
-      <img src="somewhatout.jpeg" alt="Somewhat Out" />
-      <div class="personality-name">Somewhat Out</div>
-    </a>
-    <a href="never-q1.html" class="personality-card">
-      <img src="never.jpeg" alt="Never" />
-      <div class="personality-name">Never</div>
-    </a>
-    <a href="maybe-q1.html" class="personality-card">
-      <img src="maybe.jpeg" alt="Maybe" />
-      <div class="personality-name">Maybe</div>
-    </a>
-    <a href="twosides-q1.html" class="personality-card">
-      <img src="twosides.jpeg" alt="Two Sides of the Same Coin" />
-      <div class="personality-name">Two Sides of the Same Coin</div>
-    </a>
+  <!-- 💬 Popup message -->
+  <div class="popup" id="welcomePopup">
+    Why did you scan this? Are you really going to be in this website? If not, please go away right now.<br>
+    If you are interested enough to see what is inside, please stay and enjoy.
   </div>
-</div>
 
-<script>
-  const audio = document.getElementById("bg-music");
+  <!-- 🎯 Main content -->
+  <div class="overlay">
+    <h1 class="main-heading">Since you scanned it, might as well check your personal outfit.</h1>
 
-  // Resume music from last saved time
-  const storedTime = localStorage.getItem("music-time");
-  if (storedTime) audio.currentTime = parseFloat(storedTime);
+    <div class="personality-options">
+      <a href="allout-q1.html" class="personality-card">
+        <img src="allout.jpeg" alt="All Out" />
+        <div class="personality-name">All Out</div>
+      </a>
+      <a href="somewhatout-q1.html" class="personality-card">
+        <img src="somewhatout.jpeg" alt="Somewhat Out" />
+        <div class="personality-name">Somewhat Out</div>
+      </a>
+      <a href="never-q1.html" class="personality-card">
+        <img src="never.jpeg" alt="Never" />
+        <div class="personality-name">Never</div>
+      </a>
+      <a href="maybe-q1.html" class="personality-card">
+        <img src="maybe.jpeg" alt="Maybe" />
+        <div class="personality-name">Maybe</div>
+      </a>
+      <a href="twosides-q1.html" class="personality-card">
+        <img src="twosides.jpeg" alt="Two Sides of the Same Coin" />
+        <div class="personality-name">Two Sides of the Same Coin</div>
+      </a>
+    </div>
+  </div>
 
-  window.addEventListener("load", () => {
-    audio.play().catch(() => {
-      const tryPlay = () => {
-        audio.play().then(() => document.removeEventListener("click", tryPlay));
-      };
-      document.addEventListener("click", tryPlay);
-    });
-  });
+  <!-- 🎯 JavaScript -->
+  <script>
+    const audio = document.getElementById("bg-music");
+    const storedTime = localStorage.getItem("music-time");
 
-  setInterval(() => {
-    if (!audio.paused) {
-      localStorage.setItem("music-time", audio.currentTime);
+    if (storedTime) {
+      audio.currentTime = parseFloat(storedTime);
     }
-  }, 500);
 
-  window.addEventListener("beforeunload", () => {
-    localStorage.setItem("music-time", audio.currentTime);
-  });
-</script>
+    window.addEventListener("load", () => {
+      audio.play().catch(() => {
+        const tryPlay = () => {
+          audio.play().then(() => {
+            document.removeEventListener("click", tryPlay);
+          });
+        };
+        document.addEventListener("click", tryPlay);
+      });
+    });
+
+    setInterval(() => {
+      if (!audio.paused) {
+        localStorage.setItem("music-time", audio.currentTime);
+      }
+    }, 500);
+
+    window.addEventListener("beforeunload", () => {
+      localStorage.setItem("music-time", audio.currentTime);
+    });
+  </script>
 
 </body>
 </html>
+
 
