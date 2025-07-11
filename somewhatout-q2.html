@@ -117,7 +117,115 @@
 
   <div class="options">
     <div class="option">All-black with a silver chain</div>
-    <div class="option">Corduroy blazer and confiden
+    <div class="option">Corduroy blazer and confidence</div>
+    <div class="option">Oversized tee and a 'why not' grin</div>
+    <div class="option">Statement pants and a latte</div>
+  </div>
+
+  <button id="nextBtn" onclick="goToNext()">Next</button>
+</div>
+
+<script>
+  const audio = document.getElementById("bg-music");
+  const storedTime = localStorage.getItem("music-time");
+  if (storedTime) audio.currentTime = parseFloat(storedTime);
+  window.addEventListener("load", () => audio.play().catch(() => {}));
+  setInterval(() => { if (!audio.paused) localStorage.setItem("music-time", audio.currentTime); }, 500);
+  window.addEventListener("beforeunload", () => localStorage.setItem("music-time", audio.currentTime));
+
+  const options = document.querySelectorAll(".option");
+  const nextBtn = document.getElementById("nextBtn");
+
+  const sentences = [
+    "Would Jeff Bezos choose this?",
+    "That’s a bold choice… or is it?",
+    "Yikes. Even your shadow disagrees.",
+    "Congrats, you broke the algorithm.",
+    "Braver than the Marines.",
+    "No cap? Full clown mode.",
+    "I met a random guy yesterday who chose better than this.",
+    "This option just reported itself.",
+    "Your outfit chose violence.",
+    "Someone’s definitely overcompensating.",
+    "How to lose friends and scare strangers 101.",
+    "Bold. Questionable. Iconic?",
+    "Honestly, that was unexpected.",
+    "Your ancestors blinked twice.",
+    "This choice just got cancelled.",
+    "Can’t unsee this now.",
+    "Therapist: And how does that make you feel?",
+    "Alexa, delete this option.",
+    "Somewhere, Tim Gunn just fainted.",
+    "Even Crocs have limits."
+  ];
+
+  options.forEach(option => {
+    option.addEventListener("click", () => {
+      options.forEach(opt => opt.classList.remove("selected"));
+      option.classList.add("selected");
+
+      showEmoji(option);
+      showRandomJudgment();
+      nextBtn.style.display = "inline-block";
+      launchConfetti();
+    });
+  });
+
+  function goToNext() {
+    window.location.href = "somewhatout-q3.html";
+  }
+
+  function showEmoji(el) {
+    const emoji = document.createElement("div");
+    emoji.textContent = "🧊";
+    emoji.classList.add("emoji-pop");
+
+    const rect = el.getBoundingClientRect();
+    emoji.style.left = `${rect.left + rect.width / 2}px`;
+    emoji.style.top = `${rect.top - 30}px`;
+    emoji.style.position = 'fixed';
+
+    document.body.appendChild(emoji);
+    setTimeout(() => emoji.remove(), 1000);
+  }
+
+  function showRandomJudgment() {
+    const judgment = document.createElement("div");
+    judgment.classList.add("judgment");
+    judgment.textContent = sentences[Math.floor(Math.random() * sentences.length)];
+    judgment.style.left = `${Math.random() * 80 + 10}%`;
+    judgment.style.top = `${Math.random() * 70 + 10}%`;
+    document.body.appendChild(judgment);
+    setTimeout(() => judgment.remove(), 3000);
+  }
+
+  function launchConfetti() {
+    for (let i = 0; i < 10; i++) {
+      const conf = document.createElement("div");
+      conf.textContent = "✨";
+      conf.style.position = "fixed";
+      conf.style.left = Math.random() * window.innerWidth + "px";
+      conf.style.top = "-20px";
+      conf.style.fontSize = "1.2rem";
+      conf.style.opacity = "0.8";
+      conf.style.animation = `fall ${Math.random() * 2 + 2}s ease-out forwards`;
+      document.body.appendChild(conf);
+      conf.addEventListener("animationend", () => conf.remove());
+    }
+  }
+
+  const styleSheet = document.createElement("style");
+  styleSheet.innerHTML = `
+    @keyframes fall {
+      to { transform: translateY(100vh); opacity: 0; }
+    }
+  `;
+  document.head.appendChild(styleSheet);
+</script>
+
+</body>
+</html>
+
 
 
 
