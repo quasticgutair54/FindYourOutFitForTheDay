@@ -1,110 +1,127 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Never Result</title>
-  <link href="https://fonts.googleapis.com/css2?family=Tan+Nimbus&display=swap" rel="stylesheet">
+  <title>Your Result – Never</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tan+Nimbus&display=swap" rel="stylesheet" />
   <style>
     html, body {
       margin: 0;
       padding: 0;
       font-family: 'Tan Nimbus', sans-serif;
-      color: #111;
-      background: url('Untitled design (1).png') no-repeat center center fixed;
+      background-image: url('Untitled design (1).png');
       background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      min-height: 100vh;
+      color: black;
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 100vh;
       text-align: center;
     }
 
-    .result-box {
-      background-color: rgba(255, 255, 255, 0.88);
+    .result-container {
+      background: rgba(255, 255, 255, 0.85);
       padding: 2rem;
-      border-radius: 20px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.15);
+      border-radius: 15px;
       max-width: 600px;
       width: 90%;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
     }
 
-    .certified {
+    h1 {
+      font-size: 2.4rem;
+      margin-bottom: 1.5rem;
+    }
+
+    p {
       font-size: 1.2rem;
-      margin-top: 1rem;
-      background: #000;
-      color: #fff;
-      padding: 0.5rem 1rem;
-      border-radius: 12px;
+      margin: 1rem 0;
+    }
+
+    .badge {
       display: inline-block;
+      background: black;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      margin: 1rem 0;
     }
 
     .cta-button {
       display: inline-block;
       margin-top: 2rem;
-      padding: 0.8rem 1.6rem;
-      font-size: 1rem;
+      padding: 0.9rem 2rem;
+      background: black;
       color: white;
-      background-color: black;
       border: none;
-      border-radius: 10px;
+      border-radius: 8px;
+      font-size: 1rem;
       text-decoration: none;
-      font-weight: bold;
-      transition: background-color 0.3s ease;
+      transition: background 0.3s ease;
     }
 
     .cta-button:hover {
-      background-color: #333;
+      background: #333;
     }
 
     @media (max-width: 600px) {
-      .result-box {
-        padding: 1.2rem;
+      h1 {
+        font-size: 2rem;
       }
-
+      p {
+        font-size: 1rem;
+      }
       .cta-button {
-        font-size: 0.9rem;
-        padding: 0.7rem 1.2rem;
+        width: 100%;
       }
     }
   </style>
 </head>
 <body>
 
-  <audio id="bg-music" src="running out of time.mp3" loop></audio>
+<audio id="bg-music" src="running out of time.mp3" autoplay loop></audio>
 
-  <div class="result-box">
-    <h1>You’re a Never Necessity.</h1>
-    <p>You don’t need the spotlight to shine.<br>
-    Your vibe is soft, steady, and secretly powerful.</p>
-    <p><strong>In the end, it’s your decision to choose what you choose. So be you.</strong></p>
-    <div class="certified">92.47% NotTheBest Certified</div>
-    <br />
-    <a class="cta-button" href="https://www.notthebestplacetobuystuff.in/notthebest-t-shirt" target="_blank">Reveal your outfit</a>
-  </div>
+<div class="result-container">
+  <h1>You’re effortlessly cool… and kind of invisible.</h1>
+  <p>You don’t chase trends — trends quietly hope you’ll notice them.</p>
+  <p>Comfort is your crown, and subtlety is your sword.</p>
+  <div class="badge">87% NotTheBest Certified</div>
+  <p>In the end, it’s your decision to choose what you choose. So be you.</p>
+  <a class="cta-button" href="https://www.notthebestplacetobuystuff.in/notthebest-t-shirt" target="_blank">Reveal your outfit</a>
+</div>
 
-  <script>
-    const audio = document.getElementById("bg-music");
-    const savedTime = localStorage.getItem("music-time");
-    if (savedTime) audio.currentTime = parseFloat(savedTime);
+<script>
+  const audio = document.getElementById("bg-music");
+  const storedTime = localStorage.getItem("music-time");
+  if (storedTime) {
+    audio.currentTime = parseFloat(storedTime);
+  }
 
-    document.addEventListener("click", () => {
-      if (audio.paused) {
-        audio.play().catch(() => {});
-      }
-    }, { once: true });
-
-    setInterval(() => {
-      if (!audio.paused) {
-        localStorage.setItem("music-time", audio.currentTime);
-      }
-    }, 500);
-
-    window.addEventListener("beforeunload", () => {
-      localStorage.setItem("music-time", audio.currentTime);
+  window.addEventListener("load", () => {
+    audio.play().catch(() => {
+      const clickToPlay = () => {
+        audio.play();
+        document.removeEventListener("click", clickToPlay);
+      };
+      document.addEventListener("click", clickToPlay);
     });
-  </script>
+  });
+
+  setInterval(() => {
+    if (!audio.paused) {
+      localStorage.setItem("music-time", audio.currentTime);
+    }
+  }, 500);
+
+  window.addEventListener("beforeunload", () => {
+    localStorage.setItem("music-time", audio.currentTime);
+  });
+</script>
 
 </body>
 </html>
