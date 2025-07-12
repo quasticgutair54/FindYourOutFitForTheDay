@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Two Sides – Q2</title>
+  <link href="https://fonts.googleapis.com/css2?family=Comic+Sans+MS&family=Tan+Nimbus&display=swap" rel="stylesheet"/>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(-45deg, #39ff14, #ffffff, #39ff14, #ffffff);
+      background-size: 300% 300%;
+      animation: bgFlow 8s ease infinite;
+      font-family: 'Tan Nimbus', sans-serif;
+      color: black;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    @keyframes bgFlow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    h1 {
+      font-family: 'Tan Nimbus', sans-serif;
+      font-size: 1.8rem;
+      margin-bottom: 2rem;
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      width: 100%;
+      max-width: 500px;
+    }
+
+    .option {
+      font-family: 'Comic Sans MS', cursive;
+      padding: 1rem;
+      border-radius: 12px;
+      border: 2px solid black;
+      background: rgba(255,255,255,0.5);
+      cursor: pointer;
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+
+    .option:hover {
+      transform: scale(1.03);
+      background: rgba(255,255,255,0.7);
+    }
+
+    .option.selected {
+      background: rgba(0,0,0,0.85);
+      color: white;
+    }
+
+    #nextBtn {
+      margin-top: 2rem;
+      padding: 0.8rem 2rem;
+      font-size: 1rem;
+      background: black;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      display: none;
+      cursor: pointer;
+    }
+
+    .emoji-pop {
+      font-size: 2rem;
+      animation: pop 0.4s ease-out;
+      position: absolute;
+    }
+
+    @keyframes pop {
+      0% { transform: scale(0); opacity: 0; }
+      100% { transform: scale(1.5); opacity: 1; }
+    }
+
+    .judgment {
+      position: fixed;
+      background: rgba(0,0,0,0.8);
+      color: #fff;
+      padding: 0.7rem 1rem;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      max-width: 240px;
+      animation: fadeIn 0.6s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+<audio id="bg-music" src="running out of time.mp3" loop></audio>
+
+<div class="container">
+  <h1>Which fashion quote feels like it’s tattooed in your brain?</h1>
+  <div class="options">
+    <div class="option">“Style is a way to say who you are without having to speak.”</div>
+    <div class="option">“Less is more, but sometimes more is more.”</div>
+    <div class="option">“I like my money right where I can see it — hanging in my closet.”</div>
+    <div class="option">“Clothes mean nothing until someone lives in them.”</div>
+  </div>
+  <button id="nextBtn" onclick="goToNext()">Next</button>
+</div>
+
+<script>
+  const audio = document.getElementById("bg-music");
+  const storedTime = localStorage.getItem("music-time");
+  if (storedTime) audio.currentTime = parseFloat(storedTime);
+  window.addEventListener("load", () => audio.play().catch(() => {}));
+  setInterval(() => { if (!audio.paused) localStorage.setItem("music-time", audio.currentTime); }, 500);
+  window.addEventListener("beforeunload", () => localStorage.setItem("music-time", audio.currentTime));
+
+  const options = document.querySelectorAll(".option");
+  const nextBtn = document.getElementById("nextBtn");
+
+  const sentences = [
+    "Your closet just winked at that quote.",
+    "You're quoting fashion like it’s gospel.",
+    "That line belongs on your wall... or soul.",
+    "Timeless words. Timeless confusion?",
+    "Deep quote. Questionable taste?",
+    "Your wardrobe just shed a tear of joy.",
+    "You probably whispered this in the mirror once.",
+    "Someone’s been scrolling Pinterest too much.",
+    "This quote gave your closet goosebumps.",
+    "That quote just signed a fashion treaty with your pants."
+  ];
+
+  options.forEach(option => {
+    option.addEventListener("click", () => {
+      options.forEach(opt => opt.classList.remove("selected"));
+      option.classList.add("selected");
+      showEmoji(option);
+      showRandomJudgment();
+      nextBtn.style.display = "inline-block";
+      launchConfetti();
+    });
+  });
+
+  function goToNext() {
+    window.location.href = "twosides-q3.html";
+  }
+
+  function showEmoji(el) {
+    const emoji = document.createElement("div");
+    emoji.textContent = "⚖️";
+    emoji.classList.add("emoji-pop");
+    const rect = el.getBoundingClientRect();
+    emoji.style.left = `${rect.left + rect.width / 2}px`;
+    emoji.style.top = `${rect.top - 30}px`;
+    emoji.style.position = 'fixed';
+    document.body.appendChild(emoji);
+    setTimeout(() => emoji.remove(), 1000);
+  }
+
+  function showRandomJudgment() {
+    const judgment = document.createElement("div");
+    judgment.classList.add("judgment");
+    judgment.textContent = sentences[Math.floor(Math.random() * sentences.length)];
+    judgment.style.left = `${Math.random() * 80 + 10}%`;
+    judgment.style.top = `${Math.random() * 70 + 10}%`;
+    document.body.appendChild(judgment);
+    setTimeout(() => judgment.remove(), 3000);
+  }
+
+  function launchConfetti() {
+    for (let i = 0; i < 10; i++) {
+      const conf = document.createElement("div");
+      conf.textContent = "✨";
+      conf.style.position = "fixed";
+      conf.style.left = Math.random() * window.innerWidth + "px";
+      conf.style.top = "-20px";
+      conf.style.fontSize = "1.2rem";
+      conf.style.opacity = "0.8";
+      conf.style.animation = `fall ${Math.random() * 2 + 2}s ease-out forwards`;
+      document.body.appendChild(conf);
+      conf.addEventListener("animationend", () => conf.remove());
+    }
+  }
+
+  const styleSheet = document.createElement("style");
+  styleSheet.innerHTML = `@keyframes fall { to { transform: translateY(100vh); opacity: 0; } }`;
+  document.head.appendChild(styleSheet);
+</script>
+
+</body>
+</html>
