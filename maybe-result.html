@@ -3,101 +3,84 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Your Result – Maybe</title>
-  <link href="https://fonts.googleapis.com/css2?family=Tan+Nimbus&display=swap" rel="stylesheet" />
+  <title>Maybe Result</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tan+Nimbus&display=swap" rel="stylesheet">
   <style>
     html, body {
       margin: 0;
       padding: 0;
-      background: linear-gradient(-45deg, #9a00ff, #00fff0, #9a00ff, #00fff0);
-      background-size: 400% 400%;
-      animation: animateBg 12s ease infinite;
-      height: 100vh;
-      color: black;
       font-family: 'Tan Nimbus', sans-serif;
+      background: url('Untitled design (1).png') no-repeat center center fixed;
+      background-size: cover;
       display: flex;
       justify-content: center;
       align-items: center;
+      min-height: 100vh;
       text-align: center;
-    }
-
-    @keyframes animateBg {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+      color: #111;
     }
 
     .result-box {
-      background-color: rgba(255, 255, 255, 0.75);
-      padding: 3rem 2rem;
-      border-radius: 15px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.2);
-      max-width: 700px;
+      background-color: rgba(255, 255, 255, 0.88);
+      padding: 2rem;
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.15);
+      max-width: 600px;
       width: 90%;
     }
 
-    h1 {
-      font-size: 2.5rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .verdict {
-      font-size: 1.3rem;
-      margin-bottom: 1.2rem;
-    }
-
     .certified {
-      font-size: 1.1rem;
-      margin-bottom: 2rem;
-      background: black;
-      color: white;
+      font-size: 1.2rem;
+      margin-top: 1rem;
+      background: #000;
+      color: #fff;
+      padding: 0.5rem 1rem;
+      border-radius: 12px;
       display: inline-block;
-      padding: 0.4rem 1rem;
-      border-radius: 8px;
     }
 
-    a.cta-button {
+    .cta-button {
       display: inline-block;
-      padding: 0.9rem 2rem;
+      margin-top: 2rem;
+      padding: 0.8rem 1.6rem;
       font-size: 1rem;
-      font-weight: bold;
       color: white;
       background-color: black;
       border: none;
-      border-radius: 12px;
+      border-radius: 10px;
       text-decoration: none;
-      transition: background 0.3s ease;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
     }
 
-    a.cta-button:hover {
+    .cta-button:hover {
       background-color: #333;
     }
 
     @media (max-width: 600px) {
-      h1 {
-        font-size: 2rem;
+      .result-box {
+        padding: 1.2rem;
       }
 
-      .verdict {
-        font-size: 1.1rem;
+      .cta-button {
+        font-size: 0.9rem;
+        padding: 0.7rem 1.2rem;
       }
     }
   </style>
 </head>
 <body>
 
-  <!-- 🔊 Background Music -->
-  <audio id="bg-music" src="running out of time.mp3" autoplay loop></audio>
+  <audio id="bg-music" src="running out of time.mp3" loop></audio>
 
   <div class="result-box">
-    <h1>You're a whole Maybe Mood</h1>
-    <div class="verdict">
-      One foot in, one foot in... another pair of shoes.<br>
-      You’re the outfit equivalent of an “it depends” text.
-    </div>
-    <div class="certified">89% Might Be Stylish Certified</div>
-    <div class="verdict">In the end, it’s your decision to choose what you choose. So be you.</div>
-    <a href="https://www.notthebestplacetobuystuff.in/notthebest-og-tee" class="cta-button">Reveal your outfit</a>
+    <h1>You’re a Maybe Maverick.</h1>
+    <p>You’re not indecisive — you’re just fashion-fluid.<br>
+    One day it’s monochrome, next day it’s galaxy print with crocs.</p>
+    <p><strong>In the end, it’s your decision to choose what you choose. So be you.</strong></p>
+    <div class="certified">84.07% NotTheBest Certified</div>
+    <br />
+    <a class="cta-button" href="https://www.notthebestplacetobuystuff.in/notthebest-og-tee" target="_blank">Reveal your outfit</a>
   </div>
 
   <script>
@@ -109,14 +92,7 @@
     }
 
     window.addEventListener("load", () => {
-      audio.play().catch(() => {
-        const tryPlay = () => {
-          audio.play().then(() => {
-            document.removeEventListener("click", tryPlay);
-          });
-        };
-        document.addEventListener("click", tryPlay);
-      });
+      audio.play().catch(() => {});
     });
 
     setInterval(() => {
@@ -129,5 +105,6 @@
       localStorage.setItem("music-time", audio.currentTime);
     });
   </script>
+
 </body>
 </html>
