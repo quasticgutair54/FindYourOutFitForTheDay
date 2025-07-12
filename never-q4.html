@@ -1,85 +1,238 @@
+
+Perfect! Here's **Never – Q4** using the same clean layout and logic you've approved:
+
+---
+
+### ✅ Question:
+
+**"What’s your wardrobe’s idea of excitement?"**
+
+---
+
+### ✅ Code: `never-q4.html`
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Never - Q4</title>
-  <link href="https://fonts.googleapis.com/css2?family=Comic+Sans+MS&family=Tan+Nimbus&display=swap" rel="stylesheet">
+  <title>Never – Q4</title>
+  <link href="https://fonts.googleapis.com/css2?family=Comic+Sans+MS&family=Tan+Nimbus&display=swap" rel="stylesheet" />
   <style>
-    body {
+    html, body {
       margin: 0;
-      background: linear-gradient(-45deg, #111, #222, #333, #111);
+      padding: 0;
+      background: linear-gradient(-45deg, #000, #444, #000, #222);
       background-size: 400% 400%;
-      animation: fireFlow 8s ease infinite;
-      color: #f2f2f2;
-      font-family: 'Comic Sans MS', cursive;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      text-align: center;
-      padding: 2rem;
+      animation: flow 16s ease infinite;
+      font-family: 'Tan Nimbus', sans-serif;
+      color: #f0f0f0;
+      min-height: 100vh;
+      overflow-x: hidden;
     }
 
-    @keyframes fireFlow {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+    @keyframes flow {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      text-align: center;
+      padding: 2rem;
     }
 
     h1 {
       font-family: 'Tan Nimbus', sans-serif;
       font-size: 1.8rem;
       font-weight: bold;
-      margin-bottom: 1.5rem;
+      margin-bottom: 2rem;
     }
 
-    select {
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      width: 100%;
+      max-width: 500px;
+    }
+
+    .option {
       font-family: 'Comic Sans MS', cursive;
-      font-size: 1rem;
-      padding: 0.6rem;
-      border-radius: 8px;
-      border: 2px solid #ccc;
-      margin-bottom: 1.5rem;
-      width: 80%;
-      max-width: 400px;
-      background: #111;
-      color: #f2f2f2;
+      padding: 1rem;
+      border: 2px solid #aaa;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      cursor: pointer;
+      transition: all 0.3s ease;
     }
 
-    button {
-      padding: 0.7rem 1.4rem;
-      font-size: 1rem;
+    .option:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-2px);
+    }
+
+    .option.selected {
+      background: #fff;
+      color: #000;
       font-weight: bold;
+    }
+
+    #nextBtn {
+      margin-top: 2rem;
+      padding: 0.8rem 2rem;
+      font-size: 1rem;
+      background: white;
+      color: black;
       border: none;
       border-radius: 8px;
-      background-color: #f2f2f2;
-      color: #111;
       cursor: pointer;
-      transition: background-color 0.3s ease;
+      display: none;
     }
 
-    button:hover {
-      background-color: #ddd;
+    .emoji-pop {
+      font-size: 2rem;
+      position: fixed;
+      animation: pop 0.5s ease-out;
     }
 
-    @media (max-width: 600px) {
-      h1 {
-        font-size: 1.4rem;
-      }
+    @keyframes pop {
+      0% { transform: scale(0); opacity: 0; }
+      100% { transform: scale(1.4); opacity: 1; }
+    }
 
-      select {
-        font-size: 0.9rem;
-      }
+    .judgment {
+      position: fixed;
+      background: rgba(0, 0, 0, 0.85);
+      color: white;
+      padding: 0.7rem 1rem;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      max-width: 250px;
+      animation: fadeIn 0.6s ease;
+    }
 
-      button {
-        font-size: 0.9rem;
-      }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
 <body>
 
-  <audio id="bg-music" src="
+<audio id="bg-music" src="running out of time.mp3" loop></audio>
+
+<div class="container">
+  <h1>What’s your wardrobe’s idea of excitement?</h1>
+
+  <div class="options">
+    <div class="option">Wearing stripes instead of solids</div>
+    <div class="option">Trying navy instead of black</div>
+    <div class="option">A button-down with one button unbuttoned</div>
+    <div class="option">Buying something... with a tiny logo on it</div>
+  </div>
+
+  <button id="nextBtn" onclick="goToNext()">Next</button>
+</div>
+
+<script>
+  const audio = document.getElementById("bg-music");
+  const storedTime = localStorage.getItem("music-time");
+
+  if (storedTime) {
+    audio.currentTime = parseFloat(storedTime);
+  }
+
+  window.addEventListener("load", () => {
+    audio.play().catch(() => {
+      document.body.addEventListener("click", () => audio.play(), { once: true });
+    });
+  });
+
+  setInterval(() => {
+    if (!audio.paused) {
+      localStorage.setItem("music-time", audio.currentTime);
+    }
+  }, 500);
+
+  window.addEventListener("beforeunload", () => {
+    localStorage.setItem("music-time", audio.currentTime);
+  });
+
+  const options = document.querySelectorAll(".option");
+  const nextBtn = document.getElementById("nextBtn");
+
+  const judgments = [
+    "Would Jeff Bezos choose this?",
+    "That’s a bold choice… or is it?",
+    "Yikes. Even your shadow disagrees.",
+    "Congrats, you broke the algorithm.",
+    "Braver than the Marines.",
+    "No cap? Full comfort mode.",
+    "I met a random guy yesterday who chose better than this.",
+    "This option just reported itself.",
+    "Minimalism called. It wants your flair back.",
+    "Someone’s definitely undercompensating.",
+    "Excitement? In *this* economy?",
+    "Wow. That’s… something.",
+    "Honestly, that was beige.",
+    "Your ancestors blinked once.",
+    "This choice just went unnoticed.",
+    "Can’t unsee the normal.",
+    "Alexa, turn up the personality.",
+    "Somewhere, a stylist just sighed.",
+    "Even plain toast is jealous.",
+    "Uniqlo approves."
+  ];
+
+  options.forEach(option => {
+    option.addEventListener("click", () => {
+      options.forEach(o => o.classList.remove("selected"));
+      option.classList.add("selected");
+      showEmoji(option);
+      showRandomJudgment();
+      nextBtn.style.display = "inline-block";
+    });
+  });
+
+  function goToNext() {
+    window.location.href = "never-q5.html";
+  }
+
+  function showEmoji(el) {
+    const emoji = document.createElement("div");
+    emoji.textContent = "🧼";
+    emoji.classList.add("emoji-pop");
+    const rect = el.getBoundingClientRect();
+    emoji.style.left = `${rect.left + rect.width / 2}px`;
+    emoji.style.top = `${rect.top - 30}px`;
+    emoji.style.position = 'fixed';
+    document.body.appendChild(emoji);
+    setTimeout(() => emoji.remove(), 1000);
+  }
+
+  function showRandomJudgment() {
+    const judgment = document.createElement("div");
+    judgment.classList.add("judgment");
+    judgment.textContent = judgments[Math.floor(Math.random() * judgments.length)];
+    judgment.style.left = `${Math.random() * 70 + 10}%`;
+    judgment.style.top = `${Math.random() * 60 + 15}%`;
+    document.body.appendChild(judgment);
+    setTimeout(() => judgment.remove(), 3000);
+  }
+</script>
+
+</body>
+</html>
+```
+
+---
+
+Let me know when you’re ready for **Never Q5**, or if you want to preview and tweak anything here first.
 
