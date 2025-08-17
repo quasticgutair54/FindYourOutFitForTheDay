@@ -1,370 +1,300 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Personality Quiz - Home</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Style Quiz — Home</title>
+  <!-- Fonts (keep same naming as your project) -->
+  <link href="https://fonts.googleapis.com/css2?family=Tan+Nimbus&display=swap" rel="stylesheet" />
   <style>
-    /* Reset */
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    /* --- Base / Reset --- */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body { font-family: 'Tan Nimbus', sans-serif; overflow: hidden; color: #fff; }
 
-    body, html {
-      height: 100%;
-      font-family: Arial, sans-serif;
-      color: white;
-      overflow: hidden;
-    }
+    /* --- Background video --- */
+    #bg-video { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
 
-    /* Background video */
-    .video-bg {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      z-index: -2;
-    }
+    /* --- Global overlay for readability --- */
+    .page-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.25); z-index: -1; }
 
-    /* Dark transparent blurred overlay */
-    .overlay {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.6);
-      backdrop-filter: blur(6px);
-      z-index: -1;
-    }
+    /* --- Layout --- */
+    .shell { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; width: min(1400px, 92vw); margin: 0 auto; height: 100vh; align-items: center; }
 
-    /* Layout */
-    .container {
-      display: flex;
-      height: 100%;
-      width: 100%;
-    }
+    /* Left: Tetris */
+    .left { display: flex; flex-direction: column; align-items: center; justify-content: center; }
 
-    /* Left side: Tetris */
-    .game-container {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-    canvas {
-      background: rgba(0,0,0,0.4);
-      border: 2px solid white;
-    }
+    .tetris-glass { position: relative; padding: 18px; border-radius: 16px; background: rgba(0,0,0,0.55); backdrop-filter: blur(8px); box-shadow: 0 10px 30px rgba(0,0,0,0.35); }
 
-    /* Right side: Personality options */
-    .options {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding: 20px;
-      gap: 20px;
-    }
-    .option {
-      display: flex;
-      align-items: center;
-      background: rgba(255,255,255,0.1);
-      border-radius: 12px;
-      padding: 12px;
-      cursor: pointer;
-      transition: transform 0.2s ease;
-    }
-    .option:hover {
-      transform: scale(1.05);
-      background: rgba(255,255,255,0.2);
-    }
-    .option img {
-      width: 60px; height: 60px;
-      border-radius: 8px;
-      margin-right: 12px;
-      object-fit: cover;
-    }
-    .option span {
-      font-size: 1.2rem;
-      font-weight: bold;
-    }
+    #score { font-size: 20px; font-weight: 700; letter-spacing: .3px; text-align: center; margin-bottom: 10px; text-shadow: 0 2px 6px #000; }
 
-    /* Mobile */
-    @media (max-width: 768px) {
-      .container { flex-direction: column; }
-      .game-container, .options { flex: none; height: 50%; }
+    /* The canvas is logical 12x20 cells; we upscale via context.scale */
+    #tetris { display: block; width: 360px; height: 600px; /* CSS size */
+              background: #0e0e0f; border-radius: 10px; border: 3px solid rgba(255,255,255,0.18); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06); }
+
+    .tetris-controls { display: flex; gap: 10px; margin-top: 10px; }
+    .tetris-btn { background: rgba(255,255,255,0.12); border: 0; padding: 8px 12px; border-radius: 10px; color:#fff; font-weight: 700; cursor: pointer; backdrop-filter: blur(4px); }
+    .tetris-btn:active { transform: scale(0.98); }
+
+    /* Right: Heading + Personality grid */
+    .right { display: flex; flex-direction: column; gap: 20px; justify-content: center; align-items: center; text-align: center; }
+    .main-heading { font-weight: 900; font-size: clamp(22px, 3vw, 42px); line-height: 1.15; margin: 0 0 6px; text-shadow: 0 3px 10px rgba(0,0,0,0.6); }
+
+    .paths { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; width: 100%; max-width: 640px; }
+
+    .personality-card { display: flex; flex-direction: column; align-items: center; text-decoration: none; }
+
+    .card { width: 100%; max-width: 180px; padding: 10px; border-radius: 16px; background: rgba(255,255,255,0.12); backdrop-filter: blur(6px); box-shadow: 0 10px 25px rgba(0,0,0,0.25); transition: transform .2s ease, box-shadow .2s ease, background .2s ease; }
+    .card:hover { transform: translateY(-4px); background: rgba(255,255,255,0.18); box-shadow: 0 16px 36px rgba(0,0,0,0.35); }
+
+    .card img { width: 100%; height: 220px; object-fit: cover; border-radius: 12px; display: block; box-shadow: 0 4px 14px rgba(0,0,0,0.24); }
+
+    .personality-name { margin-top: 8px; font-family: 'Comic Sans MS', cursive, sans-serif; font-weight: 800; font-size: 16px; color: #fff; text-shadow: 0 2px 6px #000; }
+
+    /* Popup (kept from your original) */
+    .popup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.85); color: #fff; padding: 16px 22px; border-radius: 12px; font-size: 16px; z-index: 20; text-align: center; max-width: 90%; animation: fadeout 1s ease forwards; animation-delay: 4s; }
+    @keyframes fadeout { to { opacity: 0; visibility: hidden; } }
+
+    /* Music button if autoplay blocked */
+    .music-cta { position: fixed; right: 14px; top: 14px; z-index: 15; background: rgba(0,0,0,0.55); color:#fff; border: 1px solid rgba(255,255,255,0.25); padding: 8px 12px; border-radius: 10px; cursor: pointer; display: none; }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .paths { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    }
+    @media (max-width: 820px) {
+      .shell { grid-template-columns: 1fr; gap: 20px; padding: 28px 0; place-items: center; }
+      #tetris { width: 320px; height: 520px; }
+      .paths { grid-template-columns: repeat(2, minmax(0, 1fr)); justify-items: center; }
     }
   </style>
 </head>
 <body>
-  <!-- Background -->
-  <video autoplay muted loop class="video-bg">
-    <source src="loop-background.mp4" type="video/mp4">
+  <!-- Background video (correct filename as per your note) -->
+  <video id="bg-video" autoplay loop muted playsinline>
+    <source src="loop-background.mp4" type="video/mp4" />
+    Your browser does not support HTML5 video.
   </video>
-  <div class="overlay"></div>
+  <div class="page-overlay"></div>
 
-  <div class="container">
-    <!-- Tetris Game -->
-    <div class="game-container">
-      <canvas id="tetris" width="240" height="400"></canvas>
-    </div>
+  <!-- Background music (seamless resume) -->
+  <audio id="bg-music" src="running out of time.mp3" preload="auto" loop></audio>
+  <button id="musicBtn" class="music-cta">Enable sound</button>
 
-    <!-- Personality Paths -->
-    <div class="options">
-      <div class="option" onclick="location.href='allout/q1.html'">
-        <img src="allout.png" alt="All Out">
-        <span>All Out</span>
-      </div>
-      <div class="option" onclick="location.href='somewhatout/q1.html'">
-        <img src="somewhatout.png" alt="Somewhat Out">
-        <span>Somewhat Out</span>
-      </div>
-      <div class="option" onclick="location.href='never/q1.html'">
-        <img src="never.png" alt="Never">
-        <span>Never</span>
-      </div>
-      <div class="option" onclick="location.href='maybe/q1.html'">
-        <img src="maybe.png" alt="Maybe">
-        <span>Maybe</span>
-      </div>
-      <div class="option" onclick="location.href='twosides/q1.html'">
-        <img src="twosides.png" alt="Two Sides of the Same Coin">
-        <span>Two Sides</span>
-      </div>
-    </div>
+  <!-- Welcome popup (kept) -->
+  <div class="popup" id="welcomePopup">
+    You scanned this. Now what? Just snooping? Feel free to ghost.<br />
+    Curious? Stick around — your outfit’s waiting so enjoy or die.
   </div>
 
-  <!-- Simple Tetris Script -->
+  <main class="shell">
+    <!-- Left: Pro Tetris -->
+    <section class="left">
+      <div id="score">Score: 0</div>
+      <div class="tetris-glass">
+        <!-- IMPORTANT: Canvas pixel size must match logical grid * tile size (12x20 * 30) -->
+        <canvas id="tetris" width="360" height="600"></canvas>
+      </div>
+      <div class="tetris-controls" aria-label="Tetris controls for touch">
+        <button class="tetris-btn" id="btnLeft">◀</button>
+        <button class="tetris-btn" id="btnRotate">⟳</button>
+        <button class="tetris-btn" id="btnRight">▶</button>
+        <button class="tetris-btn" id="btnDrop">⤓</button>
+      </div>
+    </section>
+
+    <!-- Right: Heading + Personality paths -->
+    <section class="right">
+      <h1 class="main-heading">Since you scanned it, might as well check your personal outfit.</h1>
+      <div class="paths">
+        <a href="allout-q1.html" class="personality-card path-link">
+          <div class="card">
+            <img src="allout.jpeg" alt="All Out" />
+            <div class="personality-name">All Out</div>
+          </div>
+        </a>
+        <a href="somewhatout-q1.html" class="personality-card path-link">
+          <div class="card">
+            <img src="somewhatout.jpeg" alt="Somewhat Out" />
+            <div class="personality-name">Somewhat Out</div>
+          </div>
+        </a>
+        <a href="never-q1.html" class="personality-card path-link">
+          <div class="card">
+            <img src="never.jpeg" alt="Never" />
+            <div class="personality-name">Never</div>
+          </div>
+        </a>
+        <a href="maybe-q1.html" class="personality-card path-link">
+          <div class="card">
+            <img src="maybe.jpeg" alt="Maybe" />
+            <div class="personality-name">Maybe</div>
+          </div>
+        </a>
+        <a href="twosides-q1.html" class="personality-card path-link">
+          <div class="card">
+            <img src="twosides.jpeg" alt="Two Sides of the Same Coin" />
+            <div class="personality-name">Two Sides of the Same Coin</div>
+          </div>
+        </a>
+      </div>
+    </section>
+  </main>
+
   <script>
-    const canvas = document.getElementById('tetris');
-    const context = canvas.getContext('2d');
-    context.scale(20, 20);
+    /* ---------------------- MUSIC: seamless resume ---------------------- */
+    (function(){
+      const audio = document.getElementById('bg-music');
+      const musicBtn = document.getElementById('musicBtn');
+      const saved = localStorage.getItem('music-time');
+      if (saved) { audio.currentTime = parseFloat(saved) || 0; }
 
-    function arenaSweep() {
-      outer: for (let y = arena.length -1; y > 0; --y) {
-        for (let x = 0; x < arena[y].length; ++x) {
-          if (arena[y][x] === 0) {
-            continue outer;
-          }
-        }
-        const row = arena.splice(y, 1)[0].fill(0);
-        arena.unshift(row);
-        ++y;
+      function tryPlay(){
+        audio.play().then(() => { musicBtn.style.display = 'none'; })
+        .catch(() => { musicBtn.style.display = 'block'; });
       }
-    }
 
-    function collide(arena, player) {
-      const m = player.matrix;
-      const o = player.pos;
-      for (let y = 0; y < m.length; ++y) {
-        for (let x = 0; x < m[y].length; ++x) {
-          if (m[y][x] !== 0 &&
-             (arena[y + o.y] &&
-              arena[y + o.y][x + o.x]) !== 0) {
-            return true;
-          }
-        }
-      }
-      return false;
-    }
+      // Autoplay attempt on load
+      window.addEventListener('load', tryPlay);
+      // Fallback: first user interaction
+      document.addEventListener('click', tryPlay, { once: true });
+      musicBtn.addEventListener('click', tryPlay);
 
-    function createMatrix(w, h) {
-      const matrix = [];
-      while (h--) {
-        matrix.push(new Array(w).fill(0));
-      }
-      return matrix;
-    }
+      // Persist time every 500ms and on unload
+      setInterval(() => { if (!audio.paused) localStorage.setItem('music-time', audio.currentTime.toString()); }, 500);
+      window.addEventListener('beforeunload', () => { localStorage.setItem('music-time', audio.currentTime.toString()); });
+    })();
 
-    function createPiece(type) {
-      if (type === 'T') {
-        return [
-          [0, 0, 0],
-          [1, 1, 1],
-          [0, 1, 0],
-        ];
-      } else if (type === 'O') {
-        return [
-          [2, 2],
-          [2, 2],
-        ];
-      } else if (type === 'L') {
-        return [
-          [0, 3, 0],
-          [0, 3, 0],
-          [0, 3, 3],
-        ];
-      } else if (type === 'J') {
-        return [
-          [0, 4, 0],
-          [0, 4, 0],
-          [4, 4, 0],
-        ];
-      } else if (type === 'I') {
-        return [
-          [0, 5, 0, 0],
-          [0, 5, 0, 0],
-          [0, 5, 0, 0],
-          [0, 5, 0, 0],
-        ];
-      } else if (type === 'S') {
-        return [
-          [0, 6, 6],
-          [6, 6, 0],
-          [0, 0, 0],
-        ];
-      } else if (type === 'Z') {
-        return [
-          [7, 7, 0],
-          [0, 7, 7],
-          [0, 0, 0],
-        ];
-      }
-    }
-
-    function drawMatrix(matrix, offset) {
-      matrix.forEach((row, y) => {
-        row.forEach((value, x) => {
-          if (value !== 0) {
-            context.fillStyle = colors[value];
-            context.fillRect(x + offset.x,
-                             y + offset.y,
-                             1, 1);
-          }
-        });
+    /* ---------------------- EXIT RESTRICTION ---------------------- */
+    (function(){
+      let pathChosen = false;
+      const links = document.querySelectorAll('.path-link');
+      links.forEach(a => a.addEventListener('click', () => { pathChosen = true; localStorage.setItem('pathChosen', '1'); }));
+      window.addEventListener('beforeunload', (e) => {
+        if (!pathChosen) { e.preventDefault(); e.returnValue = ''; }
       });
-    }
+    })();
 
-    function draw() {
-      context.fillStyle = '#000';
-      context.fillRect(0, 0, canvas.width, canvas.height);
-      drawMatrix(arena, {x:0,y:0});
-      drawMatrix(player.matrix, player.pos);
-    }
+    /* ---------------------- PRO TETRIS ---------------------- */
+    (function(){
+      const canvas = document.getElementById('tetris');
+      const ctx = canvas.getContext('2d');
 
-    function merge(arena, player) {
-      player.matrix.forEach((row, y) => {
-        row.forEach((value, x) => {
-          if (value !== 0) {
-            arena[y + player.pos.y][x + player.pos.x] = value;
+      // Logical cell size (pixels per cell)
+      const TILE = 30; // 12 * 30 = 360, 20 * 30 = 600
+      ctx.imageSmoothingEnabled = false;
+      ctx.scale(TILE, TILE);
+
+      const COLS = 12, ROWS = 20;
+      const arena = createMatrix(COLS, ROWS);
+
+      const colors = [ null,
+        '#FF0D72', '#0DC2FF', '#0DFF72', '#F538FF', '#FF8E0D', '#FFE138', '#3877FF'
+      ];
+
+      const player = { pos: {x:0, y:0}, matrix: null, score: 0 };
+
+      function createMatrix(w, h){ const m=[]; while(h--) m.push(new Array(w).fill(0)); return m; }
+
+      function createPiece(type){
+        switch(type){
+          case 'T': return [[0,0,0],[1,1,1],[0,1,0]];
+          case 'O': return [[2,2],[2,2]];
+          case 'L': return [[0,3,0],[0,3,0],[0,3,3]];
+          case 'J': return [[0,4,0],[0,4,0],[4,4,0]];
+          case 'I': return [[0,5,0,0],[0,5,0,0],[0,5,0,0],[0,5,0,0]];
+          case 'S': return [[0,6,6],[6,6,0],[0,0,0]];
+          case 'Z': return [[7,7,0],[0,7,7],[0,0,0]];
+        }
+      }
+
+      function collide(arena, player){
+        const m = player.matrix; const o = player.pos;
+        for (let y = 0; y < m.length; ++y) {
+          for (let x = 0; x < m[y].length; ++x) {
+            if (m[y][x] !== 0 && (arena[y + o.y] && arena[y + o.y][x + o.x]) !== 0) return true;
           }
-        });
+        }
+        return false;
+      }
+
+      function merge(arena, player){
+        player.matrix.forEach((row, y) => row.forEach((val, x) => { if (val !== 0) arena[y + player.pos.y][x + player.pos.x] = val; }));
+      }
+
+      function arenaSweep(){
+        let rowCount = 1;
+        outer: for (let y = arena.length - 1; y >= 0; --y) {
+          for (let x = 0; x < arena[y].length; ++x) { if (arena[y][x] === 0) continue outer; }
+          const row = arena.splice(y, 1)[0].fill(0); arena.unshift(row); ++y;
+          player.score += rowCount * 100; rowCount *= 2; updateScore();
+        }
+      }
+
+      function rotate(matrix, dir){
+        for (let y = 0; y < matrix.length; ++y) {
+          for (let x = 0; x < y; ++x) { [matrix[x][y], matrix[y][x]] = [matrix[y][x], matrix[x][y]]; }
+        }
+        if (dir > 0) matrix.forEach(row => row.reverse()); else matrix.reverse();
+      }
+
+      function playerReset(){
+        const pieces = 'TJLOSZI';
+        player.matrix = createPiece(pieces[(Math.random() * pieces.length) | 0]);
+        player.pos.y = 0; player.pos.x = (COLS / 2 | 0) - (player.matrix[0].length / 2 | 0);
+        if (collide(arena, player)) { arena.forEach(r => r.fill(0)); player.score = 0; updateScore(); }
+      }
+
+      function playerDrop(){ player.pos.y++; if (collide(arena, player)) { player.pos.y--; merge(arena, player); playerReset(); arenaSweep(); } dropCounter = 0; }
+      function playerMove(dir){ player.pos.x += dir; if (collide(arena, player)) player.pos.x -= dir; }
+      function playerRotate(dir){
+        const pos = player.pos.x; let offset = 1; rotate(player.matrix, dir);
+        while (collide(arena, player)) { player.pos.x += offset; offset = -(offset + (offset > 0 ? 1 : -1)); if (offset > player.matrix[0].length) { rotate(player.matrix, -dir); player.pos.x = pos; return; } }
+      }
+      function hardDrop(){ do { player.pos.y++; } while(!collide(arena, player)); player.pos.y--; merge(arena, player); playerReset(); arenaSweep(); dropCounter = 0; }
+
+      function drawMatrix(matrix, offset){
+        matrix.forEach((row, y) => row.forEach((val, x) => { if (val !== 0) { ctx.fillStyle = colors[val]; ctx.fillRect(x + offset.x, y + offset.y, 1, 1); } }));
+      }
+
+      function draw(){
+        ctx.fillStyle = '#101114'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        drawMatrix(arena, {x:0, y:0}); drawMatrix(player.matrix, player.pos);
+      }
+
+      let dropCounter = 0; let dropInterval = 800; let lastTime = 0; let paused = false;
+      function update(time = 0){
+        if (paused) { requestAnimationFrame(update); return; }
+        const delta = time - lastTime; lastTime = time; dropCounter += delta; if (dropCounter > dropInterval) playerDrop();
+        draw(); requestAnimationFrame(update);
+      }
+
+      function updateScore(){ document.getElementById('score').textContent = 'Score: ' + player.score; }
+
+      // Keyboard controls
+      document.addEventListener('keydown', (e) => {
+        switch (e.key) {
+          case 'ArrowLeft': playerMove(-1); break;
+          case 'ArrowRight': playerMove(1); break;
+          case 'ArrowDown': playerDrop(); break;
+          case 'ArrowUp': playerRotate(1); break;
+          case 'q': case 'Q': playerRotate(-1); break;
+          case ' ': e.preventDefault(); hardDrop(); break;
+          case 'p': case 'P': paused = !paused; break;
+          case 'r': case 'R': arena.forEach(r => r.fill(0)); player.score = 0; updateScore(); playerReset(); break;
+        }
       });
-    }
 
-    function playerDrop() {
-      player.pos.y++;
-      if (collide(arena, player)) {
-        player.pos.y--;
-        merge(arena, player);
-        playerReset();
-        arenaSweep();
-      }
-      dropCounter = 0;
-    }
+      // Touch controls (mobile)
+      document.getElementById('btnLeft').addEventListener('click', () => playerMove(-1));
+      document.getElementById('btnRight').addEventListener('click', () => playerMove(1));
+      document.getElementById('btnRotate').addEventListener('click', () => playerRotate(1));
+      document.getElementById('btnDrop').addEventListener('click', () => hardDrop());
 
-    function playerMove(dir) {
-      player.pos.x += dir;
-      if (collide(arena, player)) {
-        player.pos.x -= dir;
-      }
-    }
-
-    function playerReset() {
-      const pieces = 'TJLOSZI';
-      player.matrix = createPiece(pieces[pieces.length * Math.random() | 0]);
-      player.pos.y = 0;
-      player.pos.x = (arena[0].length / 2 | 0) -
-                     (player.matrix[0].length / 2 | 0);
-      if (collide(arena, player)) {
-        arena.forEach(row => row.fill(0));
-      }
-    }
-
-    function playerRotate(dir) {
-      const pos = player.pos.x;
-      let offset = 1;
-      rotate(player.matrix, dir);
-      while (collide(arena, player)) {
-        player.pos.x += offset;
-        offset = -(offset + (offset > 0 ? 1 : -1));
-        if (offset > player.matrix[0].length) {
-          rotate(player.matrix, -dir);
-          player.pos.x = pos;
-          return;
-        }
-      }
-    }
-
-    function rotate(matrix, dir) {
-      for (let y = 0; y < matrix.length; ++y) {
-        for (let x = 0; x < y; ++x) {
-          [
-            matrix[x][y],
-            matrix[y][x],
-          ] = [
-            matrix[y][x],
-            matrix[x][y],
-          ];
-        }
-      }
-      if (dir > 0) {
-        matrix.forEach(row => row.reverse());
-      } else {
-        matrix.reverse();
-      }
-    }
-
-    let dropCounter = 0;
-    let dropInterval = 1000;
-    let lastTime = 0;
-
-    function update(time = 0) {
-      const deltaTime = time - lastTime;
-      lastTime = time;
-      dropCounter += deltaTime;
-      if (dropCounter > dropInterval) {
-        playerDrop();
-      }
-      draw();
-      requestAnimationFrame(update);
-    }
-
-    const colors = [
-      null,
-      '#FF0D72',
-      '#0DC2FF',
-      '#0DFF72',
-      '#F538FF',
-      '#FF8E0D',
-      '#FFE138',
-      '#3877FF',
-    ];
-
-    const arena = createMatrix(12, 20);
-    const player = {
-      pos: {x:0,y:0},
-      matrix: null,
-    };
-
-    document.addEventListener('keydown', event => {
-      if (event.keyCode === 37) {
-        playerMove(-1);
-      } else if (event.keyCode === 39) {
-        playerMove(1);
-      } else if (event.keyCode === 40) {
-        playerDrop();
-      } else if (event.keyCode === 81) {
-        playerRotate(-1);
-      } else if (event.keyCode === 87) {
-        playerRotate(1);
-      }
-    });
-
-    playerReset();
-    update();
+      playerReset(); updateScore(); update();
+    })();
   </script>
 </body>
 </html>
-
 
