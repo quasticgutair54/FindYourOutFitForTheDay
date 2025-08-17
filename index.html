@@ -1,15 +1,22 @@
+Perfect 🙌 Thanks for confirming.
+Here’s your **updated homepage code** with the Tetris game (left side / top on mobile), personality path cards (right side / bottom on mobile), blurred transparent background under the game, seamless music, and exit restriction.
+
+---
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Style Quiz</title>
-  <link href="https://fonts.googleapis.com/css2?family=Tan+Nimbus&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Tan+Nimbus&display=swap" rel="stylesheet"/>
   <style>
     html, body {
       margin: 0;
       padding: 0;
       font-family: 'Tan Nimbus', sans-serif;
+      height: 100%;
       overflow: hidden;
     }
 
@@ -35,34 +42,72 @@
       display: none;
     }
 
-    .overlay {
-      z-index: 2;
+    .container {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: flex-start;
       width: 90%;
       max-width: 1200px;
-      padding: 2rem;
-      text-align: center;
-      background-color: rgba(255, 255, 255, 0.6);
-      box-shadow: 0 0 10px rgba(0,0,0,0.15);
+      z-index: 2;
+      gap: 2rem;
+    }
+
+    .left-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .tetris-container {
+      position: relative;
+      padding: 1rem;
       border-radius: 10px;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(6px);
+    }
+
+    #score {
+      color: white;
+      font-size: 1.2rem;
+      margin-bottom: 0.5rem;
+      text-align: center;
+    }
+
+    #tetris {
+      display: block;
+      background: rgba(20,20,20,0.8);
+      border: 2px solid #444;
+    }
+
+    .right-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     .main-heading {
-      font-family: 'Comic Sans MS', cursive;
+      font-family: 'Tan Nimbus', sans-serif;
       font-weight: bold;
-      font-size: 2rem;
+      font-size: 1.8rem;
       margin-bottom: 2rem;
+      color: white;
+      text-shadow: 1px 1px 3px black;
+      text-align: center;
     }
 
     .personality-options {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      gap: 2rem;
+      gap: 1.5rem;
     }
 
     .personality-card {
       text-align: center;
-      width: 160px;
+      width: 140px;
     }
 
     .personality-card img {
@@ -81,7 +126,9 @@
       margin-top: 0.5rem;
       font-size: 1rem;
       font-weight: bold;
-      font-family: 'Tan Nimbus', sans-serif;
+      font-family: 'Comic Sans MS', cursive;
+      color: white;
+      text-shadow: 1px 1px 2px black;
     }
 
     .popup {
@@ -102,32 +149,16 @@
     }
 
     @keyframes fadeout {
-      to {
-        opacity: 0;
-        visibility: hidden;
-      }
+      to { opacity: 0; visibility: hidden; }
     }
 
     @media (max-width: 768px) {
-      .overlay {
-        padding: 1rem;
+      .container {
+        flex-direction: column;
+        align-items: center;
       }
-
-      .main-heading {
-        font-size: 1.4rem;
-      }
-
-      .personality-card {
-        width: 100px;
-      }
-
-      .personality-name {
-        font-size: 0.9rem;
-      }
-
-      .personality-options {
-        gap: 1rem;
-      }
+      .personality-card { width: 100px; }
+      .main-heading { font-size: 1.4rem; }
     }
   </style>
 </head>
@@ -135,7 +166,7 @@
 
   <!-- 🔥 Background video -->
   <video id="bg-video" autoplay loop muted playsinline>
-    <source src="loop-bg.mp4" type="video/mp4" />
+    <source src="loop-bg.mp4" type="video/mp4"/>
     Your browser does not support HTML5 video.
   </video>
 
@@ -148,64 +179,244 @@
     Curious? Stick around — your outfit’s waiting so enjoy or die.
   </div>
 
-  <!-- 🎯 Main content -->
-  <div class="overlay">
-    <h1 class="main-heading">Since you scanned it, might as well check your personal outfit.</h1>
+  <!-- 🎯 Content -->
+  <div class="container">
+    <!-- Left side: Tetris -->
+    <div class="left-section">
+      <div id="score">Score: 0</div>
+      <div class="tetris-container">
+        <canvas id="tetris" width="240" height="400"></canvas>
+      </div>
+    </div>
 
-    <div class="personality-options">
-      <a href="allout-q1.html" class="personality-card">
-        <img src="allout.jpeg" alt="All Out" />
-        <div class="personality-name">All Out</div>
-      </a>
-      <a href="somewhatout-q1.html" class="personality-card">
-        <img src="somewhatout.jpeg" alt="Somewhat Out" />
-        <div class="personality-name">Somewhat Out</div>
-      </a>
-      <a href="never-q1.html" class="personality-card">
-        <img src="never.jpeg" alt="Never" />
-        <div class="personality-name">Never</div>
-      </a>
-      <a href="maybe-q1.html" class="personality-card">
-        <img src="maybe.jpeg" alt="Maybe" />
-        <div class="personality-name">Maybe</div>
-      </a>
-      <a href="twosides-q1.html" class="personality-card">
-        <img src="twosides.jpeg" alt="Two Sides of the Same Coin" />
-        <div class="personality-name">Two Sides of the Same Coin</div>
-      </a>
+    <!-- Right side: Personality paths -->
+    <div class="right-section">
+      <h1 class="main-heading">Since you scanned it, might as well check your personal outfit.</h1>
+      <div class="personality-options">
+        <a href="allout-q1.html" class="personality-card path-link">
+          <img src="allout.jpeg" alt="All Out"/>
+          <div class="personality-name">All Out</div>
+        </a>
+        <a href="somewhatout-q1.html" class="personality-card path-link">
+          <img src="somewhatout.jpeg" alt="Somewhat Out"/>
+          <div class="personality-name">Somewhat Out</div>
+        </a>
+        <a href="never-q1.html" class="personality-card path-link">
+          <img src="never.jpeg" alt="Never"/>
+          <div class="personality-name">Never</div>
+        </a>
+        <a href="maybe-q1.html" class="personality-card path-link">
+          <img src="maybe.jpeg" alt="Maybe"/>
+          <div class="personality-name">Maybe</div>
+        </a>
+        <a href="twosides-q1.html" class="personality-card path-link">
+          <img src="twosides.jpeg" alt="Two Sides"/>
+          <div class="personality-name">Two Sides of the Same Coin</div>
+        </a>
+      </div>
     </div>
   </div>
 
   <!-- 🎯 JavaScript -->
   <script>
+    // 🎵 Music resume system
     const audio = document.getElementById("bg-music");
     const storedTime = localStorage.getItem("music-time");
-
-    if (storedTime) {
-      audio.currentTime = parseFloat(storedTime);
-    }
-
+    if (storedTime) { audio.currentTime = parseFloat(storedTime); }
     window.addEventListener("load", () => {
       audio.play().catch(() => {
         const tryPlay = () => {
-          audio.play().then(() => {
-            document.removeEventListener("click", tryPlay);
-          });
+          audio.play().then(() => { document.removeEventListener("click", tryPlay); });
         };
         document.addEventListener("click", tryPlay);
       });
     });
-
-    setInterval(() => {
-      if (!audio.paused) {
-        localStorage.setItem("music-time", audio.currentTime);
-      }
-    }, 500);
-
+    setInterval(() => { if (!audio.paused) localStorage.setItem("music-time", audio.currentTime); }, 500);
     window.addEventListener("beforeunload", () => {
       localStorage.setItem("music-time", audio.currentTime);
     });
+
+    // 🚫 Prevent exit until path chosen
+    let pathChosen = false;
+    document.querySelectorAll(".path-link").forEach(link => {
+      link.addEventListener("click", () => { pathChosen = true; });
+    });
+    window.addEventListener("beforeunload", (e) => {
+      if (!pathChosen) {
+        e.preventDefault();
+        e.returnValue = "Hold up — pick your outfit personality before you leave!";
+        return "Hold up — pick your outfit personality before you leave!";
+      }
+    });
+
+    // 🎮 Basic Tetris implementation
+    const canvas = document.getElementById("tetris");
+    const context = canvas.getContext("2d");
+    context.scale(20, 20);
+
+    function arenaSweep() {
+      let rowCount = 1;
+      outer: for (let y = arena.length -1; y >=0; --y) {
+        for (let x = 0; x < arena[y].length; ++x) {
+          if (arena[y][x] === 0) continue;
+        }
+        const row = arena.splice(y,1)[0].fill(0);
+        arena.unshift(row);
+        ++y;
+        player.score += rowCount * 10;
+        rowCount *= 2;
+      }
+    }
+
+    function collide(arena, player) {
+      const m = player.matrix;
+      const o = player.pos;
+      for (let y = 0; y < m.length; ++y) {
+        for (let x = 0; x < m[y].length; ++x) {
+          if (m[y][x] !== 0 &&
+              (arena[y + o.y] && arena[y + o.y][x + o.x]) !== 0) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    function createMatrix(w,h) {
+      const matrix = [];
+      while (h--) matrix.push(new Array(w).fill(0));
+      return matrix;
+    }
+
+    function createPiece(type) {
+      if (type === 'T') return [[0,0,0],[1,1,1],[0,1,0]];
+      if (type === 'O') return [[2,2],[2,2]];
+      if (type === 'L') return [[0,3,0],[0,3,0],[0,3,3]];
+      if (type === 'J') return [[0,4,0],[0,4,0],[4,4,0]];
+      if (type === 'I') return [[0,5,0,0],[0,5,0,0],[0,5,0,0],[0,5,0,0]];
+      if (type === 'S') return [[0,6,6],[6,6,0],[0,0,0]];
+      if (type === 'Z') return [[7,7,0],[0,7,7],[0,0,0]];
+    }
+
+    function drawMatrix(matrix, offset) {
+      matrix.forEach((row,y) => {
+        row.forEach((value,x) => {
+          if (value !== 0) {
+            context.fillStyle = colors[value];
+            context.fillRect(x+offset.x, y+offset.y, 1,1);
+          }
+        });
+      });
+    }
+
+    function merge(arena, player) {
+      player.matrix.forEach((row,y) => {
+        row.forEach((value,x) => {
+          if (value !== 0) {
+            arena[y+player.pos.y][x+player.pos.x] = value;
+          }
+        });
+      });
+    }
+
+    function playerDrop() {
+      player.pos.y++;
+      if (collide(arena, player)) {
+        player.pos.y--;
+        merge(arena, player);
+        playerReset();
+        arenaSweep();
+        updateScore();
+      }
+      dropCounter=0;
+    }
+
+    function playerMove(dir) {
+      player.pos.x += dir;
+      if (collide(arena, player)) player.pos.x -= dir;
+    }
+
+    function playerReset() {
+      const pieces = 'TJLOSZI';
+      player.matrix = createPiece(pieces[pieces.length * Math.random() | 0]);
+      player.pos.y = 0;
+      player.pos.x = (arena[0].length/2 |0) - (player.matrix[0].length/2|0);
+      if (collide(arena, player)) {
+        arena.forEach(row => row.fill(0));
+        player.score = 0;
+        updateScore();
+      }
+    }
+
+    function playerRotate(dir) {
+      const pos = player.pos.x;
+      let offset = 1;
+      rotate(player.matrix, dir);
+      while (collide(arena, player)) {
+        player.pos.x += offset;
+        offset = -(offset+(offset>0?1:-1));
+        if (offset>player.matrix[0].length) {
+          rotate(player.matrix,-dir);
+          player.pos.x = pos;
+          return;
+        }
+      }
+    }
+
+    function rotate(matrix, dir) {
+      for (let y =0; y<matrix.length; ++y) {
+        for (let x=0;x<y;++x) {
+          [matrix[x][y],matrix[y][x]]=[matrix[y][x],matrix[x][y]];
+        }
+      }
+      if (dir>0) matrix.forEach(row=>row.reverse());
+      else matrix.reverse();
+    }
+
+    let dropCounter=0;
+    let dropInterval=1000;
+    let lastTime=0;
+
+    function update(time=0) {
+      const delta = time-lastTime;
+      lastTime=time;
+      dropCounter += delta;
+      if (dropCounter>dropInterval) playerDrop();
+      draw();
+      requestAnimationFrame(update);
+    }
+
+    function draw() {
+      context.fillStyle = "#111";
+      context.fillRect(0,0,canvas.width,canvas.height);
+      drawMatrix(arena,{x:0,y:0});
+      drawMatrix(player.matrix,player.pos);
+    }
+
+    function updateScore() {
+      document.getElementById("score").innerText = "Score: "+player.score;
+    }
+
+    document.addEventListener("keydown", event=>{
+      if (event.keyCode===37) playerMove(-1);
+      else if (event.keyCode===39) playerMove(1);
+      else if (event.keyCode===40) playerDrop();
+      else if (event.keyCode===81) playerRotate(-1);
+      else if (event.keyCode===87) playerRotate(1);
+    });
+
+    const colors=[null,"#FF0D72","#0DC2FF","#0DFF72","#F538FF","#FF8E0D","#FFE138","#3877FF"];
+    const arena=createMatrix(12,20);
+    const player={pos:{x:0,y:0},matrix:null,score:0};
+
+    playerReset();
+    updateScore();
+    update();
   </script>
 
 </body>
 </html>
+```
+
+---
+
