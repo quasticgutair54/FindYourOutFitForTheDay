@@ -31,6 +31,20 @@
       background: rgba(0,0,0,0.4); /* dark overlay for clarity */
     }
 
+    /* Top heading */
+    .heading {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: white;
+      font-size: 22px;
+      font-weight: bold;
+      background: rgba(0,0,0,0.6);
+      padding: 10px 20px;
+      border-radius: 12px;
+    }
+
     /* Left side: Tetris */
     .tetris-container {
       display: flex;
@@ -111,8 +125,13 @@
 
   <!-- Background video -->
   <video autoplay muted loop id="bg-video">
-    <source src="loop-background.mp4" type="video/mp4">
+    <source src="loop-bg.mp4" type="video/mp4">
   </video>
+
+  <!-- Heading -->
+  <div class="heading">
+    Hey! Since you came here, play a game and find out your outfit too.
+  </div>
 
   <!-- Background music -->
   <audio id="bg-music" autoplay loop>
@@ -420,6 +439,7 @@
   </script>
 </body>
 </html>
+
 
 
 
