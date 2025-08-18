@@ -5,25 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Personality Quiz - Home</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    /* Reset */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body, html {
       height: 100%;
-      font-family: 'Comic Sans MS', cursive, sans-serif;
+      font-family: Arial, sans-serif;
+      color: white;
       overflow: hidden;
     }
 
     /* Background video */
-    video#bg-video {
+    .video-bg {
       position: fixed;
-      right: 0;
-      bottom: 0;
-      min-width: 100%;
-      min-height: 100%;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
       object-fit: cover;
       z-index: -2;
     }
@@ -31,115 +28,120 @@
     /* Dark transparent blurred overlay */
     .overlay {
       position: fixed;
-      top: 0;
-      left: 0;
+      top: 0; left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0,0,0,0.55);
+      background: rgba(0,0,0,0.6);
       backdrop-filter: blur(6px);
       z-index: -1;
     }
 
+    /* Layout */
     .container {
       display: flex;
-      height: 100vh;
+      height: 100%;
       width: 100%;
     }
 
-    /* Tetris area */
-    .tetris-container {
+    /* Left side: Tetris */
+    .game-container {
       flex: 1;
       display: flex;
-      justify-content: center;
       align-items: center;
+      justify-content: center;
+      padding: 20px;
     }
-
     canvas {
-      background: rgba(255,255,255,0.05);
+      background: rgba(0,0,0,0.4);
       border: 2px solid white;
     }
 
-    /* Personality paths */
-    .paths {
+    /* Right side: Personality options */
+    .options {
       flex: 1;
       display: flex;
       flex-direction: column;
       justify-content: center;
-      align-items: center;
-      gap: 20px;
       padding: 20px;
-      color: white;
-      text-align: center;
+      gap: 20px;
     }
-
-    .path {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 15px;
-      padding: 15px;
-      width: 80%;
-      max-width: 300px;
-      transition: transform 0.3s ease, background 0.3s ease;
-      cursor: pointer;
-    }
-
-    .path img {
-      width: 100%;
+    .option {
+      display: flex;
+      align-items: center;
+      background: rgba(255,255,255,0.1);
       border-radius: 12px;
-      margin-bottom: 10px;
+      padding: 12px;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+    .option:hover {
+      transform: scale(1.05);
+      background: rgba(255,255,255,0.2);
+    }
+    .option img {
+      width: 60px; height: 60px;
+      border-radius: 8px;
+      margin-right: 12px;
+      object-fit: cover;
+    }
+    .option span {
+      font-size: 1.2rem;
+      font-weight: bold;
     }
 
-    .path:hover {
-      transform: scale(1.05);
-      background: rgba(255, 255, 255, 0.2);
+    /* Mobile */
+    @media (max-width: 768px) {
+      .container { flex-direction: column; }
+      .game-container, .options { flex: none; height: 50%; }
     }
   </style>
 </head>
 <body>
-  <!-- Background video -->
-  <video autoplay muted loop id="bg-video">
+  <!-- Background -->
+  <video autoplay muted loop class="video-bg">
     <source src="loop-background.mp4" type="video/mp4">
   </video>
   <div class="overlay"></div>
 
   <div class="container">
-    <!-- Left: Tetris game -->
-    <div class="tetris-container">
+    <!-- Tetris Game -->
+    <div class="game-container">
       <canvas id="tetris" width="240" height="400"></canvas>
     </div>
 
-    <!-- Right: Personality paths -->
-    <div class="paths">
-      <div class="path" onclick="location.href='allout/index.html'">
-        <img src="allout.jpg" alt="All Out">
-        <h2>All Out</h2>
+    <!-- Personality Paths -->
+    <div class="options">
+      <div class="option" onclick="location.href='allout/q1.html'">
+        <img src="allout.png" alt="All Out">
+        <span>All Out</span>
       </div>
-      <div class="path" onclick="location.href='somewhatout/index.html'">
-        <img src="somewhatout.jpg" alt="Somewhat Out">
-        <h2>Somewhat Out</h2>
+      <div class="option" onclick="location.href='somewhatout/q1.html'">
+        <img src="somewhatout.png" alt="Somewhat Out">
+        <span>Somewhat Out</span>
       </div>
-      <div class="path" onclick="location.href='never/index.html'">
-        <img src="never.jpg" alt="Never">
-        <h2>Never</h2>
+      <div class="option" onclick="location.href='never/q1.html'">
+        <img src="never.png" alt="Never">
+        <span>Never</span>
       </div>
-      <div class="path" onclick="location.href='maybe/index.html'">
-        <img src="maybe.jpg" alt="Maybe">
-        <h2>Maybe</h2>
+      <div class="option" onclick="location.href='maybe/q1.html'">
+        <img src="maybe.png" alt="Maybe">
+        <span>Maybe</span>
       </div>
-      <div class="path" onclick="location.href='twosides/index.html'">
-        <img src="twosides.jpg" alt="Two Sides">
-        <h2>Two Sides</h2>
+      <div class="option" onclick="location.href='twosides/q1.html'">
+        <img src="twosides.png" alt="Two Sides of the Same Coin">
+        <span>Two Sides</span>
       </div>
     </div>
   </div>
 
+  <!-- Simple Tetris Script -->
   <script>
-    // --- Simple Tetris implementation ---
     const canvas = document.getElementById('tetris');
     const context = canvas.getContext('2d');
     context.scale(20, 20);
 
     function arenaSweep() {
-      outer: for (let y = arena.length -1; y >=0; --y) {
+      outer: for (let y = arena.length -1; y > 0; --y) {
         for (let x = 0; x < arena[y].length; ++x) {
           if (arena[y][x] === 0) {
             continue outer;
@@ -157,8 +159,8 @@
       for (let y = 0; y < m.length; ++y) {
         for (let x = 0; x < m[y].length; ++x) {
           if (m[y][x] !== 0 &&
-              (arena[y + o.y] &&
-               arena[y + o.y][x + o.x]) !== 0) {
+             (arena[y + o.y] &&
+              arena[y + o.y][x + o.x]) !== 0) {
             return true;
           }
         }
@@ -177,45 +179,45 @@
     function createPiece(type) {
       if (type === 'T') {
         return [
-          [0,0,0],
-          [1,1,1],
-          [0,1,0],
+          [0, 0, 0],
+          [1, 1, 1],
+          [0, 1, 0],
         ];
       } else if (type === 'O') {
         return [
-          [2,2],
-          [2,2],
+          [2, 2],
+          [2, 2],
         ];
       } else if (type === 'L') {
         return [
-          [0,3,0],
-          [0,3,0],
-          [0,3,3],
+          [0, 3, 0],
+          [0, 3, 0],
+          [0, 3, 3],
         ];
       } else if (type === 'J') {
         return [
-          [0,4,0],
-          [0,4,0],
-          [4,4,0],
+          [0, 4, 0],
+          [0, 4, 0],
+          [4, 4, 0],
         ];
       } else if (type === 'I') {
         return [
-          [0,5,0,0],
-          [0,5,0,0],
-          [0,5,0,0],
-          [0,5,0,0],
+          [0, 5, 0, 0],
+          [0, 5, 0, 0],
+          [0, 5, 0, 0],
+          [0, 5, 0, 0],
         ];
       } else if (type === 'S') {
         return [
-          [0,6,6],
-          [6,6,0],
-          [0,0,0],
+          [0, 6, 6],
+          [6, 6, 0],
+          [0, 0, 0],
         ];
       } else if (type === 'Z') {
         return [
-          [7,7,0],
-          [0,7,7],
-          [0,0,0],
+          [7, 7, 0],
+          [0, 7, 7],
+          [0, 0, 0],
         ];
       }
     }
@@ -236,7 +238,6 @@
     function draw() {
       context.fillStyle = '#000';
       context.fillRect(0, 0, canvas.width, canvas.height);
-
       drawMatrix(arena, {x:0,y:0});
       drawMatrix(player.matrix, player.pos);
     }
@@ -341,7 +342,6 @@
     ];
 
     const arena = createMatrix(12, 20);
-
     const player = {
       pos: {x:0,y:0},
       matrix: null,
@@ -366,8 +366,6 @@
   </script>
 </body>
 </html>
-
-
 
 
 
