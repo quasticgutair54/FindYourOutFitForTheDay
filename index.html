@@ -94,12 +94,14 @@
     }
 
     .path img {
-      width: 180px;
-      height: 180px;
-      object-fit: cover;
-      border-radius: 12px;
-      border: 3px solid white;
-    }
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+  border: 3px solid white;
+  display: block;
+  margin: 0 auto;
+}
+
 
     .path p {
       margin-top: 10px;
@@ -113,11 +115,20 @@
     }
 
     /* Mobile */
-    @media(max-width: 768px) {
-      .container {
-        grid-template-columns: 1fr;
-        grid-template-rows: 1fr 1fr;
-      }
+  @media (max-width: 768px) {
+  .heading {
+    font-size: 18px;
+    padding: 8px 15px;
+  }
+}
+
+@media (min-width: 769px) {
+  .heading {
+    font-size: 28px;
+    padding: 12px 25px;
+  }
+}
+
     }
   </style>
 </head>
@@ -129,9 +140,10 @@
   </video>
 
   <!-- Heading -->
-  <div class="heading">
-    Hey! Since you came here, play a game and find out your outfit too.
-  </div>
+  <div class="heading" style="font-family: 'Comic Sans MS', cursive, sans-serif; font-weight: 900;">
+  Play the Game or Explore Personality Paths
+</div>
+
 
   <!-- Background music -->
   <audio id="bg-music" autoplay loop>
@@ -141,7 +153,7 @@
   <div class="container">
     <!-- Left side: Tetris -->
     <div class="tetris-container">
-      <h2>Tetris</h2>
+      
       <canvas id="tetris" width="200" height="400"></canvas>
       <p id="score">Score: 0</p>
       <div class="controls">
