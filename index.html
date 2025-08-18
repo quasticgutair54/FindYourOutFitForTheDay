@@ -3,145 +3,188 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Personality Quiz - Home</title>
+  <title>NotTheBest Personality Quiz</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comic+Sans+MS&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tan+Nimbus&display=swap">
   <style>
-    /* Reset */
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    body, html {
-      height: 100%;
-      font-family: Arial, sans-serif;
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
       color: white;
-      overflow: hidden;
+      overflow-x: hidden;
+      text-align: center;
     }
 
-    /* Background video */
-    .video-bg {
+    /* Background image */
+    body::before {
+      content: "";
       position: fixed;
-      top: 0; left: 0;
+      top: 0;
+      left: 0;
       width: 100%;
       height: 100%;
-      object-fit: cover;
-      z-index: -2;
-    }
-
-    /* Dark transparent blurred overlay */
-    .overlay {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.6);
-      backdrop-filter: blur(6px);
+      background: url('Untitled design (2).png') no-repeat center center/cover;
       z-index: -1;
+      filter: brightness(0.7);
     }
 
-    /* Layout */
-    .container {
-      display: flex;
-      height: 100%;
-      width: 100%;
+    h1 {
+      font-family: 'Tan Nimbus', serif;
+      margin: 20px 0;
+      font-size: 2.5rem;
+      text-shadow: 2px 2px 6px rgba(0,0,0,0.6);
     }
 
-    /* Left side: Tetris */
-    .game-container {
-      flex: 1;
+    /* Popup */
+    #popup {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.8);
+      color: white;
       display: flex;
-      align-items: center;
       justify-content: center;
-      padding: 20px;
-    }
-    canvas {
-      background: rgba(0,0,0,0.4);
-      border: 2px solid white;
+      align-items: center;
+      font-size: 1.5rem;
+      z-index: 1000;
     }
 
-    /* Right side: Personality options */
-    .options {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding: 20px;
-      gap: 20px;
-    }
-    .option {
-      display: flex;
-      align-items: center;
-      background: rgba(255,255,255,0.1);
-      border-radius: 12px;
-      padding: 12px;
+    #popup button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      border: none;
+      background: yellow;
+      font-size: 1rem;
       cursor: pointer;
-      transition: transform 0.2s ease;
-    }
-    .option:hover {
-      transform: scale(1.05);
-      background: rgba(255,255,255,0.2);
-    }
-    .option img {
-      width: 60px; height: 60px;
       border-radius: 8px;
-      margin-right: 12px;
-      object-fit: cover;
     }
-    .option span {
+
+    /* Personalities grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 20px;
+      max-width: 1000px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    .personality {
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .personality img {
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+
+    .personality p {
+      margin-top: 10px;
       font-size: 1.2rem;
       font-weight: bold;
     }
 
-    /* Mobile */
-    @media (max-width: 768px) {
-      .container { flex-direction: column; }
-      .game-container, .options { flex: none; height: 50%; }
+    .personality:hover {
+      transform: scale(1.05);
+    }
+
+    /* Tetris section */
+    #tetris-container {
+      margin: 40px auto;
+      text-align: center;
+    }
+
+    canvas {
+      background: #000;
+      display: block;
+      margin: auto;
+      border: 2px solid white;
+    }
+
+    #score {
+      font-size: 1.5rem;
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
-  <!-- Background -->
-  <video autoplay muted loop class="video-bg">
-    <source src="loop-background.mp4" type="video/mp4">
-  </video>
-  <div class="overlay"></div>
-
-  <div class="container">
-    <!-- Tetris Game -->
-    <div class="game-container">
-      <canvas id="tetris" width="240" height="400"></canvas>
-    </div>
-
-    <!-- Personality Paths -->
-    <div class="options">
-      <div class="option" onclick="location.href='allout/q1.html'">
-        <img src="allout.png" alt="All Out">
-        <span>All Out</span>
-      </div>
-      <div class="option" onclick="location.href='somewhatout/q1.html'">
-        <img src="somewhatout.png" alt="Somewhat Out">
-        <span>Somewhat Out</span>
-      </div>
-      <div class="option" onclick="location.href='never/q1.html'">
-        <img src="never.png" alt="Never">
-        <span>Never</span>
-      </div>
-      <div class="option" onclick="location.href='maybe/q1.html'">
-        <img src="maybe.png" alt="Maybe">
-        <span>Maybe</span>
-      </div>
-      <div class="option" onclick="location.href='twosides/q1.html'">
-        <img src="twosides.png" alt="Two Sides of the Same Coin">
-        <span>Two Sides</span>
-      </div>
+  <div id="popup">
+    <div>
+      <p>Since you scanned it, might as well check your personal outfit.</p>
+      <button onclick="closePopup()">Start</button>
     </div>
   </div>
 
-  <!-- Simple Tetris Script -->
+  <h1>NotTheBest Personality Quiz</h1>
+
+  <!-- Personalities -->
+  <div class="grid">
+    <div class="personality" onclick="goTo('allout-q1.html')">
+      <img src="allout.jpg" alt="All Out">
+      <p>All Out</p>
+    </div>
+    <div class="personality" onclick="goTo('somewhat-q1.html')">
+      <img src="somewhat.jpg" alt="Somewhat Out">
+      <p>Somewhat Out</p>
+    </div>
+    <div class="personality" onclick="goTo('never-q1.html')">
+      <img src="never.jpg" alt="Never">
+      <p>Never</p>
+    </div>
+    <div class="personality" onclick="goTo('maybe-q1.html')">
+      <img src="maybe.jpg" alt="Maybe">
+      <p>Maybe</p>
+    </div>
+    <div class="personality" onclick="goTo('twosides-q1.html')">
+      <img src="twosides.jpg" alt="Two Sides of the Same Coin">
+      <p>Two Sides</p>
+    </div>
+  </div>
+
+  <!-- Tetris Game -->
+  <div id="tetris-container">
+    <canvas id="tetris" width="240" height="400"></canvas>
+    <div id="score">Score: 0</div>
+  </div>
+
+  <!-- Background Music -->
+  <audio id="bg-music" src="running out of time.mp3" loop></audio>
+
   <script>
+    // Popup
+    function closePopup() {
+      document.getElementById("popup").style.display = "none";
+      document.getElementById("bg-music").play();
+    }
+
+    // Navigation
+    function goTo(page) {
+      localStorage.setItem("musicTime", document.getElementById("bg-music").currentTime);
+      window.location.href = page;
+    }
+
+    // Seamless Music
+    const music = document.getElementById("bg-music");
+    const savedTime = localStorage.getItem("musicTime");
+    if (savedTime) music.currentTime = savedTime;
+    music.volume = 0.4;
+
+    setInterval(() => {
+      localStorage.setItem("musicTime", music.currentTime);
+    }, 500);
+
+    // Tetris
     const canvas = document.getElementById('tetris');
     const context = canvas.getContext('2d');
     context.scale(20, 20);
 
     function arenaSweep() {
-      outer: for (let y = arena.length -1; y > 0; --y) {
+      let rowCount = 1;
+      outer: for (let y = arena.length -1; y >=0; --y) {
         for (let x = 0; x < arena[y].length; ++x) {
           if (arena[y][x] === 0) {
             continue outer;
@@ -150,6 +193,9 @@
         const row = arena.splice(y, 1)[0].fill(0);
         arena.unshift(row);
         ++y;
+
+        player.score += rowCount * 10;
+        rowCount *= 2;
       }
     }
 
@@ -179,45 +225,45 @@
     function createPiece(type) {
       if (type === 'T') {
         return [
-          [0, 0, 0],
-          [1, 1, 1],
-          [0, 1, 0],
+          [0,0,0],
+          [1,1,1],
+          [0,1,0],
         ];
       } else if (type === 'O') {
         return [
-          [2, 2],
-          [2, 2],
+          [2,2],
+          [2,2],
         ];
       } else if (type === 'L') {
         return [
-          [0, 3, 0],
-          [0, 3, 0],
-          [0, 3, 3],
+          [0,3,0],
+          [0,3,0],
+          [0,3,3],
         ];
       } else if (type === 'J') {
         return [
-          [0, 4, 0],
-          [0, 4, 0],
-          [4, 4, 0],
+          [0,4,0],
+          [0,4,0],
+          [4,4,0],
         ];
       } else if (type === 'I') {
         return [
-          [0, 5, 0, 0],
-          [0, 5, 0, 0],
-          [0, 5, 0, 0],
-          [0, 5, 0, 0],
+          [0,5,0,0],
+          [0,5,0,0],
+          [0,5,0,0],
+          [0,5,0,0],
         ];
       } else if (type === 'S') {
         return [
-          [0, 6, 6],
-          [6, 6, 0],
-          [0, 0, 0],
+          [0,6,6],
+          [6,6,0],
+          [0,0,0],
         ];
       } else if (type === 'Z') {
         return [
-          [7, 7, 0],
-          [0, 7, 7],
-          [0, 0, 0],
+          [7,7,0],
+          [0,7,7],
+          [0,0,0],
         ];
       }
     }
@@ -238,7 +284,8 @@
     function draw() {
       context.fillStyle = '#000';
       context.fillRect(0, 0, canvas.width, canvas.height);
-      drawMatrix(arena, {x:0,y:0});
+
+      drawMatrix(arena, {x:0, y:0});
       drawMatrix(player.matrix, player.pos);
     }
 
@@ -259,6 +306,7 @@
         merge(arena, player);
         playerReset();
         arenaSweep();
+        updateScore();
       }
       dropCounter = 0;
     }
@@ -278,6 +326,8 @@
                      (player.matrix[0].length / 2 | 0);
       if (collide(arena, player)) {
         arena.forEach(row => row.fill(0));
+        player.score = 0;
+        updateScore();
       }
     }
 
@@ -299,13 +349,7 @@
     function rotate(matrix, dir) {
       for (let y = 0; y < matrix.length; ++y) {
         for (let x = 0; x < y; ++x) {
-          [
-            matrix[x][y],
-            matrix[y][x],
-          ] = [
-            matrix[y][x],
-            matrix[x][y],
-          ];
+          [ matrix[x][y], matrix[y][x] ] = [ matrix[y][x], matrix[x][y] ];
         }
       }
       if (dir > 0) {
@@ -322,12 +366,18 @@
     function update(time = 0) {
       const deltaTime = time - lastTime;
       lastTime = time;
+
       dropCounter += deltaTime;
       if (dropCounter > dropInterval) {
         playerDrop();
       }
+
       draw();
       requestAnimationFrame(update);
+    }
+
+    function updateScore() {
+      document.getElementById('score').innerText = 'Score: ' + player.score;
     }
 
     const colors = [
@@ -342,9 +392,11 @@
     ];
 
     const arena = createMatrix(12, 20);
+
     const player = {
-      pos: {x:0,y:0},
+      pos: {x:0, y:0},
       matrix: null,
+      score: 0,
     };
 
     document.addEventListener('keydown', event => {
@@ -362,6 +414,7 @@
     });
 
     playerReset();
+    updateScore();
     update();
   </script>
 </body>
