@@ -3,18 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Personality Test</title>
+  <title>Game + Personality Paths</title>
   <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
     body, html {
-      margin: 0;
-      padding: 0;
       height: 100%;
-      overflow: hidden;
       font-family: Arial, sans-serif;
+      color: white;
+      overflow: hidden;
     }
 
     /* Background video */
-    #bg-video {
+    video.bg-video {
       position: fixed;
       top: 0; left: 0;
       width: 100%; height: 100%;
@@ -22,432 +23,263 @@
       z-index: -1;
     }
 
-    /* Overlay layout */
     .container {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+      display: flex;
       height: 100%;
       width: 100%;
-      background: rgba(0,0,0,0.4); /* dark overlay for clarity */
     }
 
-    /* Top heading */
-    .heading {
-      position: absolute;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      color: white;
-      font-size: 22px;
-      font-weight: bold;
-      background: rgba(0,0,0,0.6);
-      padding: 10px 20px;
-      border-radius: 12px;
-    }
-
-    /* Left side: Tetris */
-    .tetris-container {
+    /* Left side games */
+    .left {
+      flex: 1;
       display: flex;
       flex-direction: column;
-      align-items: center;
       justify-content: center;
-      color: white;
+      align-items: center;
       padding: 10px;
     }
 
     canvas {
-      background: #111;
-      border: 2px solid #fff;
+      background: rgba(0,0,0,0.6);
+      border: 2px solid white;
+      border-radius: 10px;
     }
 
-    .controls {
-      margin-top: 10px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 5px;
-      justify-content: center;
-    }
-
-    .controls button {
-      padding: 10px 15px;
-      font-size: 16px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      background: #ffeb3b;
-    }
-
-    /* Right side: Personality paths */
-    .paths {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 20px;
-      padding: 20px;
-    }
-
-    .path {
+    .game-message {
+      margin-top: 15px;
+      font-size: 1rem;
       text-align: center;
-      cursor: pointer;
-      transition: transform 0.2s;
     }
 
-    .path img {
-  max-width: 100%;
-  height: auto;
-  border-radius: 12px;
-  border: 3px solid white;
-  display: block;
-  margin: 0 auto;
-}
-
-
-    .path p {
-      margin-top: 10px;
-      color: white;
-      font-size: 18px;
-      font-weight: bold;
+    /* Right side personality paths */
+    .right {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: repeat(3, 1fr);
+      gap: 10px;
+      padding: 15px;
+      align-items: center;
+      justify-items: center;
     }
 
-    .path:hover {
+    .personality {
+      width: 100%;
+      max-width: 200px;
+      text-align: center;
+    }
+
+    .personality img {
+      width: 100%;
+      border-radius: 10px;
+      transition: transform 0.3s;
+    }
+
+    .personality img:hover {
       transform: scale(1.05);
     }
 
-    /* Mobile */
-  @media (max-width: 768px) {
-  .heading {
-    font-size: 18px;
-    padding: 8px 15px;
-  }
-}
+    .personality p {
+      margin-top: 5px;
+      font-weight: bold;
+    }
 
-@media (min-width: 769px) {
-  .heading {
-    font-size: 28px;
-    padding: 12px 25px;
-  }
-}
-
+    /* Responsive tweaks */
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+      }
+      .right {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: repeat(3, auto);
+        overflow-y: auto;
+      }
+      .left {
+        order: 2;
+      }
     }
   </style>
 </head>
 <body>
-
-  <!-- Background video -->
-  <video autoplay muted loop id="bg-video">
+  <!-- Background Video -->
+  <video autoplay muted loop class="bg-video">
     <source src="loop-bg.mp4" type="video/mp4">
   </video>
 
-  <!-- Heading -->
-  <div class="heading" style="font-family: 'Comic Sans MS', cursive, sans-serif; font-weight: 900;">
-  Play the Game or Explore Personality Paths
-</div>
-
-
-  <!-- Background music -->
-  <audio id="bg-music" autoplay loop>
-    <source src="running out of time.mp3" type="audio/mpeg">
+  <!-- Background Music -->
+  <audio autoplay loop>
+    <source src="running-out-of-time.mp3" type="audio/mpeg">
   </audio>
 
   <div class="container">
-    <!-- Left side: Tetris -->
-    <div class="tetris-container">
-      
-      <canvas id="tetris" width="200" height="400"></canvas>
-      <p id="score">Score: 0</p>
-      <div class="controls">
-        <button onclick="move(-1)">◀️</button>
-        <button onclick="rotate()">🔄</button>
-        <button onclick="move(1)">▶️</button>
-        <button onclick="drop()">⬇️</button>
-      </div>
+    <!-- LEFT SIDE GAMES -->
+    <div class="left">
+      <canvas id="gameCanvas" width="350" height="350"></canvas>
+      <div class="game-message" id="gameMessage">Match the cards to start!</div>
     </div>
 
-    <!-- Right side: Personality paths -->
-    <div class="paths">
-      <div class="path" onclick="goTo('allout-q1.html')">
-        <img src="allout.png" alt="All Out">
+    <!-- RIGHT SIDE PERSONALITY PATHS -->
+    <div class="right">
+      <div class="personality">
+        <a href="all-out.html"><img src="path1.jpg" alt="All Out"></a>
         <p>All Out</p>
       </div>
-      <div class="path" onclick="goTo('somewhat-q1.html')">
-        <img src="somewhat.png" alt="Somewhat Out">
+      <div class="personality">
+        <a href="somewhat-out.html"><img src="path2.jpg" alt="Somewhat Out"></a>
         <p>Somewhat Out</p>
       </div>
-      <div class="path" onclick="goTo('never-q1.html')">
-        <img src="never.png" alt="Never">
-        <p>Never</p>
-      </div>
-      <div class="path" onclick="goTo('maybe-q1.html')">
-        <img src="maybe.png" alt="Maybe">
+      <div class="personality">
+        <a href="maybe.html"><img src="path3.jpg" alt="Maybe"></a>
         <p>Maybe</p>
       </div>
-      <div class="path" onclick="goTo('twosides-q1.html')">
-        <img src="twosides.png" alt="Two Sides of the Same Coin">
-        <p>Two Sides</p>
+      <div class="personality">
+        <a href="never.html"><img src="path4.jpg" alt="Never"></a>
+        <p>Never</p>
+      </div>
+      <div class="personality">
+        <a href="two-sides.html"><img src="path5.jpg" alt="Two Sides of Same Coin"></a>
+        <p>Two Sides of Same Coin</p>
       </div>
     </div>
   </div>
 
   <script>
-    // Prevent user from leaving without choosing a path
-    window.onbeforeunload = function() {
-      return "You must pick a personality path before leaving!";
-    };
+    // ===== MEMORY MATCH GAME =====
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const message = document.getElementById("gameMessage");
 
-    function goTo(page) {
-      window.location.href = page;
+    const rows = 4, cols = 4, cardSize = 80;
+    let cards = [], flippedCards = [], matchedPairs = 0;
+
+    function createCards() {
+      let values = [];
+      for (let i = 1; i <= (rows * cols) / 2; i++) {
+        values.push(i, i);
+      }
+      values = values.sort(() => 0.5 - Math.random());
+      cards = values.map((v, i) => ({
+        value: v, x: (i % cols) * cardSize, y: Math.floor(i / cols) * cardSize,
+        flipped: false, matched: false
+      }));
     }
 
-    // Tetris game logic
-    const canvas = document.getElementById('tetris');
-    const context = canvas.getContext('2d');
-    context.scale(20, 20);
-
-    function arenaSweep() {
-      let rowCount = 1;
-      outer: for (let y = arena.length - 1; y >= 0; --y) {
-        for (let x = 0; x < arena[y].length; ++x) {
-          if (arena[y][x] === 0) {
-            continue outer;
-          }
+    function drawCards() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      cards.forEach(card => {
+        ctx.fillStyle = card.flipped || card.matched ? "white" : "gray";
+        ctx.fillRect(card.x+5, card.y+5, cardSize-10, cardSize-10);
+        if (card.flipped || card.matched) {
+          ctx.fillStyle = "black";
+          ctx.fillText(card.value, card.x + cardSize/2, card.y + cardSize/2);
         }
-        const row = arena.splice(y, 1)[0].fill(0);
-        arena.unshift(row);
-        ++y;
-
-        player.score += rowCount * 10;
-        rowCount *= 2;
-      }
-    }
-
-    function collide(arena, player) {
-      const m = player.matrix;
-      const o = player.pos;
-      for (let y = 0; y < m.length; ++y) {
-        for (let x = 0; x < m[y].length; ++x) {
-          if (m[y][x] !== 0 &&
-             (arena[y + o.y] &&
-              arena[y + o.y][x + o.x]) !== 0) {
-            return true;
-          }
-        }
-      }
-      return false;
-    }
-
-    function createMatrix(w, h) {
-      const matrix = [];
-      while (h--) {
-        matrix.push(new Array(w).fill(0));
-      }
-      return matrix;
-    }
-
-    function createPiece(type) {
-      if (type === 'T') {
-        return [
-          [0, 0, 0],
-          [1, 1, 1],
-          [0, 1, 0],
-        ];
-      } else if (type === 'O') {
-        return [
-          [2, 2],
-          [2, 2],
-        ];
-      } else if (type === 'L') {
-        return [
-          [0, 3, 0],
-          [0, 3, 0],
-          [0, 3, 3],
-        ];
-      } else if (type === 'J') {
-        return [
-          [0, 4, 0],
-          [0, 4, 0],
-          [4, 4, 0],
-        ];
-      } else if (type === 'I') {
-        return [
-          [0, 5, 0, 0],
-          [0, 5, 0, 0],
-          [0, 5, 0, 0],
-          [0, 5, 0, 0],
-        ];
-      } else if (type === 'S') {
-        return [
-          [0, 6, 6],
-          [6, 6, 0],
-          [0, 0, 0],
-        ];
-      } else if (type === 'Z') {
-        return [
-          [7, 7, 0],
-          [0, 7, 7],
-          [0, 0, 0],
-        ];
-      }
-    }
-
-    function drawMatrix(matrix, offset) {
-      matrix.forEach((row, y) => {
-        row.forEach((value, x) => {
-          if (value !== 0) {
-            context.fillStyle = colors[value];
-            context.fillRect(x + offset.x,
-                            y + offset.y,
-                            1, 1);
-          }
-        });
       });
     }
 
-    function draw() {
-      context.fillStyle = '#000';
-      context.fillRect(0, 0, canvas.width, canvas.height);
-
-      drawMatrix(arena, {x:0,y:0});
-      drawMatrix(player.matrix, player.pos);
-    }
-
-    function merge(arena, player) {
-      player.matrix.forEach((row, y) => {
-        row.forEach((value, x) => {
-          if (value !== 0) {
-            arena[y + player.pos.y][x + player.pos.x] = value;
+    function handleClick(e) {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      let clicked = cards.find(c =>
+        !c.flipped && !c.matched &&
+        x > c.x && x < c.x + cardSize &&
+        y > c.y && y < c.y + cardSize
+      );
+      if (clicked) {
+        clicked.flipped = true;
+        flippedCards.push(clicked);
+        if (flippedCards.length === 2) {
+          if (flippedCards[0].value === flippedCards[1].value) {
+            flippedCards.forEach(c => c.matched = true);
+            matchedPairs++;
+            if (matchedPairs === (rows*cols)/2) {
+              message.textContent = "Uh-uh, not so fast. Sure, this game is over, but you can play another game!";
+              setTimeout(startSpaceInvaders, 2500);
+            }
+          } else {
+            setTimeout(() => {
+              flippedCards.forEach(c => c.flipped = false);
+              flippedCards = [];
+              drawCards();
+            }, 800);
           }
-        });
+          flippedCards = [];
+        }
+      }
+      drawCards();
+    }
+
+    // ===== SPACE INVADERS =====
+    let invaderInterval, ship, bullets, invaders, level = 0;
+    const levels = ["All Out","Somewhat Out","Maybe","Never","Two Sides of Same Coin","Extra 4","Extra 5","Extra 6","Extra 7"];
+
+    function startSpaceInvaders() {
+      canvas.removeEventListener("click", handleClick);
+      ship = { x: canvas.width/2 - 20, y: canvas.height-30, w: 40, h: 20 };
+      bullets = [];
+      invaders = [];
+      level = 0;
+      spawnInvaders();
+      invaderInterval = setInterval(updateInvaders, 30);
+      document.addEventListener("keydown", moveShip);
+      message.textContent = "Level 1: " + levels[level];
+    }
+
+    function spawnInvaders() {
+      invaders = [];
+      for (let i=0;i<5;i++){
+        for (let j=0;j<3;j++){
+          invaders.push({x: i*60+30, y: j*40+30, w: 30, h: 20});
+        }
+      }
+    }
+
+    function drawInvaders() {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle="lime";
+      ctx.fillRect(ship.x, ship.y, ship.w, ship.h);
+      ctx.fillStyle="yellow";
+      bullets.forEach(b => ctx.fillRect(b.x, b.y, 4, 10));
+      ctx.fillStyle="red";
+      invaders.forEach(inv => ctx.fillRect(inv.x, inv.y, inv.w, inv.h));
+    }
+
+    function updateInvaders() {
+      bullets.forEach(b => b.y -= 5);
+      bullets = bullets.filter(b => b.y>0);
+      bullets.forEach(b=>{
+        invaders.forEach((inv,i)=>{
+          if(b.x>inv.x && b.x<inv.x+inv.w && b.y<inv.y+inv.h){
+            invaders.splice(i,1);
+            b.y=-10;
+          }
+        })
       });
-    }
-
-    function playerDrop() {
-      player.pos.y++;
-      if (collide(arena, player)) {
-        player.pos.y--;
-        merge(arena, player);
-        playerReset();
-        arenaSweep();
-        updateScore();
-      }
-      dropCounter = 0;
-    }
-
-    function playerMove(dir) {
-      player.pos.x += dir;
-      if (collide(arena, player)) {
-        player.pos.x -= dir;
-      }
-    }
-
-    function playerReset() {
-      const pieces = 'TJLOSZI';
-      player.matrix = createPiece(pieces[pieces.length * Math.random() | 0]);
-      player.pos.y = 0;
-      player.pos.x = (arena[0].length / 2 | 0) -
-                     (player.matrix[0].length / 2 | 0);
-      if (collide(arena, player)) {
-        arena.forEach(row => row.fill(0));
-        player.score = 0;
-        updateScore();
-      }
-    }
-
-    function playerRotate() {
-      const pos = player.pos.x;
-      let offset = 1;
-      rotate(player.matrix);
-      while (collide(arena, player)) {
-        player.pos.x += offset;
-        offset = -(offset + (offset > 0 ? 1 : -1));
-        if (offset > player.matrix[0].length) {
-          rotate(player.matrix, true);
-          player.pos.x = pos;
-          return;
+      drawInvaders();
+      if (invaders.length===0){
+        level++;
+        if(level<levels.length){
+          spawnInvaders();
+          message.textContent="Level "+(level+1)+": "+levels[level];
+        } else {
+          clearInterval(invaderInterval);
+          message.textContent="Game is over, you have completed the nine levels. Congratulations on spending time on these two beautifully coded games. Now please check the personality part and leave—or stay as long as you want. Eventually, you get to visit my product website.";
         }
       }
     }
 
-    function rotate(matrix, reverse) {
-      for (let y = 0; y < matrix.length; ++y) {
-        for (let x = 0; x < y; ++x) {
-          [
-            matrix[x][y],
-            matrix[y][x],
-          ] = [
-            matrix[y][x],
-            matrix[x][y],
-          ];
-        }
-      }
-      if (reverse) {
-        matrix.forEach(row => row.reverse());
-      } else {
-        matrix.reverse();
+    function moveShip(e){
+      if(e.key==="ArrowLeft") ship.x -= 20;
+      if(e.key==="ArrowRight") ship.x += 20;
+      if(e.key===" "){
+        bullets.push({x: ship.x+ship.w/2, y: ship.y});
       }
     }
 
-    let dropCounter = 0;
-    let dropInterval = 1000;
-
-    let lastTime = 0;
-    function update(time = 0) {
-      const deltaTime = time - lastTime;
-      lastTime = time;
-
-      dropCounter += deltaTime;
-      if (dropCounter > dropInterval) {
-        playerDrop();
-      }
-
-      draw();
-      requestAnimationFrame(update);
-    }
-
-    function updateScore() {
-      document.getElementById('score').innerText = "Score: " + player.score;
-    }
-
-    const colors = [
-      null,
-      '#FF0D72',
-      '#0DC2FF',
-      '#0DFF72',
-      '#F538FF',
-      '#FF8E0D',
-      '#FFE138',
-      '#3877FF',
-    ];
-
-    const arena = createMatrix(10, 20);
-
-    const player = {
-      pos: {x:0,y:0},
-      matrix: null,
-      score: 0
-    };
-
-    document.addEventListener('keydown', event => {
-      if (event.keyCode === 37) {
-        playerMove(-1);
-      } else if (event.keyCode === 39) {
-        playerMove(1);
-      } else if (event.keyCode === 40) {
-        playerDrop();
-      } else if (event.keyCode === 81) {
-        playerRotate(true);
-      } else if (event.keyCode === 87) {
-        playerRotate(false);
-      }
-    });
-
-    function move(dir) { playerMove(dir); }
-    function rotate() { playerRotate(); }
-    function drop() { playerDrop(); }
-
-    playerReset();
-    updateScore();
-    update();
+    // Init memory game
+    ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.font="20px Arial";
+    createCards(); drawCards();
+    canvas.addEventListener("click", handleClick);
   </script>
 </body>
 </html>
