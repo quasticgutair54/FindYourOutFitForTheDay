@@ -3,140 +3,181 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MultiFlow Home</title>
-
+  <title>Memory Game + Personality Paths</title>
   <style>
-    /* === Base Styles === */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
     body, html {
-      margin: 0;
-      padding: 0;
-      font-family: 'Tan Nimbus', sans-serif;
       height: 100%;
-      width: 100%;
-      color: black;
-      background: #fafafa;
-      overflow-x: hidden;
+      font-family: Arial, sans-serif;
+      color: white;
+      overflow: hidden;
     }
 
-    /* === Overlay Personality Section === */
+    /* Background video */
+    #bg-video {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -2;
+    }
+
     .overlay {
-      background-color: rgba(255, 255, 255, 0.85);
-      min-height: 100vh;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: -1;
+    }
+
+    /* Split screen */
+    .container {
+      display: flex;
+      height: 100%;
+      width: 100%;
+    }
+
+    .left, .right {
+      flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      text-align: center;
-      padding: 2rem;
+      padding: 20px;
     }
 
-    .main-heading {
-      font-size: 2.5rem;
-      margin-bottom: 2rem;
+    .left {
+      border-right: 2px solid rgba(255,255,255,0.2);
     }
 
-    .personality-options {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1.5rem;
-      justify-content: center;
+    /* Memory game grid */
+    .game-board {
+      display: grid;
+      grid-template-columns: repeat(3, 100px);
+      gap: 15px;
     }
 
-    .personality-options img {
-      width: 200px;
+    .card {
+      width: 100px;
+      height: 140px;
+      background: #222;
       border-radius: 10px;
-      transition: transform 0.3s ease;
-      cursor: pointer;
-    }
-
-    .personality-options img:hover {
-      transform: scale(1.05);
-    }
-
-    /* === Games Section === */
-    #games {
       display: flex;
-      justify-content: space-around;
-      padding: 2rem;
-      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      cursor: pointer;
+      perspective: 1000px;
     }
 
-    .game-container {
-      flex: 1 1 45%;
-      background: white;
-      padding: 1rem;
-      margin: 1rem;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    .card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 0.6s;
+    }
+
+    .card.flip .card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .card-front, .card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+    }
+
+    .card-front {
+      background: #444;
+      font-size: 40px;
+      font-weight: bold;
+    }
+
+    .card-back {
+      background: #ff6f61;
+      transform: rotateY(180deg);
+      padding: 10px;
       text-align: center;
     }
 
-    canvas {
-      background: #111;
-      display: block;
-      margin: 0 auto;
-      border-radius: 8px;
+    /* Personality paths */
+    .paths {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
     }
 
-    /* Prevent leaving until personality chosen */
-    .block-leave {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.7);
-      color: white;
+    .path {
+      background: rgba(255,255,255,0.2);
+      padding: 20px;
+      border-radius: 15px;
+      text-align: center;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .path:hover {
+      background: rgba(255,255,255,0.4);
+    }
+
+    #end-message {
+      margin-top: 20px;
+      font-size: 18px;
+      text-align: center;
       display: none;
-      justify-content: center;
-      align-items: center;
-      font-size: 2rem;
-      z-index: 9999;
     }
   </style>
 </head>
 <body>
-  
-  <!-- Background Music -->
+  <!-- Background video -->
+  <video id="bg-video" autoplay muted loop>
+    <source src="your-video.mp4" type="video/mp4">
+  </video>
+  <div class="overlay"></div>
+
+  <!-- Background music -->
   <audio id="bg-music" loop>
-    <source src="your-music.mp3" type="audio/mpeg">
+    <source src="your-music.mp3" type="audio/mp3">
   </audio>
 
-  <!-- Overlay for Personality -->
-  <div class="overlay" id="overlay">
-    <h1 class="main-heading">Choose Your Personality Path</h1>
-    <div class="personality-options">
-      <img src="path1.jpg" alt="Path 1" onclick="selectPersonality('path1.html')">
-      <img src="path2.jpg" alt="Path 2" onclick="selectPersonality('path2.html')">
-      <img src="path3.jpg" alt="Path 3" onclick="selectPersonality('path3.html')">
+  <div class="container">
+    <!-- LEFT SIDE (Memory Game) -->
+    <div class="left">
+      <h2>Memory Game</h2>
+      <div class="game-board" id="game-board"></div>
+      <div id="end-message"></div>
+    </div>
+
+    <!-- RIGHT SIDE (Personality Paths) -->
+    <div class="right">
+      <h2>Choose Your Path</h2>
+      <div class="paths">
+        <div class="path" onclick="alert('Path 1 Questions Coming Soon')">🔥 All Out</div>
+        <div class="path" onclick="alert('Path 2 Questions Coming Soon')">😎 Somewhat Out</div>
+        <div class="path" onclick="alert('Path 3 Questions Coming Soon')">🤔 Maybe</div>
+        <div class="path" onclick="alert('Path 4 Questions Coming Soon')">🙅 Never</div>
+        <div class="path" onclick="alert('Path 5 Questions Coming Soon')">⚖️ Two Sides</div>
+      </div>
     </div>
   </div>
 
-  <!-- Games Section -->
-  <section id="games">
-    <!-- Memory Game -->
-    <div class="game-container">
-      <h2>Memory Game</h2>
-      <canvas id="memoryGame" width="300" height="300"></canvas>
-    </div>
-
-    <!-- Space Invaders -->
-    <div class="game-container">
-      <h2>Space Invaders</h2>
-      <canvas id="spaceInvaders" width="400" height="400"></canvas>
-    </div>
-  </section>
-
-  <!-- Leave Blocker -->
-  <div class="block-leave" id="blockLeave">🚫 You cannot leave until you choose your personality path!</div>
-
   <script>
-    /* === Music Persistence === */
+    /* Background Music */
     let hasInteracted = false;
     function setupAudio() {
       const audio = document.getElementById('bg-music');
       if (!audio) return;
       const savedTime = localStorage.getItem('music-time');
       if (savedTime) audio.currentTime = parseFloat(savedTime);
-      audio.play().catch(() => {});
+      audio.play().catch(()=>{});
       setInterval(() => {
         if (!audio.paused) {
           localStorage.setItem('music-time', audio.currentTime);
@@ -153,33 +194,56 @@
       }
     });
 
-    /* === Prevent Leaving === */
-    let personalityChosen = false;
-    function selectPersonality(link) {
-      personalityChosen = true;
-      window.location.href = link; // redirect to question page
-    }
-    window.addEventListener('beforeunload', (e) => {
-      if (!personalityChosen) {
-        e.preventDefault();
-        document.getElementById('blockLeave').style.display = "flex";
-        return (e.returnValue = "You must choose a path before leaving!");
-      }
+    /* Memory Game */
+    const designs = [
+      "Lorem Ipsum", "Your Toast", "Cake Was A Lie", "Grapefruit x Lime",
+      "Burning Desire", "Initial D", "Not the Og", "Berserk", "Almost but Nope"
+    ];
+    let cards = [...designs, ...designs];
+    cards.sort(() => 0.5 - Math.random());
+
+    const board = document.getElementById('game-board');
+    let flipped = [];
+    let matched = 0;
+
+    cards.forEach(name => {
+      const card = document.createElement('div');
+      card.classList.add('card');
+      card.innerHTML = `
+        <div class="card-inner">
+          <div class="card-front">N</div>
+          <div class="card-back">${name}</div>
+        </div>`;
+      card.addEventListener('click', () => flipCard(card, name));
+      board.appendChild(card);
     });
 
-    /* === Memory Game (Simple Version) === */
-    const memCanvas = document.getElementById("memoryGame");
-    const memCtx = memCanvas.getContext("2d");
-    memCtx.fillStyle = "white";
-    memCtx.font = "20px Arial";
-    memCtx.fillText("🃏 Memory Game Placeholder", 20, 150);
+    function flipCard(card, name) {
+      if (card.classList.contains('flip') || flipped.length === 2) return;
+      card.classList.add('flip');
+      flipped.push({card, name});
 
-    /* === Space Invaders (Simple Version) === */
-    const siCanvas = document.getElementById("spaceInvaders");
-    const siCtx = siCanvas.getContext("2d");
-    siCtx.fillStyle = "lime";
-    siCtx.font = "20px Arial";
-    siCtx.fillText("👾 Space Invaders Placeholder", 40, 200);
+      if (flipped.length === 2) {
+        if (flipped[0].name === flipped[1].name) {
+          setTimeout(() => {
+            flipped[0].card.style.visibility = "hidden";
+            flipped[1].card.style.visibility = "hidden";
+            matched++;
+            if (matched === designs.length) {
+              document.getElementById("end-message").style.display = "block";
+              document.getElementById("end-message").innerText = "You have uncovered most of the designs. Congratulations on playing this beautiful game!";
+            }
+            flipped = [];
+          }, 800);
+        } else {
+          setTimeout(() => {
+            flipped[0].card.classList.remove('flip');
+            flipped[1].card.classList.remove('flip');
+            flipped = [];
+          }, 1000);
+        }
+      }
+    }
   </script>
 </body>
 </html>
