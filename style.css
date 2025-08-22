@@ -5,10 +5,13 @@ body, html {
   height: 100%;
   width: 100%;
   color: black;
+  background: #fdfdfd; /* clean white background */
+  overflow-x: hidden;
 }
 
+/* Overlay container */
 .overlay {
-  background-color: rgba(255, 255, 255, 0.85);
+  background-color: rgba(255, 255, 255, 0.88);
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -16,29 +19,74 @@ body, html {
   justify-content: center;
   text-align: center;
   padding: 2rem;
+  animation: fadeIn 1.5s ease-in-out;
 }
 
+/* Smooth fade-in */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Main heading */
 .main-heading {
   font-family: 'Tan Nimbus', sans-serif;
-  font-size: 2rem;
-  margin-bottom: 3rem;
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 2.5rem;
+  color: #222;
+  text-shadow: 1px 1px 4px rgba(0,0,0,0.1);
 }
 
+/* Personality choice grid */
 .personality-options {
   display: flex;
   flex-wrap: wrap;
-  gap: 1.5rem;
+  gap: 2rem;
   justify-content: center;
+  max-width: 1200px;
 }
 
+/* Option images */
 .personality-options img {
-  width: 200px;
+  width: 220px;
   height: auto;
-  border-radius: 10px;
-  transition: transform 0.3s ease;
+  border-radius: 15px;
+  border: 2px solid #ddd;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
   cursor: pointer;
 }
 
 .personality-options img:hover {
-  transform: scale(1.05);
+  transform: scale(1.08);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  border-color: #333;
 }
+
+/* Mobile-friendly tweaks */
+@media (max-width: 768px) {
+  .main-heading {
+    font-size: 1.8rem;
+    margin-bottom: 2rem;
+  }
+
+  .personality-options img {
+    width: 160px;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-heading {
+    font-size: 1.5rem;
+  }
+
+  .personality-options {
+    gap: 1rem;
+  }
+
+  .personality-options img {
+    width: 140px;
+  }
+}
+
