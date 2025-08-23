@@ -1,166 +1,256 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Home | Games + Personality Paths</title>
-<style>
-  :root{
-    --glass: rgba(0,0,0,0.45);
-    --glass-strong: rgba(0,0,0,0.6);
-    --accent: #ff6f61;
-    --accent-2: #7cf3d6;
-    --cardW-desktop: 100px;
-    --cardH-desktop: 130px;
-    --cardW-mobile: 78px;
-    --cardH-mobile: 102px;
-    --gap: 10px;
-  }
-
-  *{ box-sizing: border-box; margin: 0; padding: 0; }
-  html, body{ height:100%; width:100%; overflow:hidden; font-family: Arial, Helvetica, sans-serif; color:#fff; }
-
-  /* Background video */
-  #bg-video{ position:fixed; inset:0; width:100%; height:100%; object-fit:cover; z-index:-2; }
-  .bg-overlay{ position:fixed; inset:0; background:linear-gradient(0deg, var(--glass-strong), rgba(0,0,0,0.35)); z-index:-1; }
-
-  /* Layout */
-  .wrap{ height:100vh; width:100%; display:grid; grid-template-columns: 1fr 1fr; }
-  .left, .right{ position:relative; padding:20px; overflow:hidden; }
-  .panel{
-    height:100%; width:100%; background: var(--glass); backdrop-filter: blur(6px);
-    border:1px solid rgba(255,255,255,0.12); border-radius:20px;
-    padding:16px; display:flex; flex-direction:column; align-items:center;
-  }
-
-  /* ===== Memory Game ===== */
-  .memory-board{
-    flex:1; width:100%;
-    display:grid;
-    grid-template-columns: repeat(6, var(--cardW-desktop));
-    grid-template-rows: repeat(3, var(--cardH-desktop));
-    gap: var(--gap);
-    justify-content:center;
-    align-content:center;
-  }
-  .card{ width:var(--cardW-desktop); height:var(--cardH-desktop); perspective:1000px; border-radius:14px; cursor:pointer; }
-  .card-inner{ position:absolute; inset:0; border-radius:14px; transform-style:preserve-3d; transition: transform 480ms; }
-  .card.flip .card-inner{ transform: rotateY(180deg); }
-  .card.matched{ animation: vanish 360ms ease forwards; }
-  @keyframes vanish{ 0%{transform:scale(1);opacity:1;} 100%{transform:scale(.85);opacity:0;visibility:hidden;} }
-  .face{ position:absolute; inset:0; border-radius:14px; backface-visibility:hidden; display:flex; align-items:center; justify-content:center; }
-  .back{ background:conic-gradient(from 180deg, #1a2a6c, #b21f1f, #fdbb2d, #1a2a6c); }
-  .back .mark{ font-size:36px; font-weight:900; color:#fff; }
-  .front{ transform:rotateY(180deg); background:#10131a; }
-  .front .label{ font-weight:700; font-size:14px; }
-
-  /* Messages */
-  .intermission, .final-message{ margin-top:14px; padding:10px; background:rgba(0,0,0,.55); border-radius:12px; display:none; font-weight:700; text-align:center; }
-
-  /* Space Invaders */
-  #siCanvas{ width:100%; max-width:560px; aspect-ratio:16/10; background:#000; border-radius:14px; border:1px solid rgba(255,255,255,.15); display:none; margin-top:10px; }
-  .level-badge{ margin-top:10px; font-weight:800; display:none; }
-
-  /* ===== Right: Personality Paths ===== */
-  .paths{ width:100%; display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
-  .path{ position:relative; text-decoration:none; color:#fff; border-radius:16px; overflow:hidden; background:rgba(255,255,255,.07); display:flex; align-items:center; justify-content:center; }
-  .path img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
-  .path .label{ z-index:1; padding:6px 10px; border-radius:10px; background:rgba(0,0,0,.5); font-weight:800; }
-</style>
+  <meta charset="UTF-8">
+  <title>NotTheBestPlaceToBuyStuff Arcade</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+      color: white;
+    }
+    video.bg-video {
+      position: fixed;
+      right: 0;
+      bottom: 0;
+      min-width: 100%;
+      min-height: 100%;
+      z-index: -1;
+      object-fit: cover;
+    }
+    #game-container {
+      display: flex;
+      height: 100%;
+      width: 100%;
+    }
+    #left-panel {
+      flex: 3;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+    #right-panel {
+      flex: 1;
+      background: rgba(0,0,0,0.6);
+      padding: 10px;
+      overflow-y: auto;
+    }
+    canvas, #memory-game {
+      background: rgba(0,0,0,0.7);
+      border: 2px solid #fff;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(255,255,255,0.3);
+    }
+    #memory-game {
+      display: grid;
+      grid-template-columns: repeat(4, 80px);
+      grid-gap: 10px;
+      justify-content: center;
+    }
+    .card {
+      width: 80px;
+      height: 100px;
+      background: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      font-size: 20px;
+      border-radius: 8px;
+    }
+    #message-box {
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.8);
+      padding: 20px;
+      border-radius: 10px;
+      display: none;
+      font-size: 20px;
+      text-align: center;
+    }
+    button {
+      margin-top: 10px;
+      padding: 8px 15px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
+  <!-- Background Video -->
+  <video autoplay loop muted class="bg-video">
+    <source src="your-looping-background.mp4" type="video/mp4">
+  </video>
 
-<!-- Background video + music -->
-<video id="bg-video" autoplay muted loop playsinline><source src="loop-bg.mp4" type="video/mp4"></video>
-<div class="bg-overlay"></div>
-<audio id="bg-music" loop><source src="running out of time.mp3" type="audio/mpeg"></audio>
+  <!-- Background Music -->
+  <audio id="bg-music" autoplay loop>
+    <source src="your-background-music.mp3" type="audio/mpeg">
+  </audio>
 
-<div class="wrap">
-  <!-- LEFT -->
-  <section class="left">
-    <div class="panel">
-      <h2>Memory Game</h2>
-      <div id="memoryBoard" class="memory-board"></div>
-      <div id="intermission" class="intermission">Not yet over…</div>
-      <canvas id="siCanvas"></canvas>
-      <div id="levelBadge" class="level-badge"></div>
-      <div id="finalMsg" class="final-message">Congratulations 🎉 Thank you for staying till here.<br/>Now choose your personality path.</div>
+  <div id="game-container">
+    <div id="left-panel">
+      <div id="memory-game"></div>
+      <canvas id="space-invaders" width="600" height="400" style="display:none;"></canvas>
     </div>
-  </section>
-
-  <!-- RIGHT -->
-  <section class="right">
-    <div class="panel">
-      <h2>Choose Your Personality Path</h2>
-      <div class="paths">
-        <a class="path" href="allout-q1.html"><img src="allout.jpg"/><span class="label">All Out</span></a>
-        <a class="path" href="somewhatout-q1.html"><img src="somewhatout.jpg"/><span class="label">Somewhat Out</span></a>
-        <a class="path" href="maybe-q1.html"><img src="maybe.jpg"/><span class="label">Maybe</span></a>
-        <a class="path" href="never-q1.html"><img src="never.jpg"/><span class="label">Never</span></a>
-        <a class="path" href="twosides-q1.html"><img src="twosides.jpg"/><span class="label">Two Sides</span></a>
-      </div>
+    <div id="right-panel">
+      <h2>✨ Personality Path</h2>
+      <p>Discover your Outfit of the Day through our short test!</p>
+      <button onclick="visitPersonalityPath()">Go to Personality Path</button>
     </div>
-  </section>
-</div>
+  </div>
+
+  <!-- Message box -->
+  <div id="message-box"></div>
 
 <script>
-/* Music */
-let hasInteracted=false;
-function setupAudio(){const a=document.getElementById('bg-music');if(!a)return;const s=localStorage.getItem('music-time');if(s)a.currentTime=parseFloat(s);a.play().catch(()=>{});setInterval(()=>{if(!a.paused)localStorage.setItem('music-time',a.currentTime)},600);}
-window.addEventListener('pointerdown',()=>{if(!hasInteracted){hasInteracted=true;setupAudio();}},{once:true});
+/******************* MEMORY GAME *******************/
+const memoryGame = document.getElementById("memory-game");
+const symbols = ["👕","👚","👔","👖","🧥","👗","👟","🧢"];
+let deck = [...symbols, ...symbols];
+let flipped = [];
+let matched = 0;
 
-/* Exit block */
-window.onbeforeunload=()=>"You must pick a personality path before leaving!";
+function shuffle(array) {
+  return array.sort(() => 0.5 - Math.random());
+}
 
-/* Memory Game */
-const names=["Lorem Ipsum","Your Toast","Cake Was A Lie","Grapefruit x Lime","Burning desire","Initial D","Not the Og","Berserk","Almost but Nope"];
-const board=document.getElementById("memoryBoard");
-let deck=[...names,...names];deck.sort(()=>Math.random()-0.5);
-let flipped=[],matched=0;
-deck.forEach(name=>{
-  let el=document.createElement("div");el.className="card";el.innerHTML=`<div class="card-inner"><div class="face back"><div class="mark">N</div></div><div class="face front"><div class="label">${name}</div></div></div>`;
-  el.onclick=()=>flip(el,name);board.appendChild(el);
-});
-function flip(el,name){
-  if(el.classList.contains("flip"))return;
-  el.classList.add("flip");flipped.push({el,name});
-  if(flipped.length===2){
-    if(flipped[0].name===flipped[1].name){
-      flipped.forEach(f=>f.el.classList.add("matched"));flipped=[];matched++;
-      if(matched===names.length){setTimeout(startIntermission,500);}
-    }else{
-      setTimeout(()=>{flipped.forEach(f=>f.el.classList.remove("flip"));flipped=[];},800);
+function startMemoryGame() {
+  memoryGame.innerHTML = "";
+  deck = shuffle(deck);
+  deck.forEach(symbol => {
+    const card = document.createElement("div");
+    card.classList.add("card");
+    card.dataset.symbol = symbol;
+    card.innerText = "?";
+    card.onclick = () => flipCard(card);
+    memoryGame.appendChild(card);
+  });
+}
+
+function flipCard(card) {
+  if (flipped.length < 2 && card.innerText === "?") {
+    card.innerText = card.dataset.symbol;
+    flipped.push(card);
+    if (flipped.length === 2) {
+      setTimeout(checkMatch, 800);
     }
   }
 }
-function startIntermission(){document.getElementById("intermission").style.display="block";setTimeout(()=>{document.getElementById("intermission").style.display="none";startSI();},5000);}
 
-/* Space Invaders with levels */
-const levelNames=["NotTheBest OG","Initial D","Lorem Ipsum","Your Toast","Cake Was A Lie","Berserk","Grapefruit x Lime","Burning Desire","Almost but Nope"];
-const canvas=document.getElementById("siCanvas"),ctx=canvas.getContext("2d");
-function startSI(){
-  board.style.display="none";canvas.style.display="block";document.getElementById("levelBadge").style.display="block";
-  canvas.width=560;canvas.height=350;
-  let W=560,H=350,keys={},bullets=[],aliens=[],ship={x:W/2,y:H-30,w:30,h:14,speed:5},level=0,alienDx=1,tick=0,playing=true;
-  function setLevel(l){level=l;document.getElementById("levelBadge").textContent=`Level ${l+1} — ${levelNames[l]}`;aliens=[];let rows=3+Math.min(l,5),cols=8;for(let r=0;r<rows;r++){for(let c=0;c<cols;c++){aliens.push({x:40+c*50,y:40+r*30,w:20,h:14,alive:true,type:(l%3)});}}alienDx=1+0.2*l;}
-  function update(){if(!playing)return;tick++;if(keys["ArrowLeft"])ship.x=Math.max(6,ship.x-ship.speed);if(keys["ArrowRight"])ship.x=Math.min(W-ship.w-6,ship.x+ship.speed);bullets.forEach(b=>b.y-=6);bullets=bullets.filter(b=>b.y>-10);
-    let minX=Infinity,maxX=-Infinity;aliens.forEach(a=>{if(a.alive){minX=Math.min(minX,a.x);maxX=Math.max(maxX,a.x+a.w);}});if(minX===Infinity){if(level<levelNames.length-1){setLevel(level+1);}else{playing=false;document.getElementById("levelBadge").style.display="none";document.getElementById("finalMsg").style.display="block";return;}}
-    if(minX<8||maxX>W-8){alienDx=-alienDx;aliens.forEach(a=>a.y+=10);}aliens.forEach(a=>a.x+=alienDx);
-    bullets.forEach(b=>{aliens.forEach(a=>{if(a.alive&&b.x>a.x&&b.x<a.x+a.w&&b.y>a.y&&b.y<a.y+a.h){a.alive=false;b.y=-20;}});});
+function checkMatch() {
+  if (flipped[0].dataset.symbol === flipped[1].dataset.symbol) {
+    matched += 2;
+    if (matched === deck.length) {
+      showMessage("Not yet over...", () => startSpaceInvaders());
+    }
+  } else {
+    flipped.forEach(c => c.innerText = "?");
   }
-  function draw(){ctx.fillStyle="#000";ctx.fillRect(0,0,W,H);ctx.fillStyle="#7cf3d6";ctx.beginPath();ctx.moveTo(ship.x,ship.y);ctx.lineTo(ship.x+ship.w/2,ship.y-12);ctx.lineTo(ship.x+ship.w,ship.y);ctx.closePath();ctx.fill();
-    ctx.fillStyle="#ff6f61";bullets.forEach(b=>ctx.fillRect(b.x,b.y,3,8));
-    aliens.forEach(a=>{if(!a.alive)return;ctx.fillStyle=["#ffd966","#ff6f61","#7cf3d6"][a.type];ctx.fillRect(a.x,a.y,a.w,a.h);});
-  }
-  function loop(){update();draw();if(playing)requestAnimationFrame(loop);}
-  window.addEventListener("keydown",e=>{if(e.key===" ")bullets.push({x:ship.x+ship.w/2,y:ship.y-8});else keys[e.key]=true;});
-  window.addEventListener("keyup",e=>{keys[e.key]=false;});
-  setLevel(0);loop();
+  flipped = [];
 }
+
+/******************* SPACE INVADERS *******************/
+const canvas = document.getElementById("space-invaders");
+const ctx = canvas.getContext("2d");
+
+let player, bullets, enemies, level, gameRunning;
+const levelNames = [
+  "Unisex Hoodie","Crop Hoodie","Crop Tee","Unisex Tee",
+  "Women’s Tee","Oversized Tee","Sweatshirt","Custom Edition","RANDOMODIUM"
+];
+
+function startSpaceInvaders(){
+  memoryGame.style.display = "none";
+  canvas.style.display = "block";
+  level = 0;
+  gameRunning = true;
+  startLevel();
+}
+
+function startLevel(){
+  player = {x: 280, y: 360, w: 40, h: 20};
+  bullets = [];
+  enemies = [];
+  for (let i=0;i<5+level;i++){
+    for (let j=0;j<3;j++){
+      enemies.push({x: 60+i*60, y: 40+j*40, w:30,h:20,alive:true});
+    }
+  }
+  draw();
+}
+
+function draw(){
+  if (!gameRunning) return;
+  ctx.clearRect(0,0,600,400);
+  ctx.fillStyle = "lime";
+  ctx.fillRect(player.x, player.y, player.w, player.h);
+  ctx.fillStyle = "red";
+  bullets.forEach(b=>ctx.fillRect(b.x,b.y,b.w,b.h));
+  ctx.fillStyle = "yellow";
+  enemies.forEach(e=>{if(e.alive) ctx.fillRect(e.x,e.y,e.w,e.h)});
+
+  // Move bullets
+  bullets.forEach(b=> b.y -= 5);
+
+  // Bullet collision
+  bullets.forEach(b=>{
+    enemies.forEach(e=>{
+      if(e.alive && b.x < e.x+e.w && b.x+b.w>e.x && b.y<e.y+e.h && b.y+b.h>e.y){
+        e.alive=false;
+        b.y=-100;
+      }
+    });
+  });
+
+  // Win condition
+  if (enemies.every(e=>!e.alive)){
+    level++;
+    if(level<levelNames.length){
+      showMessage(`Level cleared! Next: ${levelNames[level]}`, ()=>startLevel());
+    } else {
+      gameRunning = false;
+      showMessage("Thank you for playing these beautifully coded games in this beautifully coded website. One suggestion: stay here, visit the Personality Path, find out your outfit of the day… or leave it all behind. Your choice.");
+    }
+    return;
+  }
+
+  requestAnimationFrame(draw);
+}
+
+document.addEventListener("keydown", e=>{
+  if(!gameRunning) return;
+  if(e.key==="ArrowLeft") player.x -= 20;
+  if(e.key==="ArrowRight") player.x += 20;
+  if(e.key===" ") bullets.push({x:player.x+18,y:player.y,w:4,h:10});
+});
+
+/******************* UI HELPERS *******************/
+function showMessage(msg, cb){
+  const box = document.getElementById("message-box");
+  box.innerHTML = `<p>${msg}</p>`;
+  box.style.display = "block";
+  setTimeout(()=>{
+    box.style.display = "none";
+    if(cb) cb();
+  }, 5000);
+}
+
+function visitPersonalityPath(){
+  alert("Redirecting to Personality Path...");
+  // Add your actual link
+  window.location.href = "https://NotTheBestPlaceToBuyStuff.in/personality-path";
+}
+
+/******************* START *******************/
+startMemoryGame();
 </script>
 </body>
 </html>
-
-
-
-
