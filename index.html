@@ -12,148 +12,94 @@
     --accent: #ff6f61;
     --accent-2: #7cf3d6;
 
-    /* memory board sizing – JS will update --cardW/--cardH to keep inside box */
-    --cols: 6;
-    --rows: 3;
-    --gap: 12px;
-    --cardW: 110px; /* initial; overridden by JS to fit box */
-    --cardH: 140px; /* initial; overridden by JS (keeps 110:140 ratio) */
-  }
+  // Memory Game Setup
+const memoryGame = document.getElementById("memory-game");
+memoryGame.innerHTML = "";
 
-  *{ box-sizing: border-box; margin: 0; padding: 0; }
-  html, body{ height:100%; width:100%; overflow:hidden; font-family: Arial, Helvetica, sans-serif; color:#fff; }
+const products = [
+  "Notthebest OG", "Initial D", "Lorem Ipsum",
+  "Your Toast", "Cake Was A Lie", "Berserk",
+  "Oversized Tee", "Women’s Tee", "Sweatshirt"
+];
 
-  /* Background video */
-  #bg-video{
-    position:fixed; inset:0;
-    width:100%; height:100%; object-fit:cover; z-index:-2;
-  }
-  .bg-overlay{
-    position:fixed; inset:0; background:linear-gradient(0deg, var(--glass-strong), rgba(0,0,0,0.35));
-    z-index:-1;
-  }
+// duplicate array for matching pairs
+let cardsArray = [...products, ...products];
 
-  /* Layout */
-  .wrap{
-    height:100vh; width:100%;
-    display:grid;
-    grid-template-columns: 1fr 1fr;
-  }
-  .left, .right{
-    position:relative;
-    padding:20px;
-    overflow:hidden;
-  }
-  .panel{
-    height:100%;
-    width:100%;
-    background: var(--glass);
-    backdrop-filter: blur(6px);
-    border:1px solid rgba(255,255,255,0.12);
-    border-radius:20px;
-    padding:16px;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    position:relative;
-  }
+// shuffle cards
+cardsArray.sort(() => 0.5 - Math.random());
 
-  .panel h2{
-    font-weight:900;
-    letter-spacing:.3px;
-    text-shadow: 0 2px 8px rgba(0,0,0,.4);
-    margin-bottom:8px;
-  }
+// make grid
+const grid = document.createElement("div");
+grid.className = "memory-grid";
+memoryGame.appendChild(grid);
 
-  /* ===== LEFT: GAMES ===== */
-  .games-wrap{
-    flex:1;
-    width:100%;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:flex-start;
-  }
+// card size updated (bigger but still fits the container)
+grid.style.display = "grid";
+grid.style.gridTemplateColumns = "repeat(6, 140px)";
+grid.style.gridGap = "15px";
+grid.style.justifyContent = "center";
 
-  /* Memory board container frame (keeps cards inside visually) */
-  .memory-frame{
-    width:100%;
-    max-width: 900px;
-    background: rgba(255,255,255,0.05);
-    border:1px solid rgba(255,255,255,0.12);
-    border-radius:16px;
-    padding:12px;
-    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
-  }
+cardsArray.forEach(product => {
+  const card = document.createElement("div");
+  card.className = "memory-card";
+  card.dataset.product = product;
 
-  /* Memory board grid – uses dynamic --cardW/--cardH so it always fits */
-  .memory-board{
-    display:grid;
-    grid-template-columns: repeat(var(--cols), var(--cardW));
-    grid-auto-rows: var(--cardH);
-    gap: var(--gap);
-    place-content:center;
-  }
+  // front (hidden, shows 'N')
+  const front = document.createElement("div");
+  front.className = "front";
+  front.innerText = "N";
 
-  /* Artistic Card */
-  .card{
-    width: var(--cardW);
-    height: var(--cardH);
+  // back (shows product name)
+  const back = document.createElement("div");
+  back.className = "back";
+  back.innerText = product;
+
+  card.appendChild(front);
+  card.appendChild(back);
+  grid.appendChild(card);
+});
+
+// CSS tweak (bigger cards, still contained)
+const style = document.createElement("style");
+style.innerHTML = `
+  .memory-card {
+    width: 140px;
+    height: 140px;
     perspective: 1000px;
-    border-radius:14px;
-    position:relative;
-    cursor:pointer;
+    cursor: pointer;
   }
-  .card-inner{
-    position:absolute; inset:0;
-    border-radius:14px;
-    transform-style:preserve-3d;
-    transition: transform 480ms cubic-bezier(.2,.65,.2,1);
+  .memory-card .front,
+  .memory-card .back {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    backface-visibility: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
   }
-  .card.flip .card-inner{ transform: rotateY(180deg); }
-  .card.matched{ animation: vanish 360ms ease forwards; }
-  @keyframes vanish{
-    0%{ transform: scale(1); opacity:1; }
-    100%{ transform: scale(.85); opacity:0; visibility:hidden; }
+  .memory-card .front {
+    background: #111;
+    color: #fff;
   }
-
-  .face{
-    position:absolute; inset:0;
-    border-radius:14px;
-    backface-visibility:hidden;
-    display:flex; align-items:center; justify-content:center;
-    padding:10px; text-align:center;
-    box-shadow: 0 6px 18px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.06);
-  }
-
-  /* Back (shows N) — abstract pattern via layered gradients */
-  .back{
-    background:
-      radial-gradient(120px 60px at 10% 10%, rgba(255,255,255,.08) 0 60%, transparent 61%),
-      radial-gradient(120px 60px at 90% 20%, rgba(255,255,255,.08) 0 60%, transparent 61%),
-      conic-gradient(from 210deg at 50% 50%, #1a2a6c, #b21f1f, #fdbb2d, #1a2a6c);
-    background-blend-mode: screen, screen, normal;
-    transform: translateZ(0);
-  }
-  .back .mark{
-    font-size: 42px; font-weight: 900; color:#fff; text-shadow: 0 3px 8px rgba(0,0,0,.55);
-    letter-spacing: .03em;
-  }
-
-  /* Front (design name) — glassy card on geometric pattern */
-  .front{
+  .memory-card .back {
+    background: #eee;
+    color: #111;
     transform: rotateY(180deg);
-    background:
-      linear-gradient(135deg, rgba(255,255,255,.06), rgba(255,255,255,.02)),
-      repeating-linear-gradient(135deg, rgba(255,255,255,.05) 0 6px, transparent 6px 12px),
-      radial-gradient(600px 180px at -20% 120%, rgba(124,243,214,.35), transparent 60%),
-      radial-gradient(600px 180px at 120% -20%, rgba(255,111,97,.35), transparent 60%),
-      #10131a;
   }
-  .front .label{
-    font-weight: 800; line-height:1.2; text-shadow: 0 2px 6px rgba(0,0,0,.5);
-    font-size: 14px;
+  .memory-card.flipped .front {
+    transform: rotateY(180deg);
   }
+  .memory-card.flipped .back {
+    transform: rotateY(0);
+  }
+`;
+document.head.appendChild(style);
+
 
   /* Not yet over banner */
   .intermission{
