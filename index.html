@@ -6,100 +6,142 @@
 <title>Home | Games + Personality Paths</title>
 <style>
   :root{
-    /* keep your palette */
     --glass: rgba(0,0,0,0.45);
     --glass-strong: rgba(0,0,0,0.6);
     --accent: #ff6f61;
     --accent-2: #7cf3d6;
+    --cardW-desktop: 110px;
+    --cardH-desktop: 140px;
+    --cardW-mobile: 78px;
+    --cardH-mobile: 102px;
+    --gap: 12px;
+  }
 
-  // Memory Game Setup
-const memoryGame = document.getElementById("memory-game");
-memoryGame.innerHTML = "";
+  *{ box-sizing: border-box; margin: 0; padding: 0; }
+  html, body{ height:100%; width:100%; overflow:hidden; font-family: Arial, Helvetica, sans-serif; color:#fff; }
 
-const products = [
-  "Notthebest OG", "Initial D", "Lorem Ipsum",
-  "Your Toast", "Cake Was A Lie", "Berserk",
-  "Oversized Tee", "Women’s Tee", "Sweatshirt"
-];
+  /* Background video */
+  #bg-video{
+    position:fixed; inset:0;
+    width:100%; height:100%; object-fit:cover; z-index:-2;
+  }
+  .bg-overlay{
+    position:fixed; inset:0; background:linear-gradient(0deg, var(--glass-strong), rgba(0,0,0,0.35));
+    z-index:-1;
+  }
 
-// duplicate array for matching pairs
-let cardsArray = [...products, ...products];
+  /* Layout */
+  .wrap{
+    height:100vh; width:100%;
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+  }
 
-// shuffle cards
-cardsArray.sort(() => 0.5 - Math.random());
+  .left, .right{
+    position:relative;
+    padding:20px;
+    overflow:hidden;
+  }
+  .panel{
+    height:100%;
+    width:100%;
+    background: var(--glass);
+    backdrop-filter: blur(6px);
+    border:1px solid rgba(255,255,255,0.12);
+    border-radius:20px;
+    padding:16px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
 
-// make grid
-const grid = document.createElement("div");
-grid.className = "memory-grid";
-memoryGame.appendChild(grid);
+  .panel h2{
+    font-weight:900;
+    letter-spacing:.3px;
+    text-shadow: 0 2px 8px rgba(0,0,0,.4);
+    margin-bottom:10px;
+  }
 
-// card size updated (bigger but still fits the container)
-grid.style.display = "grid";
-grid.style.gridTemplateColumns = "repeat(6, 140px)";
-grid.style.gridGap = "15px";
-grid.style.justifyContent = "center";
+  /* ===== LEFT: GAMES ===== */
+  .games-stage{
+    flex:1;
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:flex-start;
+  }
 
-cardsArray.forEach(product => {
-  const card = document.createElement("div");
-  card.className = "memory-card";
-  card.dataset.product = product;
+  /* Memory board ALWAYS fits 3 rows x 6 cols (18 cards) */
+  .memory-board{
+    display:grid;
+    grid-template-columns: repeat(6, var(--cardW-desktop));
+    grid-auto-rows: var(--cardH-desktop);
+    gap: var(--gap);
+    margin-top:8px;
+  }
 
-  // front (hidden, shows 'N')
-  const front = document.createElement("div");
-  front.className = "front";
-  front.innerText = "N";
-
-  // back (shows product name)
-  const back = document.createElement("div");
-  back.className = "back";
-  back.innerText = product;
-
-  card.appendChild(front);
-  card.appendChild(back);
-  grid.appendChild(card);
-});
-
-// CSS tweak (bigger cards, still contained)
-const style = document.createElement("style");
-style.innerHTML = `
-  .memory-card {
-    width: 140px;
-    height: 140px;
+  /* Artistic Card */
+  .card{
+    width: var(--cardW-desktop);
+    height: var(--cardH-desktop);
     perspective: 1000px;
-    cursor: pointer;
+    border-radius:14px;
+    position:relative;
+    cursor:pointer;
   }
-  .memory-card .front,
-  .memory-card .back {
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    backface-visibility: hidden;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 16px;
-    font-weight: bold;
-    border-radius: 10px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-  }
-  .memory-card .front {
-    background: #111;
-    color: #fff;
-  }
-  .memory-card .back {
-    background: #eee;
-    color: #111;
-    transform: rotateY(180deg);
-  }
-  .memory-card.flipped .front {
-    transform: rotateY(180deg);
-  }
-  .memory-card.flipped .back {
-    transform: rotateY(0);
-  }
-`;
-document.head.appendChild(style);
 
+  .card-inner{
+    position:absolute; inset:0;
+    border-radius:14px;
+    transform-style:preserve-3d;
+    transition: transform 480ms cubic-bezier(.2,.65,.2,1);
+  }
+
+  .card.flip .card-inner{ transform: rotateY(180deg); }
+  .card.matched{ animation: vanish 360ms ease forwards; }
+  @keyframes vanish{
+    0%{ transform: scale(1); opacity:1; }
+    100%{ transform: scale(.85); opacity:0; visibility:hidden; }
+  }
+
+  .face{
+    position:absolute; inset:0;
+    border-radius:14px;
+    backface-visibility:hidden;
+    display:flex; align-items:center; justify-content:center;
+    padding:10px; text-align:center;
+    box-shadow: 0 6px 18px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.06);
+  }
+
+  /* Back (shows N) — abstract pattern via layered gradients */
+  .back{
+    background:
+      radial-gradient(120px 60px at 10% 10%, rgba(255,255,255,.08) 0 60%, transparent 61%),
+      radial-gradient(120px 60px at 90% 20%, rgba(255,255,255,.08) 0 60%, transparent 61%),
+      conic-gradient(from 210deg at 50% 50%, #1a2a6c, #b21f1f, #fdbb2d, #1a2a6c);
+    background-blend-mode: screen, screen, normal;
+    transform: translateZ(0);
+  }
+  .back .mark{
+    font-size: 42px; font-weight: 900; color:#fff; text-shadow: 0 3px 8px rgba(0,0,0,.55);
+    letter-spacing: .03em;
+  }
+
+  /* Front (design name) — glassy card on a geometric pattern */
+  .front{
+    transform: rotateY(180deg);
+    background:
+      linear-gradient(135deg, rgba(255,255,255,.06), rgba(255,255,255,.02)),
+      repeating-linear-gradient(135deg, rgba(255,255,255,.05) 0 6px, transparent 6px 12px),
+      radial-gradient(600px 180px at -20% 120%, rgba(124,243,214,.35), transparent 60%),
+      radial-gradient(600px 180px at 120% -20%, rgba(255,111,97,.35), transparent 60%),
+      #10131a;
+  }
+  .front .label{
+    font-weight: 800; line-height:1.2; text-shadow: 0 2px 6px rgba(0,0,0,.5);
+    font-size: 14px;
+  }
 
   /* Not yet over banner */
   .intermission{
@@ -195,6 +237,13 @@ document.head.appendChild(style);
     .paths{ grid-template-columns: repeat(3, 1fr); grid-auto-rows: 98px; gap:10px; }
     .path{ border-radius:14px; }
     .right{ padding-top:10px; }
+    .memory-board{
+      grid-template-columns: repeat(6, var(--cardW-mobile));
+      grid-auto-rows: var(--cardH-mobile);
+    }
+    .card{ width: var(--cardW-mobile); height: var(--cardH-mobile); }
+    .front .label{ font-size: 12px; }
+    .back .mark{ font-size: 34px; }
   }
   @media (max-width: 560px){
     .paths{ grid-template-columns: repeat(2, 1fr); grid-auto-rows: 96px; }
@@ -219,20 +268,14 @@ document.head.appendChild(style);
     <section class="left">
       <div class="panel">
         <h2>Memory Game</h2>
-
-        <div class="games-wrap">
-          <div class="memory-frame">
-            <div id="memoryBoard" class="memory-board" aria-label="Memory Game Board"></div>
-          </div>
-
-          <div id="intermission" class="intermission">Not yet over…</div>
-          <canvas id="siCanvas"></canvas>
-          <div id="levelBadge" class="level-badge"></div>
-          <div id="finalMsg" class="final-message">
-            Congratulations on playing these beautifully coded games in this beautifully coded website. Thank you for staying till here.<br/><br/>
-            One suggestion: if you want to stay and visit the personality path and find your outfit, do it. If you don’t want, then just leave… it’s your option.<br/><br/>
-            <strong>But… you actually can’t exit until you choose a personality path 😇</strong>
-          </div>
+        <div id="memoryBoard" class="memory-board" aria-label="Memory Game Board"></div>
+        <div id="intermission" class="intermission">Not yet over…</div>
+        <canvas id="siCanvas"></canvas>
+        <div id="levelBadge" class="level-badge"></div>
+        <div id="finalMsg" class="final-message">
+          Congratulations on playing these beautifully coded games in this beautifully coded website. Thank you for staying till here.<br/><br/>
+          One suggestion: if you want to stay and visit the personality path and find your outfit, do it. If you don’t want, then just leave… it’s your option.<br/><br/>
+          <strong>But… you actually can’t exit until you choose a personality path 😇</strong>
         </div>
       </div>
     </section>
@@ -277,7 +320,7 @@ function setupAudio(){
   if(!audio) return;
   const saved = localStorage.getItem('music-time');
   if(saved) audio.currentTime = parseFloat(saved);
-  audio.play().catch(()=>{ /* starts on first user gesture */ });
+  audio.play().catch(()=>{ /* will start on first user gesture */ });
   setInterval(()=>{ if(!audio.paused) localStorage.setItem('music-time', audio.currentTime); }, 600);
   window.addEventListener('beforeunload', ()=> localStorage.setItem('music-time', audio.currentTime));
 }
@@ -312,17 +355,15 @@ const designNames = [
   "Berserk",
   "Almost but Nope"
 ];
-
 const board = document.getElementById('memoryBoard');
 
-/* Build & shuffle deck */
+// build deck (x2), shuffle
 let deck = [...designNames, ...designNames].map((name, i)=>({id:i, name}));
 shuffle(deck);
 
 let flipped = []; // [{el, name}]
 let matchedPairs = 0;
 
-/* create cards (Back: 'N' / Front: design name) */
 deck.forEach(card=>{
   const el = document.createElement('div');
   el.className = 'card';
@@ -337,37 +378,6 @@ deck.forEach(card=>{
   el.addEventListener('click', ()=> onFlip(el, card.name));
   board.appendChild(el);
 });
-
-/* keep all cards inside the frame: dynamically size to fit */
-const ratio = 140/110; // height:width for a card
-function sizeMemoryBoard(){
-  const frame = document.querySelector('.memory-frame');
-  const panel = frame.closest('.panel');
-  const cols = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--cols')) || 6;
-  const rows = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--rows')) || 3;
-  const gap = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--gap')) || 12;
-
-  const frameStyle = getComputedStyle(frame);
-  const framePad = parseInt(frameStyle.paddingLeft) + parseInt(frameStyle.paddingRight);
-
-  const availableW = frame.clientWidth - framePad;
-  const cardWFromW = Math.floor((availableW - gap*(cols-1)) / cols);
-
-  // also respect height so it never overflows the panel
-  const headerH = panel.querySelector('h2')?.offsetHeight || 0;
-  const interH = document.getElementById('intermission').offsetHeight || 0;
-  const extra = headerH + interH + 48; // breathing room
-  const availableH = panel.clientHeight - extra - 32; // inside space for the frame content
-  const cardWFromH = Math.floor(((availableH - gap*(rows-1)) / rows) / ratio);
-
-  const cardW = Math.max(54, Math.min(cardWFromW, cardWFromH)); // clamp to a sensible min
-  const cardH = Math.floor(cardW * ratio);
-
-  document.documentElement.style.setProperty('--cardW', `${cardW}px`);
-  document.documentElement.style.setProperty('--cardH', `${cardH}px`);
-}
-window.addEventListener('resize', sizeMemoryBoard);
-window.addEventListener('load', sizeMemoryBoard);
 
 function onFlip(el, name){
   if(el.classList.contains('flip') || el.classList.contains('matched')) return;
@@ -415,17 +425,19 @@ const levelBadge = document.getElementById('levelBadge');
 const intermission = document.getElementById('intermission');
 const finalMsg = document.getElementById('finalMsg');
 
-const levels = [
-  { name:"Not the Og",        rows:3,  cols:8,  speed:1.0,  pattern:"plain",    type:"box",     fire:0   },
-  { name:"Initial D",         rows:3,  cols:9,  speed:1.2,  pattern:"zigzag",   type:"wedge",   fire:0   },
-  { name:"Lorem Ipsum",       rows:4,  cols:9,  speed:1.35, pattern:"wobble",   type:"saucer",  fire:0   },
-  { name:"Your Toast",        rows:4,  cols:10, speed:1.5,  pattern:"plain",    type:"toast",   fire:0.002 },
-  { name:"Cake Was A Lie",    rows:4,  cols:10, speed:1.7,  pattern:"wobble",   type:"cupcake", fire:0.003 },
-  { name:"Berserk",           rows:5,  cols:10, speed:2.0,  pattern:"zigzag",   type:"claw",    fire:0.004 },
-  { name:"Grapefruit x Lime", rows:5,  cols:10, speed:2.2,  pattern:"wave",     type:"citrus",  fire:0.0045 },
-  { name:"Burning desire",    rows:5,  cols:10, speed:2.4,  pattern:"plain",    type:"flame",   fire:0.005 },
-  { name:"Almost but Nope",   rows:5,  cols:10, speed:2.7,  pattern:"chaotic",  type:"blob",    fire:0.006 }
+const levelNames = [
+  "Lorem Ipsum",
+  "Your Toast",
+  "Cake Was A Lie",
+  "Grapefruit x Lime",
+  "Burning desire",
+  "Initial D",
+  "Not the Og",
+  "Berserk",
+  "Almost but Nope"
 ];
+
+let si, animId;
 
 function showIntermissionThenSpaceInvaders(){
   intermission.style.display = 'inline-block';
@@ -437,51 +449,42 @@ function showIntermissionThenSpaceInvaders(){
 
 function startSpaceInvaders(){
   // hide memory board, show canvas
-  document.querySelector('.memory-frame').style.display = 'none';
+  board.style.display = 'none';
   siCanvas.style.display = 'block';
   levelBadge.style.display = 'block';
 
   const ctx = siCanvas.getContext('2d', { alpha: false });
+  // internal size for crisp scaling
   const W = 560, H = 350;
   siCanvas.width = W; siCanvas.height = H;
 
   // GAME STATE
   let levelIndex = 0;
   let ship = { x: W/2, y: H-22, w: 28, h: 12, speed: 5 };
-  let bullets = [];       // player bullets
-  let eBullets = [];      // enemy bullets
+  let bullets = [];
   let aliens = [];
   let alienDx = 1;
   let tick = 0;
   let keys = {};
   let playing = true;
 
-  function rect(a,b){ return !(a.x+a.w < b.x || b.x+b.w < a.x || a.y+a.h < b.y || b.y+b.h < a.y); }
-
   function setLevel(i){
     levelIndex = i;
-    const L = levels[levelIndex];
-    levelBadge.textContent = `Level ${levelIndex+1} — ${L.name}`;
-
+    levelBadge.textContent = `Level ${i+1} — ${levelNames[i]}`;
+    // build aliens rows increases each level (3 → 5)
+    const rows = Math.min(3 + Math.floor(i/2), 5);
+    const cols = 10;
     aliens = [];
-    const startX = 36, startY = 36;
-    const gapX = 46, gapY = 30;
-
-    for(let r=0;r<L.rows;r++){
-      for(let c=0;c<L.cols;c++){
-        aliens.push({
-          x: startX + c*gapX,
-          y: startY + r*gapY,
-          w: 22,
-          h: 14,
-          alive: true,
-          type: L.type,
-        });
+    const startX = 40, startY = 40;
+    for(let r=0;r<rows;r++){
+      for(let c=0;c<cols;c++){
+        aliens.push({ x: startX + c*48, y: startY + r*32, w: 22, h: 14, alive: true });
       }
     }
-    alienDx = L.speed;
-    eBullets.length = 0;
+    alienDx = 1 + i*0.25; // faster each level
   }
+
+  function rect(a,b){ return !(a.x+a.w < b.x || b.x+b.w < a.x || a.y+a.h < b.y || b.y+b.h < a.y); }
 
   function update(){
     if(!playing) return;
@@ -495,60 +498,26 @@ function startSpaceInvaders(){
     bullets.forEach(b=> b.y -= 6);
     bullets = bullets.filter(b=> b.y > -10);
 
-    // enemy bullets
-    eBullets.forEach(b=> b.y += 3.2);
-    eBullets = eBullets.filter(b=> b.y < H+10);
-
-    // enemy shooting (from live aliens) based on level fire rate
-    const L = levels[levelIndex];
-    if(L.fire > 0 && (tick % 5 === 0)){ // throttle RNG
-      aliens.forEach(a=>{
-        if(a.alive && Math.random() < L.fire){
-          eBullets.push({ x: a.x + a.w/2 - 1, y: a.y + a.h, w:2, h:8 });
-        }
-      });
-    }
-
-    // aliens movement with patterns
+    // aliens move horizontally, step down when hit edge
     let minX = Infinity, maxX = -Infinity;
-    aliens.forEach(a=>{
-      if(!a.alive) return;
-      // base horizontal march
-      a.x += alienDx;
-
-      // pattern mods
-      if(L.pattern === 'zigzag'){
-        a.y += Math.sin((a.x + tick*0.5) * 0.06) * 0.2;
-      }else if(L.pattern === 'wobble'){
-        a.y += Math.sin((tick + a.x)*0.04) * 0.25;
-      }else if(L.pattern === 'wave'){
-        a.y += Math.sin((a.x*0.08 + tick*0.12)) * 0.35;
-      }else if(L.pattern === 'chaotic'){
-        a.y += Math.sin((tick*0.25 + a.x*0.05)) * 0.45;
-        a.x += Math.sin((tick*0.07 + a.y*0.05)) * 0.25;
+    aliens.forEach(a=>{ if(!a.alive) return; minX = Math.min(minX, a.x); maxX = Math.max(maxX, a.x + a.w); });
+    if(minX === Infinity){ // level clear
+      if(levelIndex < levelNames.length - 1){
+        setLevel(levelIndex + 1);
+      }else{
+        // game finished
+        endSpaceInvaders();
+        return;
       }
-
-      minX = Math.min(minX, a.x);
-      maxX = Math.max(maxX, a.x + a.w);
-    });
-
-    // bounce and step down
-    if(minX !== Infinity){
+    }else{
       if(minX < 8 || maxX > W-8){
         alienDx = -alienDx;
         aliens.forEach(a=> a.y += 10);
       }
-    }else{
-      // all dead -> next level or finish
-      if(levelIndex < levels.length - 1){
-        setLevel(levelIndex + 1);
-      }else{
-        endSpaceInvaders();
-        return;
-      }
+      aliens.forEach(a=> a.x += alienDx);
     }
 
-    // collisions: player bullets vs aliens
+    // collisions
     bullets.forEach(b=>{
       aliens.forEach(a=>{
         if(a.alive && rect({x:b.x, y:b.y, w:3, h:8}, a)){
@@ -557,86 +526,6 @@ function startSpaceInvaders(){
         }
       });
     });
-
-    // collisions: enemy bullets vs ship (no hard fail; brief knockback)
-    eBullets.forEach(b=>{
-      if(rect(b, {x: ship.x, y: ship.y, w: ship.w, h: ship.h})){
-        // tiny knock + clear bullet for arcade feel
-        b.y = H + 20;
-        ship.x = Math.max(6, ship.x - 10);
-      }
-    });
-  }
-
-  function drawAlienShape(a, ctx){
-    ctx.save();
-    ctx.translate(a.x, a.y);
-    ctx.fillStyle = "#ffd966"; // keep scheme
-    switch(a.type){
-      case "box":
-        ctx.fillRect(0,0,a.w,a.h);
-        ctx.clearRect(4,4,4,4);
-        ctx.clearRect(a.w-8,4,4,4);
-        break;
-      case "wedge": // triangle / drift look
-        ctx.beginPath();
-        ctx.moveTo(0, a.h); ctx.lineTo(a.w/2, 0); ctx.lineTo(a.w, a.h); ctx.closePath();
-        ctx.fill();
-        break;
-      case "saucer":
-        ctx.beginPath();
-        ctx.ellipse(a.w/2, a.h/2, a.w/2, a.h/3, 0, 0, Math.PI*2);
-        ctx.fill();
-        ctx.fillRect(a.w*0.25, a.h*0.55, a.w*0.5, a.h*0.25);
-        break;
-      case "toast":
-        roundRect(ctx, 0, 2, a.w, a.h-2, 4); ctx.fill();
-        break;
-      case "cupcake":
-        // dome
-        ctx.beginPath();
-        ctx.arc(a.w/2, a.h*0.55, a.w*0.45, Math.PI, 0);
-        ctx.fill();
-        // base
-        ctx.fillRect(a.w*0.15, a.h*0.55, a.w*0.7, a.h*0.4);
-        break;
-      case "claw":
-        ctx.fillRect(0,0,a.w,a.h);
-        ctx.clearRect(3,0,4,a.h);
-        ctx.clearRect(a.w-7,0,4,a.h);
-        break;
-      case "citrus":
-        ctx.beginPath(); ctx.arc(a.w*0.35, a.h*0.55, a.h*0.45, 0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.arc(a.w*0.65, a.h*0.45, a.h*0.45, 0, Math.PI*2); ctx.fill();
-        break;
-      case "flame":
-        ctx.beginPath();
-        ctx.moveTo(a.w/2, 0);
-        ctx.bezierCurveTo(a.w*0.9, a.h*0.2, a.w*0.8, a.h*0.8, a.w/2, a.h);
-        ctx.bezierCurveTo(a.w*0.2, a.h*0.8, a.w*0.1, a.h*0.2, a.w/2, 0);
-        ctx.fill();
-        break;
-      case "blob":
-        ctx.beginPath();
-        ctx.moveTo(a.w*0.2, a.h*0.4);
-        ctx.quadraticCurveTo(a.w*0.1, 0, a.w*0.5, a.h*0.1);
-        ctx.quadraticCurveTo(a.w*0.9, 0, a.w*0.8, a.h*0.5);
-        ctx.quadraticCurveTo(a.w*0.9, a.h, a.w*0.5, a.h*0.9);
-        ctx.quadraticCurveTo(a.w*0.1, a.h, a.w*0.2, a.h*0.4);
-        ctx.fill();
-        break;
-    }
-    ctx.restore();
-  }
-
-  function roundRect(ctx, x, y, w, h, r){
-    ctx.beginPath();
-    ctx.moveTo(x+r, y);
-    ctx.arcTo(x+w, y, x+w, y+h, r);
-    ctx.arcTo(x+w, y+h, x, y+h, r);
-    ctx.arcTo(x, y+h, x, y, r);
-    ctx.arcTo(x, y, x+w, y, r);
-    ctx.closePath();
   }
 
   function draw(){
@@ -651,25 +540,26 @@ function startSpaceInvaders(){
       ctx.fillRect(x,y,2,2);
     }
 
-    // ship (nicer sprite, keep your color)
+    // ship
     ctx.fillStyle = "#7cf3d6";
     ctx.fillRect(ship.x, ship.y, ship.w, ship.h);
-    ctx.fillRect(ship.x+ship.w*0.35, ship.y-6, ship.w*0.3, 6);        // cockpit
-    ctx.fillRect(ship.x-4, ship.y+4, 6, 6);                            // left fin
-    ctx.fillRect(ship.x+ship.w-2, ship.y+4, 6, 6);                     // right fin
+    ctx.fillRect(ship.x+ship.w*0.35, ship.y-6, ship.w*0.3, 6);
 
     // bullets
     ctx.fillStyle = "#ff6f61";
     bullets.forEach(b=> ctx.fillRect(b.x, b.y, 3, 8));
 
-    // enemy bullets
-    ctx.fillStyle = "#ffd966";
-    eBullets.forEach(b=> ctx.fillRect(b.x, b.y, b.w, b.h));
-
     // aliens
-    aliens.forEach(a=>{ if(a.alive) drawAlienShape(a, ctx); });
+    ctx.fillStyle = "#ffd966";
+    aliens.forEach(a=>{
+      if(!a.alive) return;
+      // little retro alien
+      ctx.fillRect(a.x, a.y, a.w, a.h);
+      ctx.clearRect(a.x+4, a.y+4, 4, 4);
+      ctx.clearRect(a.x+a.w-8, a.y+4, 4, 4);
+    });
 
-    // HUD level label ghosted
+    // HUD level label ghosted on top-left
     ctx.globalAlpha = 0.12;
     ctx.fillStyle = "#fff";
     ctx.font = "700 42px monospace";
@@ -680,11 +570,12 @@ function startSpaceInvaders(){
   function loop(){
     update();
     draw();
-    requestAnimationFrame(loop);
+    animId = requestAnimationFrame(loop);
   }
 
   function endSpaceInvaders(){
     playing = false;
+    cancelAnimationFrame(animId);
     levelBadge.style.display = 'none';
     finalMsg.style.display = 'block';
   }
@@ -693,12 +584,11 @@ function startSpaceInvaders(){
   window.addEventListener('keydown', (e)=>{
     if(e.key === ' '){
       // shoot
-      bullets.push({ x: ship.x + ship.w/2 - 1.5, y: ship.y - 8, w:3, h:8 });
-      e.preventDefault();
+      bullets.push({ x: ship.x + ship.w/2 - 1.5, y: ship.y - 8 });
     }else{
       keys[e.key] = true;
     }
-  }, {passive:false});
+  });
   window.addEventListener('keyup', (e)=>{ keys[e.key] = false; });
 
   // init
@@ -716,4 +606,3 @@ document.addEventListener('keydown', (e)=>{
 </script>
 </body>
 </html>
-
