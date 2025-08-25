@@ -5,6 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Home | Games + Personality Paths</title>
 <style>
+  <!-- ✅ Welcome Pop-up -->
+<div id="welcomePopup" class="popup">
+  <div class="popup-content">
+    <h2>Welcome to Games + Personality Paths!</h2>
+    <p>Test your memory and discover your personality through fun challenges 🎮✨</p>
+    <button id="closePopup">Start Game</button>
+  </div>
+</div>
+  <script src="script.js"></script>
+</body>
   :root{
     --glass: rgba(0,0,0,0.45);
     --glass-strong: rgba(0,0,0,0.6);
@@ -72,23 +82,20 @@
     justify-content:flex-start;
   }
 
-  /* Memory board ALWAYS fits 3 rows x 6 cols (18 cards) */
   .memory-board{
-    display:grid;
-    grid-template-columns: repeat(6, var(--cardW-desktop));
-    grid-auto-rows: var(--cardH-desktop);
-    gap: var(--gap);
-    margin-top:8px;
-  }
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: var(--gap);
+  width: 100%;
+  max-width: 640px;   /* so it stays neat */
+  margin: 8px auto;
+}
+.card{
+  aspect-ratio: 11/14;   /* keeps card shape */
+  width: 100%;           /* each card auto-sizes inside the grid */
+  position: relative;
+}
 
-  /* Artistic Card */
-  .card{
-    width: var(--cardW-desktop);
-    height: var(--cardH-desktop);
-    perspective: 1000px;
-    border-radius:14px;
-    position:relative;
-    cursor:pointer;
   }
 
   .card-inner{
