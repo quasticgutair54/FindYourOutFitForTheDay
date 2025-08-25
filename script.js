@@ -1,3 +1,15 @@
+// ✅ JS for popup
+document.addEventListener("DOMContentLoaded", function() {
+  const popup = document.getElementById("welcomePopup");
+  const closeBtn = document.getElementById("closePopup");
+
+  popup.style.display = "flex"; // show on load
+
+  closeBtn.addEventListener("click", () => {
+    popup.style.display = "none";
+  });
+});
+
 // ==================== AUDIO SETUP ====================
 let hasInteracted = false;
 
