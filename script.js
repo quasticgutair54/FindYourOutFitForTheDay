@@ -1,3 +1,23 @@
+// ✅ Welcome Popup JS
+document.addEventListener("DOMContentLoaded", function() {
+  const popup = document.getElementById("welcomePopup");
+  const closeBtn = document.getElementById("closePopup");
+
+  // Show popup on page load
+  popup.style.display = "flex";
+
+  // Close when "x" clicked
+  closeBtn.addEventListener("click", () => {
+    popup.style.display = "none";
+  });
+
+  // Close popup when user clicks any game/personality card
+  document.querySelectorAll(".game-card, .personality-card").forEach(card => {
+    card.addEventListener("click", () => {
+      popup.style.display = "none";
+    });
+  });
+});
 // ✅ JS for popup
 document.addEventListener("DOMContentLoaded", function() {
   const popup = document.getElementById("welcomePopup");
