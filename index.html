@@ -5,19 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Home | Games + Personality Paths</title>
 <style>
-  <!-- ✅ Welcome Pop-up -->
-<div id="welcomePopup" class="popup">
-  <div class="popup-content">
-    <h2>Welcome to Games + Personality Paths!</h2>
-    <p>Test your memory and discover your personality through fun challenges 🎮✨</p>
-    <button id="closePopup">Start Game</button>
-  </div>
-</div>
-  <script src="script.js"></script>
-</body>
-  :root{
-    --glass: rgba(0,0,0,0.45);
-    --glass-strong: rgba(0,0,0,0.6);
+  :root {
+    --glass: rgba(0, 0, 0, 0.45);
+    --glass-strong: rgba(0, 0, 0, 0.6);
     --accent: #ff6f61;
     --accent-2: #7cf3d6;
     --cardW-desktop: 110px;
@@ -27,233 +17,302 @@
     --gap: 12px;
   }
 
-  *{ box-sizing: border-box; margin: 0; padding: 0; }
-  html, body{ height:100%; width:100%; overflow:hidden; font-family: Arial, Helvetica, sans-serif; color:#fff; }
+  * {
+    box-sizing: border-box; 
+    margin: 0; 
+    padding: 0; 
+  }
+  html, body {
+    height: 100%; 
+    width: 100%; 
+    overflow: hidden; 
+    font-family: Arial, Helvetica, sans-serif; 
+    color: #fff; 
+  }
 
   /* Background video */
-  #bg-video{
-    position:fixed; inset:0;
-    width:100%; height:100%; object-fit:cover; z-index:-2;
+  #bg-video {
+    position: fixed; 
+    inset: 0; 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+    z-index: -2; 
   }
-  .bg-overlay{
-    position:fixed; inset:0; background:linear-gradient(0deg, var(--glass-strong), rgba(0,0,0,0.35));
-    z-index:-1;
+  .bg-overlay {
+    position: fixed; 
+    inset: 0; 
+    background: linear-gradient(0deg, var(--glass-strong), rgba(0, 0, 0, 0.35)); 
+    z-index: -1; 
   }
 
   /* Layout */
-  .wrap{
-    height:100vh; width:100%;
-    display:grid;
-    grid-template-columns: 1fr 1fr;
+  .wrap {
+    height: 100vh; 
+    width: 100%; 
+    display: grid; 
+    grid-template-columns: 1fr 1fr; 
   }
 
-  .left, .right{
-    position:relative;
-    padding:20px;
-    overflow:hidden;
+  .left, .right {
+    position: relative; 
+    padding: 20px; 
+    overflow: hidden; 
   }
-  .panel{
-    height:100%;
-    width:100%;
-    background: var(--glass);
-    backdrop-filter: blur(6px);
-    border:1px solid rgba(255,255,255,0.12);
-    border-radius:20px;
-    padding:16px;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
+  .panel {
+    height: 100%; 
+    width: 100%; 
+    background: var(--glass); 
+    backdrop-filter: blur(6px); 
+    border: 1px solid rgba(255, 255, 255, 0.12); 
+    border-radius: 20px; 
+    padding: 16px; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
   }
 
-  .panel h2{
-    font-weight:900;
-    letter-spacing:.3px;
-    text-shadow: 0 2px 8px rgba(0,0,0,.4);
-    margin-bottom:10px;
+  .panel h2 {
+    font-weight: 900; 
+    letter-spacing: .3px; 
+    text-shadow: 0 2px 8px rgba(0, 0, 0, .4); 
+    margin-bottom: 10px; 
   }
 
   /* ===== LEFT: GAMES ===== */
-  .games-stage{
-    flex:1;
-    width:100%;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:flex-start;
+  .games-stage {
+    flex: 1; 
+    width: 100%; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: flex-start; 
   }
 
-  .memory-board{
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: var(--gap);
-  width: 100%;
-  max-width: 640px;   /* so it stays neat */
-  margin: 8px auto;
-}
-.card{
-  aspect-ratio: 11/14;   /* keeps card shape */
-  width: 100%;           /* each card auto-sizes inside the grid */
-  position: relative;
-}
-
+  /* Memory board ALWAYS fits 3 rows x 6 cols (18 cards) */
+  .memory-board {
+    display: grid; 
+    grid-template-columns: repeat(6, var(--cardW-desktop)); 
+    grid-auto-rows: var(--cardH-desktop); 
+    gap: var(--gap); 
+    margin-top: 8px; 
+    max-width: calc(6 * var(--cardW-desktop) + 5 * var(--gap)); /* Ensures it fits within the panel */
+    margin: 0 auto; /* Centers the memory board */
   }
 
-  .card-inner{
-    position:absolute; inset:0;
-    border-radius:14px;
-    transform-style:preserve-3d;
-    transition: transform 480ms cubic-bezier(.2,.65,.2,1);
+  /* Artistic Card */
+  .card {
+    width: var(--cardW-desktop); 
+    height: var(--cardH-desktop); 
+    perspective: 1000px; 
+    border-radius: 14px; 
+    position: relative; 
+    cursor: pointer; 
   }
 
-  .card.flip .card-inner{ transform: rotateY(180deg); }
-  .card.matched{ animation: vanish 360ms ease forwards; }
-  @keyframes vanish{
-    0%{ transform: scale(1); opacity:1; }
-    100%{ transform: scale(.85); opacity:0; visibility:hidden; }
+  .card-inner {
+    position: absolute; 
+    inset: 0; 
+    border-radius: 14px; 
+    transform-style: preserve-3d; 
+    transition: transform 480ms cubic-bezier(.2, .65, .2, 1); 
   }
 
-  .face{
-    position:absolute; inset:0;
-    border-radius:14px;
-    backface-visibility:hidden;
-    display:flex; align-items:center; justify-content:center;
-    padding:10px; text-align:center;
-    box-shadow: 0 6px 18px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.06);
+  .card.flip .card-inner { 
+    transform: rotateY(180deg); 
+  }
+  .card.matched { 
+    animation: vanish 360ms ease forwards; 
+  }
+  @keyframes vanish {
+    0% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(.85); opacity: 0; visibility: hidden; }
+  }
+
+  .face {
+    position: absolute; 
+    inset: 0; 
+    border-radius: 14px; 
+    backface-visibility: hidden; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    padding: 10px; 
+    text-align: center; 
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .35), inset 0 0 0 1px rgba(255, 255, 255, .06); 
   }
 
   /* Back (shows N) — abstract pattern via layered gradients */
-  .back{
-    background:
-      radial-gradient(120px 60px at 10% 10%, rgba(255,255,255,.08) 0 60%, transparent 61%),
-      radial-gradient(120px 60px at 90% 20%, rgba(255,255,255,.08) 0 60%, transparent 61%),
-      conic-gradient(from 210deg at 50% 50%, #1a2a6c, #b21f1f, #fdbb2d, #1a2a6c);
-    background-blend-mode: screen, screen, normal;
-    transform: translateZ(0);
+  .back {
+    background: radial-gradient(120px 60px at 10% 10%, rgba(255, 255, 255, .08) 0 60%, transparent 61%), 
+                radial-gradient(120px 60px at 90% 20%, rgba(255, 255, 255, .08) 0 60%, transparent 61%), 
+                conic-gradient(from 210deg at 50% 50%, #1a2a6c, #b21f1f, #fdbb2d, #1a2a6c);
+    background-blend-mode: screen, screen, normal; 
+    transform: translateZ(0); 
   }
-  .back .mark{
-    font-size: 42px; font-weight: 900; color:#fff; text-shadow: 0 3px 8px rgba(0,0,0,.55);
-    letter-spacing: .03em;
+  .back .mark {
+    font-size: 42px; 
+    font-weight: 900; 
+    color: #fff; 
+    text-shadow: 0 3px 8px rgba(0, 0, 0, .55); 
+    letter-spacing: .03em; 
   }
 
   /* Front (design name) — glassy card on a geometric pattern */
-  .front{
-    transform: rotateY(180deg);
-    background:
-      linear-gradient(135deg, rgba(255,255,255,.06), rgba(255,255,255,.02)),
-      repeating-linear-gradient(135deg, rgba(255,255,255,.05) 0 6px, transparent 6px 12px),
-      radial-gradient(600px 180px at -20% 120%, rgba(124,243,214,.35), transparent 60%),
-      radial-gradient(600px 180px at 120% -20%, rgba(255,111,97,.35), transparent 60%),
-      #10131a;
+  .front {
+    transform: rotateY(180deg); 
+    background: linear-gradient(135deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .02)), 
+                repeating-linear-gradient(135deg, rgba(255, 255, 255, .05) 0 6px, transparent 6px 12px), 
+                radial-gradient(600px 180px at -20% 120%, rgba(124, 243, 214, .35), transparent 60%), 
+                radial-gradient(600px 180px at 120% -20%, rgba(255, 111, 97, .35), transparent 60%), 
+                #10131a; 
   }
-  .front .label{
-    font-weight: 800; line-height:1.2; text-shadow: 0 2px 6px rgba(0,0,0,.5);
-    font-size: 14px;
+  .front .label {
+    font-weight: 800; 
+    line-height: 1.2; 
+    text-shadow: 0 2px 6px rgba(0, 0, 0, .5); 
+    font-size: 14px; 
   }
 
   /* Not yet over banner */
-  .intermission{
-    margin-top:14px;
-    padding:10px 14px;
-    background: rgba(0,0,0,.55);
-    border:1px solid rgba(255,255,255,.15);
-    border-radius:12px;
-    display:none;
-    font-weight:700;
-    letter-spacing:.2px;
+  .intermission {
+    margin-top: 14px; 
+    padding: 10px 14px; 
+    background: rgba(0, 0, 0, .55); 
+    border: 1px solid rgba(255, 255, 255, .15); 
+    border-radius: 12px; 
+    display: none; 
+    font-weight: 700; 
+    letter-spacing: .2px; 
   }
 
   /* Space Invaders */
-  #siCanvas{
-    width: 100%;
-    height: auto;
-    max-width: 560px;
-    aspect-ratio: 16 / 10;
-    background:#000;
-    border-radius:14px;
-    border:1px solid rgba(255,255,255,.15);
-    box-shadow: 0 10px 25px rgba(0,0,0,.45);
-    display:none;
-    margin-top:10px;
+  #siCanvas {
+    width: 100%; 
+    height: auto; 
+    max-width: 560px; 
+    aspect-ratio: 16 / 10; 
+    background: #000; 
+    border-radius: 14px; 
+    border: 1px solid rgba(255, 255, 255, .15); 
+    box-shadow: 0 10px 25px rgba(0, 0, 0, .45); 
+    display: none; 
+    margin-top: 10px; 
   }
-  .level-badge{
-    margin-top:10px;
-    font-weight:800;
-    display:none;
+  .level-badge {
+    margin-top: 10px; 
+    font-weight: 800; 
+    display: none; 
   }
-  .final-message{
-    display:none;
-    margin-top:12px;
-    background: rgba(0,0,0,.55);
-    border:1px solid rgba(255,255,255,.15);
-    padding:12px 14px;
-    border-radius:12px;
-    text-align:center;
-    font-weight:700;
+  .final-message {
+    display: none; 
+    margin-top: 12px; 
+    background: rgba(0, 0, 0, .55); 
+    border: 1px solid rgba(255, 255, 255, .15); 
+    padding: 12px 14px; 
+    border-radius: 12px; 
+    text-align: center; 
+    font-weight: 700; 
   }
 
   /* ===== RIGHT: PERSONALITY PATHS ===== */
-  .paths{
-    width:100%;
-    flex:1;
-    display:grid;
-    grid-template-columns: repeat(2, minmax(120px, 1fr));
-    grid-auto-rows: 120px;
-    gap: 14px;
-    align-content:center;
-    justify-items:center;
-    padding:8px;
+  .paths {
+    width: 100%; 
+    flex: 1; 
+    display: grid; 
+    grid-template-columns: repeat(2, minmax(120px, 1fr)); 
+    grid-auto-rows: 120px; 
+    gap: 14px; 
+    align-content: center; 
+    justify-items: center; 
+    padding: 8px; 
   }
-  .path{
-    width:100%; height:100%;
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    background: rgba(255,255,255,.07);
-    border:1px solid rgba(255,255,255,.16);
-    border-radius:16px;
-    text-decoration:none; color:#fff;
-    box-shadow: inset 0 0 0 1px rgba(255,255,255,.06), 0 8px 24px rgba(0,0,0,.25);
-    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
-    overflow:hidden;
-    position:relative;
+  .path {
+    width: 100%; 
+    height: 100%; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+    background: rgba(255, 255, 255, .07); 
+    border: 1px solid rgba(255, 255, 255, .16); 
+    border-radius: 16px; 
+    text-decoration: none; 
+    color: #fff; 
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .06), 0 8px 24px rgba(0, 0, 0, .25); 
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; 
+    overflow: hidden; 
+    position: relative; 
   }
-  .path:hover{
-    transform: translateY(-3px);
-    border-color: rgba(255,255,255,.28);
-    box-shadow: inset 0 0 0 1px rgba(255,255,255,.12), 0 14px 32px rgba(0,0,0,.35);
+  .path:hover {
+    transform: translateY(-3px); 
+    border-color: rgba(255, 255, 255, .28); 
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .12), 0 14px 32px rgba(0, 0, 0, .35); 
   }
-  .path img{
-    width:100%; height:100%; object-fit:cover; opacity:.9;
-    position:absolute; inset:0;
+  .path img {
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+    opacity: .9; 
+    position: absolute; 
+    inset: 0; 
   }
-  .path .label{
-    z-index:1;
-    padding:6px 10px;
-    border-radius:10px;
-    background: rgba(0,0,0,.5);
-    border:1px solid rgba(255,255,255,.15);
-    font-weight:800; letter-spacing:.2px;
-    text-align:center;
-    max-width:90%;
+  .path .label {
+    z-index: 1; 
+    padding: 6px 10px; 
+    border-radius: 10px; 
+    background: rgba(0, 0, 0, .5); 
+    border: 1px solid rgba(255, 255, 255, .15); 
+    font-weight: 800; 
+    letter-spacing: .2px; 
+    text-align: center; 
+    max-width: 90%; 
   }
 
-  .right .panel{ justify-content:center; }
-  .right h2{ margin-bottom:10px; }
+  .right .panel { 
+    justify-content: center; 
+  }
+  .right h2 { 
+    margin-bottom: 10px; 
+  }
 
   /* Small screen tweaks */
-  @media (max-width: 1024px){
-    .wrap{ grid-template-columns: 1fr; grid-template-rows: 52% 48%; }
-    .paths{ grid-template-columns: repeat(3, 1fr); grid-auto-rows: 98px; gap:10px; }
-    .path{ border-radius:14px; }
-    .right{ padding-top:10px; }
-    .memory-board{
-      grid-template-columns: repeat(6, var(--cardW-mobile));
-      grid-auto-rows: var(--cardH-mobile);
+  @media (max-width: 1024px) {
+    .wrap { 
+      grid-template-columns: 1fr; 
+      grid-template-rows: 52% 48%; 
     }
-    .card{ width: var(--cardW-mobile); height: var(--cardH-mobile); }
-    .front .label{ font-size: 12px; }
-    .back .mark{ font-size: 34px; }
+    .paths { 
+      grid-template-columns: repeat(3, 1fr); 
+      grid-auto-rows: 98px; 
+      gap: 10px; 
+    }
+    .path { 
+      border-radius: 14px; 
+    }
+    .right { 
+      padding-top: 10px; 
+    }
+    .memory-board {
+      grid-template-columns: repeat(6, var(--cardW-mobile)); 
+      grid-auto-rows: var(--cardH-mobile); 
+    }
+    .card { 
+      width: var(--cardW-mobile); 
+      height: var(--cardH-mobile); 
+    }
+    .front .label { 
+      font-size: 12px; 
+    }
+    .back .mark { 
+      font-size: 34px; 
+    }
   }
-  @media (max-width: 560px){
-    .paths{ grid-template-columns: repeat(2, 1fr); grid-auto-rows: 96px; }
+  @media (max-width: 560px) {
+    .paths { 
+      grid-template-columns: repeat(2, 1fr); 
+      grid-auto-rows: 96px; 
+    }
   }
 </style>
 </head>
@@ -292,7 +351,7 @@
       <div class="panel">
         <h2>Choose Your Personality Path</h2>
         <div class="paths">
-          <a class="path" href="allout-q1.html"  data-path="allout">
+          <a class="path" href="allout-q1.html" data-path="allout">
             <img src="allout.jpg" alt="All Out"/>
             <span class="label">All Out</span>
           </a>
@@ -322,30 +381,30 @@
    MUSIC: resume across pages
    ========================= */
 let hasInteracted = false;
-function setupAudio(){
+function setupAudio() {
   const audio = document.getElementById('bg-music');
-  if(!audio) return;
+  if (!audio) return;
   const saved = localStorage.getItem('music-time');
-  if(saved) audio.currentTime = parseFloat(saved);
-  audio.play().catch(()=>{ /* will start on first user gesture */ });
-  setInterval(()=>{ if(!audio.paused) localStorage.setItem('music-time', audio.currentTime); }, 600);
-  window.addEventListener('beforeunload', ()=> localStorage.setItem('music-time', audio.currentTime));
+  if (saved) audio.currentTime = parseFloat(saved);
+  audio.play().catch(() => { /* will start on first user gesture */ });
+  setInterval(() => { if (!audio.paused) localStorage.setItem('music-time', audio.currentTime); }, 600);
+  window.addEventListener('beforeunload', () => localStorage.setItem('music-time', audio.currentTime));
 }
-window.addEventListener('pointerdown', ()=>{
-  if(!hasInteracted){ hasInteracted = true; setupAudio(); }
-}, {once:true});
+window.addEventListener('pointerdown', () => {
+  if (!hasInteracted) { hasInteracted = true; setupAudio(); }
+}, { once: true });
 
 /* ==========================================
    EXIT BLOCK: require path selection to leave
    ========================================== */
-function pathChosen(){ return localStorage.getItem('pathChosen') === 'true'; }
-window.onbeforeunload = function(){
-  if(!pathChosen()){
+function pathChosen() { return localStorage.getItem('pathChosen') === 'true'; }
+window.onbeforeunload = function () {
+  if (!pathChosen()) {
     return "You must pick a personality path before leaving!";
   }
 };
-document.querySelectorAll('.path').forEach(a=>{
-  a.addEventListener('click', ()=> localStorage.setItem('pathChosen','true'));
+document.querySelectorAll('.path').forEach(a => {
+  a.addEventListener('click', () => localStorage.setItem('pathChosen', 'true'));
 });
 
 /* =========================
@@ -365,16 +424,16 @@ const designNames = [
 const board = document.getElementById('memoryBoard');
 
 // build deck (x2), shuffle
-let deck = [...designNames, ...designNames].map((name, i)=>({id:i, name}));
+let deck = [...designNames, ...designNames].map((name, i) => ({ id: i, name }));
 shuffle(deck);
 
 let flipped = []; // [{el, name}]
 let matchedPairs = 0;
 
-deck.forEach(card=>{
+deck.forEach(card => {
   const el = document.createElement('div');
   el.className = 'card';
-  el.setAttribute('role','button');
+  el.setAttribute('role', 'button');
   el.setAttribute('aria-label', 'Memory card');
   el.innerHTML = `
     <div class="card-inner">
@@ -382,33 +441,33 @@ deck.forEach(card=>{
       <div class="face front"><div class="label">${card.name}</div></div>
     </div>
   `;
-  el.addEventListener('click', ()=> onFlip(el, card.name));
+  el.addEventListener('click', () => onFlip(el, card.name));
   board.appendChild(el);
 });
 
-function onFlip(el, name){
-  if(el.classList.contains('flip') || el.classList.contains('matched')) return;
-  if(flipped.length === 2) return;
+function onFlip(el, name) {
+  if (el.classList.contains('flip') || el.classList.contains('matched')) return;
+  if (flipped.length === 2) return;
 
   el.classList.add('flip');
-  flipped.push({el, name});
+  flipped.push({ el, name });
 
-  if(flipped.length === 2){
-    const [a,b] = flipped;
+  if (flipped.length === 2) {
+    const [a, b] = flipped;
     const isMatch = a.name === b.name;
-    if(isMatch){
-      setTimeout(()=>{
+    if (isMatch) {
+      setTimeout(() => {
         a.el.classList.add('matched');
         b.el.classList.add('matched');
         matchedPairs += 1;
         flipped = [];
-        if(matchedPairs === designNames.length){
+        if (matchedPairs === designNames.length) {
           // completed memory game
           showIntermissionThenSpaceInvaders();
         }
       }, 380);
-    }else{
-      setTimeout(()=>{
+    } else {
+      setTimeout(() => {
         a.el.classList.remove('flip');
         b.el.classList.remove('flip');
         flipped = [];
@@ -417,10 +476,10 @@ function onFlip(el, name){
   }
 }
 
-function shuffle(arr){
-  for(let i=arr.length-1;i>0;i--){
-    const j = Math.floor(Math.random()*(i+1));
-    [arr[i],arr[j]] = [arr[j],arr[i]];
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
   }
 }
 
@@ -446,15 +505,15 @@ const levelNames = [
 
 let si, animId;
 
-function showIntermissionThenSpaceInvaders(){
+function showIntermissionThenSpaceInvaders() {
   intermission.style.display = 'inline-block';
-  setTimeout(()=>{
+  setTimeout(() => {
     intermission.style.display = 'none';
     startSpaceInvaders();
   }, 5000);
 }
 
-function startSpaceInvaders(){
+function startSpaceInvaders() {
   // hide memory board, show canvas
   board.style.display = 'none';
   siCanvas.style.display = 'block';
@@ -467,7 +526,7 @@ function startSpaceInvaders(){
 
   // GAME STATE
   let levelIndex = 0;
-  let ship = { x: W/2, y: H-22, w: 28, h: 12, speed: 5 };
+  let ship = { x: W / 2, y: H - 22, w: 28, h: 12, speed: 5 };
   let bullets = [];
   let aliens = [];
   let alienDx = 1;
@@ -475,59 +534,59 @@ function startSpaceInvaders(){
   let keys = {};
   let playing = true;
 
-  function setLevel(i){
+  function setLevel(i) {
     levelIndex = i;
-    levelBadge.textContent = `Level ${i+1} — ${levelNames[i]}`;
+    levelBadge.textContent = `Level ${i + 1} — ${levelNames[i]}`;
     // build aliens rows increases each level (3 → 5)
-    const rows = Math.min(3 + Math.floor(i/2), 5);
+    const rows = Math.min(3 + Math.floor(i / 2), 5);
     const cols = 10;
     aliens = [];
     const startX = 40, startY = 40;
-    for(let r=0;r<rows;r++){
-      for(let c=0;c<cols;c++){
-        aliens.push({ x: startX + c*48, y: startY + r*32, w: 22, h: 14, alive: true });
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        aliens.push({ x: startX + c * 48, y: startY + r * 32, w: 22, h: 14, alive: true });
       }
     }
-    alienDx = 1 + i*0.25; // faster each level
+    alienDx = 1 + i * 0.25; // faster each level
   }
 
-  function rect(a,b){ return !(a.x+a.w < b.x || b.x+b.w < a.x || a.y+a.h < b.y || b.y+b.h < a.y); }
+  function rect(a, b) { return !(a.x + a.w < b.x || b.x + b.w < a.x || a.y + a.h < b.y || b.y + b.h < a.y); }
 
-  function update(){
-    if(!playing) return;
+  function update() {
+    if (!playing) return;
     tick++;
 
     // ship move
-    if(keys['ArrowLeft']) ship.x = Math.max(6, ship.x - ship.speed);
-    if(keys['ArrowRight']) ship.x = Math.min(W-ship.w-6, ship.x + ship.speed);
+    if (keys['ArrowLeft']) ship.x = Math.max(6, ship.x - ship.speed);
+    if (keys['ArrowRight']) ship.x = Math.min(W - ship.w - 6, ship.x + ship.speed);
 
     // bullets
-    bullets.forEach(b=> b.y -= 6);
-    bullets = bullets.filter(b=> b.y > -10);
+    bullets.forEach(b => b.y -= 6);
+    bullets = bullets.filter(b => b.y > -10);
 
     // aliens move horizontally, step down when hit edge
     let minX = Infinity, maxX = -Infinity;
-    aliens.forEach(a=>{ if(!a.alive) return; minX = Math.min(minX, a.x); maxX = Math.max(maxX, a.x + a.w); });
-    if(minX === Infinity){ // level clear
-      if(levelIndex < levelNames.length - 1){
+    aliens.forEach(a => { if (!a.alive) return; minX = Math.min(minX, a.x); maxX = Math.max(maxX, a.x + a.w); });
+    if (minX === Infinity) { // level clear
+      if (levelIndex < levelNames.length - 1) {
         setLevel(levelIndex + 1);
-      }else{
+      } else {
         // game finished
         endSpaceInvaders();
         return;
       }
-    }else{
-      if(minX < 8 || maxX > W-8){
+    } else {
+      if (minX < 8 || maxX > W - 8) {
         alienDx = -alienDx;
-        aliens.forEach(a=> a.y += 10);
+        aliens.forEach(a => a.y += 10);
       }
-      aliens.forEach(a=> a.x += alienDx);
+      aliens.forEach(a => a.x += alienDx);
     }
 
     // collisions
-    bullets.forEach(b=>{
-      aliens.forEach(a=>{
-        if(a.alive && rect({x:b.x, y:b.y, w:3, h:8}, a)){
+    bullets.forEach(b => {
+      aliens.forEach(a => {
+        if (a.alive && rect({ x: b.x, y: b.y, w: 3, h: 8 }, a)) {
           a.alive = false;
           b.y = -20;
         }
@@ -535,52 +594,52 @@ function startSpaceInvaders(){
     });
   }
 
-  function draw(){
-    if(!playing) return;
+  function draw() {
+    if (!playing) return;
     // starfield background
     ctx.fillStyle = "#000";
-    ctx.fillRect(0,0,W,H);
+    ctx.fillRect(0, 0, W, H);
     ctx.fillStyle = "#0f2a";
-    for(let s=0;s<80;s++){
-      const x = (s*67 + (tick*0.7|0)) % W;
-      const y = (s*37 + (tick*0.5|0)) % H;
-      ctx.fillRect(x,y,2,2);
+    for (let s = 0; s < 80; s++) {
+      const x = (s * 67 + (tick * 0.7 | 0)) % W;
+      const y = (s * 37 + (tick * 0.5 | 0)) % H;
+      ctx.fillRect(x, y, 2, 2);
     }
 
     // ship
     ctx.fillStyle = "#7cf3d6";
     ctx.fillRect(ship.x, ship.y, ship.w, ship.h);
-    ctx.fillRect(ship.x+ship.w*0.35, ship.y-6, ship.w*0.3, 6);
+    ctx.fillRect(ship.x + ship.w * 0.35, ship.y - 6, ship.w * 0.3, 6);
 
     // bullets
     ctx.fillStyle = "#ff6f61";
-    bullets.forEach(b=> ctx.fillRect(b.x, b.y, 3, 8));
+    bullets.forEach(b => ctx.fillRect(b.x, b.y, 3, 8));
 
     // aliens
     ctx.fillStyle = "#ffd966";
-    aliens.forEach(a=>{
-      if(!a.alive) return;
+    aliens.forEach(a => {
+      if (!a.alive) return;
       // little retro alien
       ctx.fillRect(a.x, a.y, a.w, a.h);
-      ctx.clearRect(a.x+4, a.y+4, 4, 4);
-      ctx.clearRect(a.x+a.w-8, a.y+4, 4, 4);
+      ctx.clearRect(a.x + 4, a.y + 4, 4, 4);
+      ctx.clearRect(a.x + a.w - 8, a.y + 4, 4, 4);
     });
 
     // HUD level label ghosted on top-left
     ctx.globalAlpha = 0.12;
     ctx.fillStyle = "#fff";
     ctx.font = "700 42px monospace";
-    ctx.fillText(`L${levelIndex+1}`, 12, 48);
+    ctx.fillText(`L${levelIndex + 1}`, 12, 48);
     ctx.globalAlpha = 1;
   }
 
-  function loop(){
+  function loop() {
     update();
     draw();
     animId = requestAnimationFrame(loop);
   }
 
-  function endSpaceInvaders(){
+  function endSpaceInvaders() {
     playing = false;
     cancelAnimationFrame(animId);
     levelBadge.style.display = 'none';
@@ -588,15 +647,15 @@ function startSpaceInvaders(){
   }
 
   // input
-  window.addEventListener('keydown', (e)=>{
-    if(e.key === ' '){
+  window.addEventListener('keydown', (e) => {
+    if (e.key === ' ') {
       // shoot
-      bullets.push({ x: ship.x + ship.w/2 - 1.5, y: ship.y - 8 });
-    }else{
+      bullets.push({ x: ship.x + ship.w / 2 - 1.5, y: ship.y - 8 });
+    } else {
       keys[e.key] = true;
     }
   });
-  window.addEventListener('keyup', (e)=>{ keys[e.key] = false; });
+  window.addEventListener('keyup', (e) => { keys[e.key] = false; });
 
   // init
   setLevel(0);
@@ -606,10 +665,10 @@ function startSpaceInvaders(){
 /* ======================
    Accessibility fixes
    ====================== */
-document.addEventListener('keydown', (e)=>{
+document.addEventListener('keydown', (e) => {
   // prevent page scroll with arrows/space while gaming
-  if(['ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
-}, {passive:false});
+  if (['ArrowLeft', 'ArrowRight', ' '].includes(e.key)) e.preventDefault();
+}, { passive: false });
 </script>
 </body>
 </html>
