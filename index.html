@@ -96,9 +96,9 @@
     grid-auto-rows: var(--cardH-desktop); 
     gap: var(--gap); 
     margin-top: 8px; 
-    max-width: calc(6 * var(--cardW-desktop) + 5 * var(--gap)); /* Ensures it fits within the panel */
-    margin: 0 auto; /* Centers the memory board */
-    overflow: hidden; /* Prevents overflow */
+    max-width: calc(6 * var(--cardW-desktop) + 5 * var(--gap)); 
+    margin: 0 auto; 
+    overflow: hidden; 
   }
 
   /* Artistic Card */
@@ -143,7 +143,7 @@
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35), inset 0 0 0 1px rgba(255, 255, 255, .06); 
   }
 
-  /* Back (shows N) — abstract pattern via layered gradients */
+  /* Back (shows N) */
   .back {
     background: radial-gradient(120px 60px at 10% 10%, rgba(255, 255, 255, .08) 0 60%, transparent 61%), 
                 radial-gradient(120px 60px at 90% 20%, rgba(255, 255, 255, .08) 0 60%, transparent 61%), 
@@ -159,7 +159,7 @@
     letter-spacing: .03em; 
   }
 
-  /* Front (design name) — glassy card on a geometric pattern */
+  /* Front (design name) */
   .front {
     transform: rotateY(180deg); 
     background: linear-gradient(135deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .02)), 
@@ -325,7 +325,7 @@
   </video>
   <div class="bg-overlay"></div>
 
-  <!-- Background music (autoplay after first interaction; resumes time across pages) -->
+  <!-- Background music -->
   <audio id="bg-music" loop>
     <source src="running out of time.mp3" type="audio/mpeg">
   </audio>
@@ -625,7 +625,6 @@ function startSpaceInvaders() {
     ctx.fillStyle = "#ffd966";
     aliens.forEach(a => {
       if (!a.alive) return;
-      // little retro alien
       ctx.fillRect(a.x, a.y, a.w, a.h);
       ctx.clearRect(a.x + 4, a.y + 4, 4, 4);
       ctx.clearRect(a.x + a.w - 8, a.y + 4, 4, 4);
@@ -655,7 +654,6 @@ function startSpaceInvaders() {
   // input
   window.addEventListener('keydown', (e) => {
     if (e.key === ' ') {
-      // shoot
       bullets.push({ x: ship.x + ship.w / 2 - 1.5, y: ship.y - 8 });
     } else {
       keys[e.key] = true;
@@ -672,10 +670,10 @@ function startSpaceInvaders() {
    Accessibility fixes
    ====================== */
 document.addEventListener('keydown', (e) => {
-  // prevent page scroll with arrows/space while gaming
   if (['ArrowLeft', 'ArrowRight', ' '].includes(e.key)) e.preventDefault();
 }, { passive: false });
 </script>
 </body>
 </html>
+
 
