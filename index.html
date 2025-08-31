@@ -1,3 +1,5 @@
+# Code Refactored
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -89,7 +91,7 @@
     justify-content: flex-start; 
   }
 
-  /* Memory board ALWAYS fits 3 rows x 6 cols (18 cards) */
+  /* Memory board fits 3 rows x 6 cols (18 cards) */
   .memory-board {
     display: grid; 
     grid-template-columns: repeat(6, var(--cardW-desktop)); 
@@ -409,23 +411,23 @@ document.querySelectorAll('.path').forEach(a => {
 });
 
 /* =========================
-   MEMORY GAME (18 cards)
+   MEMORY GAME (14 cards)
    ========================= */
 const designNames = [
   "Lorem Ipsum",
   "Your Toast",
   "Cake Was A Lie",
-  "Grapefruit x Lime",
+  "Initial D",
+  "Berserk",
+  "Not the Best OG",
   "Burning Desire",
-  "Initial D",
-  "Not the Best OG",
-  "Berserk",
+  "RANDOMODIUM",
   "Almost But Nope",
-  "Grapefruit x Lime",
+  "Lorem Ipsum",
+  "Your Toast",
+  "Cake Was A Lie",
   "Initial D",
-  "Not the Best OG",
-  "Berserk",
-  "Almost But Nope"
+  "Berserk"
 ];
 const board = document.getElementById('memoryBoard');
 
@@ -490,7 +492,7 @@ function shuffle(arr) {
 }
 
 /* ==================================================
-   Intermission → Space Invaders (retro, 9 levels)
+   Intermission → Space Invaders (7 levels)
    ================================================== */
 const siCanvas = document.getElementById('siCanvas');
 const levelBadge = document.getElementById('levelBadge');
@@ -498,15 +500,13 @@ const intermission = document.getElementById('intermission');
 const finalMsg = document.getElementById('finalMsg');
 
 const levelNames = [
+  "Notthebest OG",
+  "Initial D",
   "Lorem Ipsum",
   "Your Toast",
   "Cake Was A Lie",
-  "Grapefruit x Lime",
-  "Burning Desire",
-  "Initial D",
-  "Not the Best OG",
   "Berserk",
-  "Almost But Nope"
+  "RANDOMODIUM"
 ];
 
 let si, animId;
@@ -675,5 +675,6 @@ document.addEventListener('keydown', (e) => {
 </script>
 </body>
 </html>
+
 
 
