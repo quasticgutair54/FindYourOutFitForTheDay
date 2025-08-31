@@ -91,14 +91,14 @@
     justify-content: flex-start; 
   }
 
-  /* Memory board fits 3 rows x 6 cols (18 cards) */
+  /* Memory board fits 4 rows x 4 cols (16 cards) */
   .memory-board {
     display: grid; 
-    grid-template-columns: repeat(6, var(--cardW-desktop)); 
+    grid-template-columns: repeat(4, var(--cardW-desktop)); 
     grid-auto-rows: var(--cardH-desktop); 
     gap: var(--gap); 
     margin-top: 8px; 
-    max-width: calc(6 * var(--cardW-desktop) + 5 * var(--gap)); 
+    max-width: calc(4 * var(--cardW-desktop) + 3 * var(--gap)); 
     margin: 0 auto; 
     overflow: hidden; 
   }
@@ -173,7 +173,7 @@
   .front .label {
     font-weight: 800; 
     line-height: 1.2; 
-    text-shadow: 0 2px 6px rgba(0, 0, 0, .5); 
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5); 
     font-size: 14px; 
   }
 
@@ -297,7 +297,7 @@
       padding-top: 10px; 
     }
     .memory-board {
-      grid-template-columns: repeat(6, var(--cardW-mobile)); 
+      grid-template-columns: repeat(4, var(--cardW-mobile)); 
       grid-auto-rows: var(--cardH-mobile); 
     }
     .card { 
@@ -411,27 +411,21 @@ document.querySelectorAll('.path').forEach(a => {
 });
 
 /* =========================
-   MEMORY GAME (14 cards)
+   MEMORY GAME (16 cards)
    ========================= */
 const designNames = [
+  "Notthebest OG",
+  "Initial D",
   "Lorem Ipsum",
   "Your Toast",
   "Cake Was A Lie",
-  "Initial D",
   "Berserk",
-  "Not the Best OG",
-  "Burning Desire",
   "RANDOMODIUM",
-  "Almost But Nope",
-  "Lorem Ipsum",
-  "Your Toast",
-  "Cake Was A Lie",
-  "Initial D",
-  "Berserk"
+  "Grapefruit x Lime" // New card added
 ];
-const board = document.getElementById('memoryBoard');
 
-// build deck (x2), shuffle
+// Duplicate names to create 16 cards
+const board = document.getElementById('memoryBoard');
 let deck = [...designNames, ...designNames].map((name, i) => ({ id: i, name }));
 shuffle(deck);
 
@@ -492,7 +486,7 @@ function shuffle(arr) {
 }
 
 /* ==================================================
-   Intermission → Space Invaders (7 levels)
+   Intermission → Space Invaders (8 levels)
    ================================================== */
 const siCanvas = document.getElementById('siCanvas');
 const levelBadge = document.getElementById('levelBadge');
@@ -506,7 +500,8 @@ const levelNames = [
   "Your Toast",
   "Cake Was A Lie",
   "Berserk",
-  "RANDOMODIUM"
+  "RANDOMODIUM",
+  "Grapefruit x Lime" // New level added
 ];
 
 let si, animId;
@@ -675,6 +670,7 @@ document.addEventListener('keydown', (e) => {
 </script>
 </body>
 </html>
+
 
 
 
