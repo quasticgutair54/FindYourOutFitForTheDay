@@ -1,5 +1,7 @@
+# Code Refactored
+```javascript
 // ✅ Welcome Popup JS
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", () => {
   const popup = document.getElementById("welcomePopup");
   const closeBtn = document.getElementById("closePopup");
 
@@ -68,8 +70,7 @@ let lockBoard = false;
 let firstCard, secondCard;
 
 function flipCard() {
-  if (lockBoard) return;
-  if (this === firstCard) return;
+  if (lockBoard || this === firstCard) return;
 
   this.classList.add("flip");
 
@@ -84,7 +85,7 @@ function flipCard() {
 }
 
 function checkForMatch() {
-  let isMatch = firstCard.dataset.framework === secondCard.dataset.framework;
+  const isMatch = firstCard.dataset.framework === secondCard.dataset.framework;
   isMatch ? disableCards() : unflipCards();
 }
 
@@ -104,14 +105,12 @@ function unflipCards() {
 }
 
 function resetBoard() {
-  [hasFlippedCard, lockBoard] = [false, false];
-  [firstCard, secondCard] = [null, null];
+  [hasFlippedCard, lockBoard, firstCard, secondCard] = [false, false, null, null];
 }
 
 (function shuffle() {
   memoryCards.forEach(card => {
-    let randomPos = Math.floor(Math.random() * 12);
-    card.style.order = randomPos;
+    card.style.order = Math.floor(Math.random() * 12);
   });
 })();
 memoryCards.forEach(card => card.addEventListener("click", flipCard));
@@ -119,7 +118,7 @@ memoryCards.forEach(card => card.addEventListener("click", flipCard));
 // ==================== SPACE INVADERS CUSTOM LEVELS ====================
 let canvas = document.getElementById("gameCanvas");
 let ctx = canvas.getContext("2d");
-let player = { x: canvas.width/2, y: canvas.height - 40, width: 30, height: 30 };
+let player = { x: canvas.width / 2, y: canvas.height - 40, width: 30, height: 30 };
 let bullets = [];
 let enemies = [];
 let chaosObjects = [];
@@ -135,7 +134,7 @@ const levelConfig = {
   7: { name: "Berserk", enemySpeed: 4, movement: "rush", sprite: "💢", rapidFire: true },
   8: { 
     name: "RANDOMODIUM", enemySpeed: 3, movement: "chaotic", sprite: "💀", 
-    chaosObjects: ["📕","💵","❓","🍩","🕶️","🫧"], 
+    chaosObjects: ["📕", "💵", "❓", "🍩", "🕶️", "🫧"], 
     chaosEffects: true 
   }
 };
@@ -144,60 +143,63 @@ function startLevel(levelNumber) {
   const config = levelConfig[levelNumber];
   currentLevel = config;
 
-  // update level title
+  // Update level title
   document.getElementById("levelTitle").innerText = config.name;
 
-  // spawn enemies
+  // Spawn enemies
   spawnEnemies(config);
 }
 
 function spawnEnemies(config) {
-  enemies = [];
-  for (let i = 0; i < 10; i++) {
-    enemies.push({
-      x: i * 50,
-      y: 50,
-      sprite: config.sprite,
-      speed: config.enemySpeed,
-      movement: config.movement
-    });
-  }
+  enemies = Array.from({ length: 10 }, (_, i) => ({
+    x: i * 50,
+    y: 50,
+    sprite: config.sprite,
+    speed: config.enemySpeed,
+    movement: config.movement
+  }));
 }
 
 function updateEnemy(enemy, config) {
-  if (config.movement === "zigzag") {
-    enemy.x += Math.sin(Date.now() / 200) * 3;
-  } else if (config.movement === "random") {
-    enemy.x += (Math.random() - 0.5) * enemy.speed;
-  } else if (config.movement === "rush") {
-    enemy.y += enemy.speed * 2; // berserk style
-  } else if (config.movement === "chaotic") {
-    enemy.x += (Math.random() - 0.5) * 10;
-    enemy.y += (Math.random() - 0.5) * 5;
-  } else {
-    enemy.y += config.enemySpeed * 0.5;
+  switch (config.movement) {
+    case "zigzag":
+      enemy.x += Math.sin(Date.now() / 200) * 3;
+      break;
+    case "random":
+      enemy.x += (Math.random() - 0.5) * enemy.speed;
+      break;
+    case "rush":
+      enemy.y += enemy.speed * 2; // berserk style
+      break;
+    case "chaotic":
+      enemy.x += (Math.random() - 0.5) * 10;
+      enemy.y += (Math.random() - 0.5) * 5;
+      break;
+    default:
+      enemy.y += config.enemySpeed * 0.5;
   }
 }
 
 // ==================== CHAOS SYSTEM ====================
 function spawnChaos() {
   if (Math.random() < 0.05) {
-    let chaosObj = currentLevel.chaosObjects[
+    const chaosObj = currentLevel.chaosObjects[
       Math.floor(Math.random() * currentLevel.chaosObjects.length)
     ];
-    chaosObjects.push({ sprite: chaosObj, x: Math.random()*canvas.width, y: 0 });
+    chaosObjects.push({ sprite: chaosObj, x: Math.random() * canvas.width, y: 0 });
   }
 }
 
 function applyChaosEffect(obj) {
-  switch(obj.sprite) {
-    case "📕": blockBullets(); break;
-    case "💵": hideScreen(); break;
-    case "❓": shakeScreen(); break;
-    case "🍩": spinShield(); break;
-    case "🕶️": makeEnemiesInvisible(); break;
-    case "🫧": blockShots(); break;
-  }
+  const effects = {
+    "📕": blockBullets,
+    "💵": hideScreen,
+    "❓": shakeScreen,
+    "🍩": spinShield,
+    "🕶️": makeEnemiesInvisible,
+    "🫧": blockShots
+  };
+  effects[obj.sprite]?.();
 }
 
 function shakeScreen() {
@@ -206,7 +208,7 @@ function shakeScreen() {
 }
 
 function hideScreen() {
-  let overlay = document.createElement("div");
+  const overlay = document.createElement("div");
   overlay.className = "hide-overlay";
   document.body.appendChild(overlay);
   setTimeout(() => overlay.remove(), 2000);
@@ -214,8 +216,8 @@ function hideScreen() {
 
 // ==================== BULLET SYSTEM ====================
 function shootBullet() {
-  let bullet = {
-    x: player.x + player.width/2,
+  const bullet = {
+    x: player.x + player.width / 2,
     y: player.y,
     sprite: currentLevel.bulletType === "toast" ? "🍞" : "🔺"
   };
@@ -243,7 +245,7 @@ function gameLoop() {
   });
 
   // Chaos only in RANDOMODIUM
-  if (currentLevel && currentLevel.chaosEffects) {
+  if (currentLevel?.chaosEffects) {
     spawnChaos();
     chaosObjects.forEach((obj, i) => {
       obj.y += 2;
