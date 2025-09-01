@@ -128,5 +128,75 @@ function resetBoard() {
 
 memoryCards.forEach(card => card.addEventListener("click", flipCard));
 
-// ==================== SPACE INVADERS (DUMMY PLACEHOLDER) ====================
-// Your actual game logic will come here
+const levelConfig = {
+  1: { name: "NotTheBest OG", enemySpeed: 1, movement: "straight", sprite: "👾" },
+  2: { name: "Initial D", enemySpeed: 2, movement: "zigzag", sprite: "🚗" },
+  3: { name: "Lorem Ipsum", enemySpeed: 1.5, movement: "random", sprite: "ℒ𝓸𝓻𝓮𝓶" },
+  4: { name: "Your Toast", enemySpeed: 2, movement: "straight", sprite: "🍞🔥", bulletType: "toast" },
+  5: { name: "Grapefruit x Lime", enemySpeed: 1.2, movement: "straight", sprite: "🍋", blockers: true },
+  6: { name: "Cake Was A Lie", enemySpeed: 2.5, movement: "tricky", sprite: "🧁" },
+  7: { name: "Berserk", enemySpeed: 4, movement: "rush", sprite: "💢", rapidFire: true },
+  8: { 
+    name: "RANDOMODIUM", enemySpeed: 3, movement: "chaotic", sprite: "💀", 
+    chaosObjects: ["📕","💵","❓","🍩","🕶️","🫧"], 
+    chaosEffects: true 
+  }
+};
+function startLevel(levelNumber) {
+  const config = levelConfig[levelNumber];
+  currentLevel = config;
+
+  // update level title
+  document.getElementById("levelTitle").innerText = config.name;
+
+  // spawn enemies with new sprite + behavior
+  spawnEnemies(config);
+}
+function spawnEnemies(config) {
+  enemies = [];
+  for (let i = 0; i < 10; i++) {
+    enemies.push({
+      x: i * 50,
+      y: 50,
+      sprite: config.sprite,
+      speed: config.enemySpeed,
+      movement: config.movement
+    });
+  }
+}
+function updateEnemy(enemy, config) {
+  if (config.movement === "zigzag") {
+    enemy.x += Math.sin(Date.now() / 200) * 3;
+  } else if (config.movement === "random") {
+    enemy.x += (Math.random() - 0.5) * enemy.speed;
+  } else if (config.movement === "rush") {
+    enemy.y += enemy.speed * 2; // berserk style
+  } else if (config.movement === "chaotic") {
+    enemy.x += (Math.random() - 0.5) * 10;
+    enemy.y += (Math.random() - 0.5) * 5;
+  }
+}
+function spawnChaos() {
+  if (Math.random() < 0.05) {
+    let chaosObj = currentLevel.chaosObjects[
+      Math.floor(Math.random() * currentLevel.chaosObjects.length)
+    ];
+    chaosObjects.push({ sprite: chaosObj, x: Math.random()*canvas.width, y: 0 });
+  }
+}
+function applyChaosEffect(obj) {
+  switch(obj.sprite) {
+    case "📕": blockBullets(); break;
+    case "💵": hideScreen(); break;
+    case "❓": shakeScreen(); break;
+    case "🍩": spinShield(); break;
+    case "🕶️": makeEnemiesInvisible(); break;
+    case "🫧": blockShots(); break;
+  }
+}
+function showFinalMessage() {
+  document.getElementById("gameOver").innerHTML = 
+    "⚠️ <span style='color:red; font-size:24px;'>You weren’t supposed to beat this…</span><br>" +
+    "But here you are.<br><b>NotTheBest, but still alive.</b>";
+}
+
