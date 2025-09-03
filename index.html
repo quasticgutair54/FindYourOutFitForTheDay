@@ -315,6 +315,15 @@
       grid-auto-rows: 96px; 
     }
   }
+
+  /* Chaos level effects */
+  .invert-colors {
+    filter: invert(1);
+  }
+  .tilt {
+    transform: rotate(5deg);
+    transition: transform 0.2s;
+  }
 </style>
 </head>
 <body>
@@ -376,6 +385,11 @@
       </div>
     </section>
   </div>
+
+  <div id="effectsLayer"></div>
+  <img id="chaos-book" src="book.png" hidden>
+  <img id="chaos-money" src="money.png" hidden>
+  <img id="chaos-donut" src="donut.png" hidden>
 
 <script>
 /* =========================
