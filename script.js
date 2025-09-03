@@ -1,9 +1,9 @@
-# Code Refactored
-```javascript
 // ✅ Welcome Popup JS
-document.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("load", () => {
   const popup = document.getElementById("welcomePopup");
   const closeBtn = document.getElementById("closePopup");
+
+  if (!popup || !closeBtn) return; // safety
 
   // Show popup on page load
   popup.style.display = "flex";
@@ -162,21 +162,30 @@ function spawnEnemies(config) {
 
 function updateEnemy(enemy, config) {
   switch (config.movement) {
+    case "straight":
+      enemy.y += config.enemySpeed;
+      break;
     case "zigzag":
       enemy.x += Math.sin(Date.now() / 200) * 3;
+      enemy.y += config.enemySpeed * 0.8;
       break;
     case "random":
-      enemy.x += (Math.random() - 0.5) * enemy.speed;
+      enemy.x += (Math.random() - 0.5) * 3;
+      enemy.y += config.enemySpeed * 0.7;
+      break;
+    case "tricky":
+      enemy.x += Math.sin(Date.now() / 100) * 5;
+      enemy.y += config.enemySpeed * 1.2;
       break;
     case "rush":
-      enemy.y += enemy.speed * 2; // berserk style
+      enemy.y += config.enemySpeed * 2;
       break;
     case "chaotic":
       enemy.x += (Math.random() - 0.5) * 10;
       enemy.y += (Math.random() - 0.5) * 5;
       break;
     default:
-      enemy.y += config.enemySpeed * 0.5;
+      enemy.y += config.enemySpeed;
   }
 }
 
