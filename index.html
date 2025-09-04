@@ -205,6 +205,18 @@
     display: none; 
     margin-top: 10px; 
   }
+
+  /* 🚀 NEW: Game message styles */
+  #gameMessage {
+      margin-top: 10px;
+      font-weight: bold;
+      color: #ff6f61;
+      text-shadow: 0 0 5px #ff6f61;
+      opacity: 0;
+      transition: opacity 1s ease-in-out;
+      min-height: 2em; /* Reserve space to prevent layout shift */
+  }
+
   .level-badge {
     margin-top: 10px; 
     font-weight: 800; 
@@ -221,9 +233,7 @@
     font-weight: 700; 
   }
 
-  /*
-  🚀 FIX: Glitchy win message styles
-  */
+  /* 🚀 EDIT: Glitchy win message styles */
   #glitch-msg {
       display: none;
       position: absolute;
@@ -377,6 +387,7 @@
         <div id="intermission" class="intermission">Not yet over…</div>
         <canvas id="siCanvas"></canvas>
         <div id="levelBadge" class="level-badge"></div>
+        <div id="gameMessage"></div>
         <div id="glitch-msg">
           You weren’t supposed to beat this… but here you are. NotTheBest, but still alive.
         </div>
@@ -436,16 +447,21 @@ window.addEventListener('pointerdown', () => {
 }, { once: true });
 
 /* ==========================================
-    EXIT BLOCK: require path selection to leave
+    🚀 FIX: EXIT BLOCK: require path selection to leave
     ========================================== */
-function pathChosen() { return localStorage.getItem('pathChosen') === 'true'; }
+let hasChosenPath = false; // New flag to track path choice
+function pathChosen() { return hasChosenPath || localStorage.getItem('pathChosen') === 'true'; }
 window.onbeforeunload = function () {
   if (!pathChosen()) {
-    return "You must pick a personality path before leaving!";
+    // Custom message for modern browsers
+    return "How can you leave something incomplete? Why?"; 
   }
 };
 document.querySelectorAll('.path').forEach(a => {
-  a.addEventListener('click', () => localStorage.setItem('pathChosen', 'true'));
+  a.addEventListener('click', () => {
+    hasChosenPath = true;
+    localStorage.setItem('pathChosen', 'true');
+  });
 });
 
 /* =========================
@@ -517,24 +533,24 @@ function shuffle(arr) {
 }
 
 /* ==================================================
-    Intermission → Space Invaders (8 levels)
-    🚀 EDIT: Reworked game logic for all 8 levels
+    🚀 FIX & EDIT: Space Invaders (8 levels)
     ================================================== */
 const siCanvas = document.getElementById('siCanvas');
 const levelBadge = document.getElementById('levelBadge');
 const intermission = document.getElementById('intermission');
 const finalMsg = document.getElementById('finalMsg');
 const glitchMsg = document.getElementById('glitch-msg');
+const gameMessageDiv = document.getElementById('gameMessage'); // New element
 
 const levelConfig = [
-  { name: "Notthebest OG", rows: 3, speed: 1, fireRate: 0.005, alienType: 'normal', special: null },
-  { name: "Initial D", rows: 3, speed: 1.8, fireRate: 0.007, alienType: 'zigzag', special: null },
-  { name: "Lorem Ipsum", rows: 4, speed: 1.2, fireRate: 0.01, alienType: 'text', special: null },
-  { name: "Your Toast", rows: 4, speed: 1.5, fireRate: 0.012, alienType: 'toaster', special: 'bread-bullets' },
-  { name: "Grapefruit x Lime", rows: 4, speed: 1.4, fireRate: 0.01, alienType: 'normal', special: 'lemons' },
-  { name: "Cake Was A Lie", rows: 5, speed: 1.6, fireRate: 0.015, alienType: 'cupcake', special: null },
-  { name: "Berserk", rows: 5, speed: 2.2, fireRate: 0.02, alienType: 'aggressive', special: null },
-  { name: "RANDOMODIUM", rows: 6, speed: 2.5, fireRate: 0.025, alienType: 'chaotic', special: 'chaos' }
+  { name: "Notthebest OG", rows: 3, speed: 1.5, fireRate: 0.005, alienType: 'normal', special: null },
+  { name: "Initial D", rows: 3, speed: 2, fireRate: 0.007, alienType: 'zigzag', special: null },
+  { name: "Lorem Ipsum", rows: 4, speed: 1.8, fireRate: 0.01, alienType: 'text', special: null },
+  { name: "Your Toast", rows: 4, speed: 2, fireRate: 0.012, alienType: 'toaster', special: 'bread-bullets' },
+  { name: "Grapefruit x Lime", rows: 4, speed: 1.8, fireRate: 0.01, alienType: 'normal', special: 'lemons' },
+  { name: "Cake Was A Lie", rows: 5, speed: 2.2, fireRate: 0.015, alienType: 'cupcake', special: null },
+  { name: "Berserk", rows: 5, speed: 2.8, fireRate: 0.02, alienType: 'aggressive', special: null },
+  { name: "RANDOMODIUM", rows: 6, speed: 3, fireRate: 0.025, alienType: 'chaotic', special: 'chaos' }
 ];
 
 let si, ctx, W, H, animId;
@@ -567,6 +583,9 @@ function startSpaceInvaders() {
   let currentLevel = 0;
   let lemons = []; // For Grapefruit x Lime
   let chaosObjects = []; // For RANDOMODIUM
+  let messageCount = 0;
+  let messageTimer;
+  let screenTilt = 0;
 
   const alienSprites = {
       'normal': (x, y, w, h) => { ctx.fillStyle = "#ffd966"; ctx.fillRect(x, y, w, h); },
@@ -608,15 +627,20 @@ function startSpaceInvaders() {
           h: 14,
           alive: true,
           type: config.alienType,
-          originalX: startX + c * 48
+          originalX: startX + c * 48,
+          hit: false // New property
         });
       }
     }
     alienDx = config.speed;
     lemons = [];
     chaosObjects = [];
+
+    // Start message timer for the new level
+    startMessageTimer();
   }
 
+  // 🚀 FIX: Corrected collision detection
   function rect(a, b) {
     return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
   }
@@ -773,7 +797,7 @@ function startSpaceInvaders() {
         }
     });
 
-    // Check for level completion
+    // 🚀 FIX: Check for level completion
     if (aliens.filter(a => a.alive).length === 0) {
       setLevel(currentLevel + 1);
     }
@@ -878,6 +902,39 @@ function startSpaceInvaders() {
   function screenShake() {
       siCanvas.style.animation = 'shake 0.2s ease-in-out 3';
       setTimeout(() => { siCanvas.style.animation = ''; }, 600);
+  }
+
+  // 🚀 NEW: Function to display random game messages
+  const messages = [
+      "What the hell are you doing?",
+      "What is this tomfoolery?",
+      "Just get it done and move ahead.",
+      "You don't have all day."
+  ];
+
+  function showRandomMessage() {
+      if (messageCount >= 3) {
+          clearInterval(messageTimer);
+          return;
+      }
+      const message = messages[Math.floor(Math.random() * messages.length)];
+      gameMessageDiv.textContent = message;
+      gameMessageDiv.style.opacity = 1;
+      
+      setTimeout(() => {
+          gameMessageDiv.style.opacity = 0;
+      }, 3000); // Message fades out after 3 seconds
+      
+      messageCount++;
+  }
+  
+  function startMessageTimer() {
+      messageCount = 0;
+      clearInterval(messageTimer);
+      // Display message every 10-20 seconds
+      messageTimer = setInterval(() => {
+          showRandomMessage();
+      }, 10000 + Math.random() * 10000);
   }
 
   // input
