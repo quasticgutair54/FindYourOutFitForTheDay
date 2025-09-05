@@ -30,24 +30,26 @@
   }
 
   /* Popups */
-  #welcome-overlay {
+  #welcome-overlay, #outer-message {
     position: fixed; inset: 0; z-index: 100;
     display: flex; align-items: center; justify-content: center;
     background: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(8px);
     text-align: center; padding: 20px;
   }
-  #welcome-box {
+  #welcome-box, #outer-message-box {
     background: var(--glass); border: 1px solid rgba(255,255,255,0.2);
     border-radius: 20px; padding: 30px; max-width: 500px;
   }
   #welcome-box h1 { color: var(--accent-2); margin-bottom: 15px; }
-  #welcome-box button {
-    margin-top: 20px; padding: 12px 25px; border-radius: 10px; border: none;
+  #welcome-box p { margin-bottom: 25px; line-height: 1.6; }
+  #welcome-box button, #outer-message-box button {
+    padding: 12px 25px; border-radius: 10px; border: none;
     background: var(--accent); color: #fff; font-weight: bold;
     cursor: pointer; transition: transform 0.2s;
   }
   #welcome-box button:hover { transform: scale(1.05); }
+  #outer-message { display: none; }
 
   /* Main Layout - Mobile First */
   .wrap {
@@ -107,6 +109,7 @@
   .front-center { font-size: 1.2em; text-align: center; }
 
   /* Space Invaders & Game Messages */
+  .canvas-container { position: relative; width: 100%; max-width: 560px; aspect-ratio: 16 / 10; margin-top: 10px; }
   .game-message-overlay {
     position: absolute; top: 0; left: 0; right: 0; bottom: 0;
     display: none; flex-direction: column; align-items: center; justify-content: center;
@@ -116,13 +119,13 @@
   }
   .game-message-overlay h3 { font-size: 2em; color: var(--accent); }
   .game-message-overlay button { margin-top: 20px; padding: 10px 20px; background: var(--accent-2); color: #000; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
-  #siCanvas { width: 100%; max-width: 560px; aspect-ratio: 16 / 10; background: #000; border-radius: 14px; display: none; margin-top: 10px; position: relative; }
+  #siCanvas { width: 100%; height: 100%; background: #000; border-radius: 14px; display: none; transition: transform 0.2s, filter 0.2s; }
   @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px) rotate(-1deg)} 75%{transform:translateX(5px) rotate(1deg)} }
   .level-badge { margin-top: 10px; font-weight: 800; display: none; }
   #glitch-msg { display: none; text-align: center; font-size: 1.5em; font-weight: bold; color: var(--accent-2); text-shadow: 2px 2px var(--accent), -2px -2px #0f0; animation: glitch-anim 0.8s infinite; }
   @keyframes glitch-anim { 0%{transform:translate(0)} 20%{transform:translate(-3px,3px)} 40%{transform:translate(-3px,-3px)} 60%{transform:translate(3px,3px)} 80%{transform:translate(3px,-3px)} 100%{transform:translate(0)} }
   
-  /* Personality Paths */
+  /* Personality Paths with Emojis */
   .paths { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-content: center; padding: 8px; max-width: 600px; margin: auto; }
   .path { width: 100%; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.16); border-radius: 16px; text-decoration: none; color: #fff; box-shadow: 0 8px 24px rgba(0,0,0,.25); transition: all .18s ease; }
   .path:hover { transform: translateY(-3px); border-color: var(--accent-2); }
@@ -154,12 +157,19 @@
     </div>
   </div>
 
+  <div id="outer-message">
+    <div id="outer-message-box">
+      <p id="random-message-text"></p>
+      <button id="close-outer-message">Got it</button>
+    </div>
+  </div>
+
   <div class="wrap" id="main-content">
     <section class="left">
       <div class="panel">
         <h2>The Challenges</h2>
         <div id="memoryBoard" class="memory-board"></div>
-        <div style="position:relative;">
+        <div class="canvas-container">
             <canvas id="siCanvas"></canvas>
             <div id="gameOverScreen" class="game-message-overlay">
                 <h3>GAME OVER</h3>
@@ -167,7 +177,7 @@
             </div>
             <div id="winScreen" class="game-message-overlay">
                 <div id="glitch-msg">You weren’t supposed to beat this… but here you are. NotTheBest, but still alive.</div>
-                <div id="final-win-message" style="display:none;"></div>
+                <div id="final-win-message" style="display:none; font-size: 1.1em; line-height: 1.5;"></div>
             </div>
         </div>
         <div id="levelBadge" class="level-badge"></div>
@@ -199,6 +209,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const rightPanel = document.getElementById('right-panel');
   const welcomeOverlay = document.getElementById('welcome-overlay');
   const startButton = document.getElementById('start-button');
+  const outerMessage = document.getElementById('outer-message');
+  const randomMessageText = document.getElementById('random-message-text');
+  const closeOuterMessageBtn = document.getElementById('close-outer-message');
+  const mainContent = document.getElementById('main-content');
   let hasInteracted = false;
 
   if (sessionStorage.getItem('welcomeShown')) {
@@ -213,6 +227,15 @@ document.addEventListener('DOMContentLoaded', () => {
   if (appState.gamesDone) {
       rightPanel.classList.remove('locked');
   }
+  
+  document.body.addEventListener('click', (e) => {
+    if (!mainContent.contains(e.target) && !welcomeOverlay.contains(e.target) && outerMessage.style.display === 'none') {
+        const messages = ["Hey! The action is inside the boxes.", "Exploring the void? The fun stuff is touchable.", "Did I tell you to click there? Focus on the challenge!", "C'mon, stick to the game plan."];
+        randomMessageText.textContent = messages[Math.floor(Math.random() * messages.length)];
+        outerMessage.style.display = 'flex';
+    }
+  });
+  closeOuterMessageBtn.addEventListener('click', () => outerMessage.style.display = 'none');
   
   document.body.addEventListener('pointerdown', () => {
     if (!hasInteracted && sessionStorage.getItem('welcomeShown')) { hasInteracted = true; setupAudio(); }
@@ -229,7 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('pathChosen', 'true');
     }
   }));
-  window.onbeforeunload = () => !appState.pathChosen && appState.gamesDone ? "Are you sure? Your progress isn't saved until you choose a path." : null;
+  window.onbeforeunload = () => !appState.pathChosen ? "Not so fast internet warrior, complete what you started" : null;
 
   function setupAudio() {
     const savedTime = localStorage.getItem('music-time');
@@ -381,7 +404,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     if (config.special === 'chaos') {
-      if (Math.random() < 0.01) {
+      if (Math.random() < 0.015) { // Increased spawn rate
         const types = ['book','cash','question','donut','glass','blob'];
         chaos.push({ type: types[Math.floor(Math.random()*types.length)], x: Math.random()*W, y: -50, dy: 1+Math.random(), size: 10+Math.random()*10 });
       }
@@ -432,7 +455,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function draw() {
-    if (!gameState) return;
+    if (!gameState || !gameState.playing) return;
     const { player, bullets, aliens, alienBullets, chaos, lemons, effects } = gameState;
     ctx.clearRect(0, 0, W, H); ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, H);
     siCanvas.style.filter = effects.invert > 0 ? 'invert(1)' : 'none';
@@ -456,14 +479,13 @@ document.addEventListener('DOMContentLoaded', () => {
     gameState.playing = false;
     levelBadge.style.display = 'none';
     if (didWin) {
-      const glitchMsg = document.getElementById('glitch-msg');
-      const finalWinMsg = document.getElementById('final-win-message');
       winScreen.style.display = 'flex';
-      glitchMsg.style.display = 'block';
+      document.getElementById('glitch-msg').style.display = 'block';
+      const finalWinMsg = document.getElementById('final-win-message');
       finalWinMsg.style.display = 'none';
       setTimeout(() => {
-          glitchMsg.style.display = 'none';
-          finalWinMsg.innerHTML = "Congratulations on finishing these beautifully coded games in this beautifully coded website, I will give you one option, not one, but two options. You can stay here, explore the personality path, get your outfit, or you can leave everything behind and go out of this website. It's your choice.";
+          document.getElementById('glitch-msg').style.display = 'none';
+          finalWinMsg.innerHTML = "Congratulations on finishing these beautifully coded games in this beautifully coded website... You can stay here, explore the personality path, get your outfit, or you can leave everything behind... It's your choice.";
           finalWinMsg.style.display = 'block';
       }, 4000);
       appState.gamesDone = true;
@@ -480,7 +502,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (gameState && gameState.playing) {
       if (e.key === ' ') {
         e.preventDefault();
-        if (gameState.bullets.length < 4) { // Effectively unlimited
+        if (gameState.bullets.length < 8) { // Increased bullet limit
           const spec = levelConfig[gameState.level].special;
           gameState.bullets.push({ x: gameState.player.ship.x + gameState.player.ship.w/2 - (spec==='bread-bullets'?8:2), y: gameState.player.ship.y, w: spec==='bread-bullets'?16:4, h: spec==='bread-bullets'?16:10 });
         }
@@ -500,4 +522,3 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
-
