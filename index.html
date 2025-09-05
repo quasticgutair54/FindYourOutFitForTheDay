@@ -29,27 +29,25 @@
     z-index: -1;
   }
 
-  /* Welcome & Outer Message Popups */
-  #welcome-overlay, #outer-message {
+  /* Popups */
+  #welcome-overlay {
     position: fixed; inset: 0; z-index: 100;
     display: flex; align-items: center; justify-content: center;
     background: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(8px);
     text-align: center; padding: 20px;
   }
-  #welcome-box, #outer-message-box {
+  #welcome-box {
     background: var(--glass); border: 1px solid rgba(255,255,255,0.2);
     border-radius: 20px; padding: 30px; max-width: 500px;
   }
   #welcome-box h1 { color: var(--accent-2); margin-bottom: 15px; }
-  #welcome-box p { margin-bottom: 25px; line-height: 1.6; }
-  #welcome-box button, #outer-message-box button {
-    padding: 12px 25px; border-radius: 10px; border: none;
+  #welcome-box button {
+    margin-top: 20px; padding: 12px 25px; border-radius: 10px; border: none;
     background: var(--accent); color: #fff; font-weight: bold;
     cursor: pointer; transition: transform 0.2s;
   }
   #welcome-box button:hover { transform: scale(1.05); }
-  #outer-message { display: none; }
 
   /* Main Layout - Mobile First */
   .wrap {
@@ -72,7 +70,7 @@
     margin-bottom: 10px; text-align: center;
   }
 
-  /* Memory Game */
+  /* Redesigned Memory Cards */
   .memory-board {
     display: grid; grid-template-columns: repeat(4, 1fr);
     gap: var(--gap); width: 100%; max-width: 500px;
@@ -83,19 +81,48 @@
   .card.flip .card-inner { transform: rotateY(180deg); }
   .card.matched { animation: vanish 0.4s forwards; }
   @keyframes vanish { 100% { transform: scale(0.9); opacity: 0; } }
-  .face { position: absolute; width:100%; height:100%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; padding: 5px; text-align: center; border-radius: 10px; background: #1a2a6c; }
-  .front { transform: rotateY(180deg); font-size: clamp(10px, 2vw, 14px); font-weight: bold; }
-  .back .mark { font-size: clamp(24px, 4vw, 36px); font-weight: 900; }
+  .face { position: absolute; width:100%; height:100%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; padding: 5px; text-align: center; border-radius: 10px; box-shadow: 0 6px 18px rgba(0,0,0,0.4); }
+  .back {
+    background: radial-gradient(circle at 10% 20%, rgba(255,255,255,0.2), transparent),
+                radial-gradient(circle at 90% 80%, rgba(255,255,255,0.2), transparent),
+                conic-gradient(from 210deg at 50% 50%, #1a2a6c, #b21f1f, #fdbb2d, #1a2a6c);
+    font-size: clamp(30px, 8vw, 50px); font-weight: 900;
+  }
+  .front {
+    transform: rotateY(180deg);
+    background: #10131a;
+    font-size: clamp(12px, 2.5vw, 16px);
+    font-weight: bold;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 8px;
+  }
+  .front::before, .front::after {
+    content: attr(data-name);
+    display: block;
+    font-size: 0.7em;
+  }
+  .front::after { transform: rotate(180deg); }
+  .front-center { font-size: 1.2em; text-align: center; }
 
-  /* Space Invaders */
-  .intermission, .final-message { margin: auto; padding: 15px 20px; background: var(--glass-strong); border: 1px solid rgba(255,255,255,.2); border-radius: 12px; display: none; font-weight: 700; text-align: center; }
-  #siCanvas { width: 100%; max-width: 560px; aspect-ratio: 16 / 10; background: #000; border-radius: 14px; display: none; margin-top: 10px; transition: transform 0.2s, filter 0.2s; }
+  /* Space Invaders & Game Messages */
+  .game-message-overlay {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(5px);
+    border-radius: 14px; text-align: center; padding: 20px;
+    z-index: 50;
+  }
+  .game-message-overlay h3 { font-size: 2em; color: var(--accent); }
+  .game-message-overlay button { margin-top: 20px; padding: 10px 20px; background: var(--accent-2); color: #000; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+  #siCanvas { width: 100%; max-width: 560px; aspect-ratio: 16 / 10; background: #000; border-radius: 14px; display: none; margin-top: 10px; position: relative; }
   @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px) rotate(-1deg)} 75%{transform:translateX(5px) rotate(1deg)} }
   .level-badge { margin-top: 10px; font-weight: 800; display: none; }
   #glitch-msg { display: none; text-align: center; font-size: 1.5em; font-weight: bold; color: var(--accent-2); text-shadow: 2px 2px var(--accent), -2px -2px #0f0; animation: glitch-anim 0.8s infinite; }
   @keyframes glitch-anim { 0%{transform:translate(0)} 20%{transform:translate(-3px,3px)} 40%{transform:translate(-3px,-3px)} 60%{transform:translate(3px,3px)} 80%{transform:translate(3px,-3px)} 100%{transform:translate(0)} }
   
-  /* Personality Paths with Emojis */
+  /* Personality Paths */
   .paths { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-content: center; padding: 8px; max-width: 600px; margin: auto; }
   .path { width: 100%; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.16); border-radius: 16px; text-decoration: none; color: #fff; box-shadow: 0 8px 24px rgba(0,0,0,.25); transition: all .18s ease; }
   .path:hover { transform: translateY(-3px); border-color: var(--accent-2); }
@@ -127,23 +154,23 @@
     </div>
   </div>
 
-  <div id="outer-message">
-    <div id="outer-message-box">
-      <p id="random-message-text"></p>
-      <button id="close-outer-message">Got it</button>
-    </div>
-  </div>
-
   <div class="wrap" id="main-content">
     <section class="left">
       <div class="panel">
         <h2>The Challenges</h2>
         <div id="memoryBoard" class="memory-board"></div>
-        <div id="intermission" class="intermission">The invasion begins...</div>
-        <canvas id="siCanvas"></canvas>
+        <div style="position:relative;">
+            <canvas id="siCanvas"></canvas>
+            <div id="gameOverScreen" class="game-message-overlay">
+                <h3>GAME OVER</h3>
+                <button id="tryAgainBtn">Try Again</button>
+            </div>
+            <div id="winScreen" class="game-message-overlay">
+                <div id="glitch-msg">You weren’t supposed to beat this… but here you are. NotTheBest, but still alive.</div>
+                <div id="final-win-message" style="display:none;"></div>
+            </div>
+        </div>
         <div id="levelBadge" class="level-badge"></div>
-        <div id="glitch-msg">You weren’t supposed to beat this… but here you are. NotTheBest, but still alive.</div>
-        <div id="finalMsg" class="final-message">You have finished the games. Your path is now unlocked.</div>
       </div>
     </section>
     <section class="right locked" id="right-panel">
@@ -151,11 +178,11 @@
         <h2>Choose Your Path</h2>
         <div id="lock-message">Complete the challenges first to unlock your path.</div>
         <div class="paths">
-          <a class="path" href="#"><span class="emoji">💥</span><span class="label">All Out</span></a>
-          <a class="path" href="#"><span class="emoji">🤔</span><span class="label">Somewhat Out</span></a>
-          <a class="path" href="#"><span class="emoji">🤷</span><span class="label">Maybe</span></a>
-          <a class="path" href="#"><span class="emoji">🚫</span><span class="label">Never</span></a>
-          <a class="path" href="#"><span class="emoji">☯️</span><span class="label">Two Sides</span></a>
+          <a class="path" href="allout-q1.html"><span class="emoji">💥</span><span class="label">All Out</span></a>
+          <a class="path" href="somewhatout-q1.html"><span class="emoji">🤔</span><span class="label">Somewhat Out</span></a>
+          <a class="path" href="maybe-q1.html"><span class="emoji">🤷</span><span class="label">Maybe</span></a>
+          <a class="path" href="never-q1.html"><span class="emoji">🚫</span><span class="label">Never</span></a>
+          <a class="path" href="twosides-q1.html"><span class="emoji">☯️</span><span class="label">Two Sides</span></a>
         </div>
       </div>
     </section>
@@ -172,10 +199,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const rightPanel = document.getElementById('right-panel');
   const welcomeOverlay = document.getElementById('welcome-overlay');
   const startButton = document.getElementById('start-button');
-  const outerMessage = document.getElementById('outer-message');
-  const randomMessageText = document.getElementById('random-message-text');
-  const closeOuterMessageBtn = document.getElementById('close-outer-message');
-  const mainContent = document.getElementById('main-content');
   let hasInteracted = false;
 
   if (sessionStorage.getItem('welcomeShown')) {
@@ -184,43 +207,26 @@ document.addEventListener('DOMContentLoaded', () => {
   startButton.addEventListener('click', () => {
     welcomeOverlay.style.display = 'none';
     sessionStorage.setItem('welcomeShown', 'true');
-    if (!hasInteracted) {
-      hasInteracted = true;
-      setupAudio();
-    }
+    if (!hasInteracted) { hasInteracted = true; setupAudio(); }
   });
   
   if (appState.gamesDone) {
       rightPanel.classList.remove('locked');
   }
-
-  document.body.addEventListener('click', (e) => {
-    if (!mainContent.contains(e.target) && !welcomeOverlay.contains(e.target) && outerMessage.style.display === 'none') {
-        const messages = ["Hey! The action is inside the boxes.", "Exploring the void? The fun stuff is touchable.", "Did I tell you to click there? Focus on the challenge!", "C'mon, stick to the game plan."];
-        randomMessageText.textContent = messages[Math.floor(Math.random() * messages.length)];
-        outerMessage.style.display = 'flex';
-    }
-  });
-  closeOuterMessageBtn.addEventListener('click', () => outerMessage.style.display = 'none');
   
   document.body.addEventListener('pointerdown', () => {
-    if (!hasInteracted && sessionStorage.getItem('welcomeShown')) {
-      hasInteracted = true;
-      setupAudio();
-    }
+    if (!hasInteracted && sessionStorage.getItem('welcomeShown')) { hasInteracted = true; setupAudio(); }
   });
 
   document.querySelectorAll('.path').forEach(a => a.addEventListener('click', e => {
-    e.preventDefault();
-    if (appState.gamesDone) {
-        appState.pathChosen = true;
-        localStorage.setItem('pathChosen', 'true');
-        alert("Path chosen! You would now go to the questions page.");
-    } else {
+    if (!appState.gamesDone) {
+        e.preventDefault();
         const lockMessage = document.getElementById('lock-message');
         lockMessage.style.transform = 'scale(1.1)';
-        lockMessage.style.transition = 'transform 0.2s ease';
         setTimeout(() => lockMessage.style.transform = 'scale(1)', 200);
+    } else {
+        appState.pathChosen = true;
+        localStorage.setItem('pathChosen', 'true');
     }
   }));
   window.onbeforeunload = () => !appState.pathChosen && appState.gamesDone ? "Are you sure? Your progress isn't saved until you choose a path." : null;
@@ -239,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let flippedCards = [], matchedPairs = 0;
   deck.forEach(cardData => {
     const cardEl = document.createElement('div'); cardEl.className = 'card';
-    cardEl.innerHTML = `<div class="card-inner"><div class="face back"><div class="mark">?</div></div><div class="face front">${cardData.name}</div></div>`;
+    cardEl.innerHTML = `<div class="card-inner"><div class="face back">N</div><div class="face front" data-name="${cardData.name}"><span class="front-center">${cardData.name}</span></div></div>`;
     cardEl.addEventListener('click', () => handleCardFlip(cardEl, cardData.name));
     memoryBoard.appendChild(cardEl);
   });
@@ -264,14 +270,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const siCanvas = document.getElementById('siCanvas');
   const levelBadge = document.getElementById('levelBadge');
-  const intermission = document.getElementById('intermission');
-  const finalMsg = document.getElementById('finalMsg');
-  const glitchMsg = document.getElementById('glitch-msg');
+  const gameOverScreen = document.getElementById('gameOverScreen');
+  const winScreen = document.getElementById('winScreen');
+  const tryAgainBtn = document.getElementById('tryAgainBtn');
   const levelConfig = [
     { name: "Notthebest OG", rows: 2, speed: 1, fireRate: 0.005, alienType: 'normal' },
-    { name: "Initial D", rows: 3, speed: 1.5, fireRate: 0.007, alienType: 'zigzag' },
+    { name: "Initial D", rows: 2, speed: 1.5, fireRate: 0.007, alienType: 'zigzag' },
     { name: "Lorem Ipsum", rows: 3, speed: 1.4, fireRate: 0.009, alienType: 'text' },
-    { name: "Your Toast", rows: 4, speed: 1.8, fireRate: 0.012, alienType: 'toaster', special: 'bread-bullets' },
+    { name: "Your Toast", rows: 3, speed: 1.8, fireRate: 0.012, alienType: 'toaster', special: 'bread-bullets' },
     { name: "Grapefruit x Lime", rows: 4, speed: 1.6, fireRate: 0.01, alienType: 'normal', special: 'lemons' },
     { name: "Cake Was A Lie", rows: 4, speed: 2.2, fireRate: 0.015, alienType: 'cupcake' },
     { name: "Berserk", rows: 5, speed: 2.8, fireRate: 0.025, alienType: 'aggressive' },
@@ -280,12 +286,15 @@ document.addEventListener('DOMContentLoaded', () => {
   let ctx, W, H, gameState;
 
   function showIntermissionThenSpaceInvaders() {
-    intermission.style.display = 'block';
     memoryBoard.style.display = 'none';
-    setTimeout(() => { intermission.style.display = 'none'; startSpaceInvaders(); }, 3000);
+    startSpaceInvaders();
   }
+  
+  tryAgainBtn.addEventListener('click', startSpaceInvaders);
 
   function startSpaceInvaders() {
+    gameOverScreen.style.display = 'none';
+    winScreen.style.display = 'none';
     siCanvas.style.display = 'block'; levelBadge.style.display = 'block';
     ctx = siCanvas.getContext('2d'); W = 560; H = 350;
     siCanvas.width = W; siCanvas.height = H;
@@ -350,10 +359,12 @@ document.addEventListener('DOMContentLoaded', () => {
       else a.x += gameState.alienDx;
       if (a.x < 0 || a.x + a.w > W) wallHit = true;
       if (a.y + a.h >= player.ship.y) {
-        player.lives--;
-        player.invincibleTimer = 120;
-        if (player.lives <= 0) endSpaceInvaders(false);
-        else a.alive = false;
+        if(player.invincibleTimer === 0) {
+            player.lives--;
+            player.invincibleTimer = 120;
+            if (player.lives <= 0) endSpaceInvaders(false);
+        }
+        a.alive = false;
       }
     });
     if (wallHit && config.alienType !== 'zigzag') {
@@ -388,7 +399,9 @@ document.addEventListener('DOMContentLoaded', () => {
     for (let i = bullets.length - 1; i >= 0; i--) {
       const b = bullets[i]; let hit = false;
       for (const a of aliens) { if (a.alive && rect(b,a)) { a.alive = false; hit = true; break; }}
+      if(hit){ bullets.splice(i, 1); continue; }
       for (const l of lemons) { if (rect(b,l)) { hit = true; break; }}
+      if(hit){ bullets.splice(i, 1); continue; }
       for (const o of chaos) {
         if (rect(b,o)) {
           if (['book','donut','blob'].includes(o.type)) hit = true;
@@ -419,9 +432,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function draw() {
-    if (!gameState.playing) return;
-    ctx.clearRect(0, 0, W, H); ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, H);
+    if (!gameState) return;
     const { player, bullets, aliens, alienBullets, chaos, lemons, effects } = gameState;
+    ctx.clearRect(0, 0, W, H); ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, H);
     siCanvas.style.filter = effects.invert > 0 ? 'invert(1)' : 'none';
     siCanvas.style.transform = effects.tilt > 0 ? `rotate(${Math.sin(gameState.tick*0.2)}deg)` : 'none';
     siCanvas.style.animation = effects.shake > 0 ? 'shake 0.1s infinite' : 'none';
@@ -441,18 +454,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function endSpaceInvaders(didWin) {
     gameState.playing = false;
-    siCanvas.style.display = 'none'; levelBadge.style.display = 'none';
+    levelBadge.style.display = 'none';
     if (didWin) {
+      const glitchMsg = document.getElementById('glitch-msg');
+      const finalWinMsg = document.getElementById('final-win-message');
+      winScreen.style.display = 'flex';
       glitchMsg.style.display = 'block';
+      finalWinMsg.style.display = 'none';
+      setTimeout(() => {
+          glitchMsg.style.display = 'none';
+          finalWinMsg.innerHTML = "Congratulations on finishing these beautifully coded games in this beautifully coded website, I will give you one option, not one, but two options. You can stay here, explore the personality path, get your outfit, or you can leave everything behind and go out of this website. It's your choice.";
+          finalWinMsg.style.display = 'block';
+      }, 4000);
       appState.gamesDone = true;
       localStorage.setItem('gamesDone', 'true');
       rightPanel.classList.remove('locked');
     } else {
-      finalMsg.textContent = "You were defeated. But your path is now unlocked.";
-      finalMsg.style.display = 'block';
-      appState.gamesDone = true;
-      localStorage.setItem('gamesDone', 'true');
-      rightPanel.classList.remove('locked');
+      gameOverScreen.style.display = 'flex';
     }
   }
   
@@ -462,7 +480,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (gameState && gameState.playing) {
       if (e.key === ' ') {
         e.preventDefault();
-        if (gameState.bullets.length < 5) {
+        if (gameState.bullets.length < 4) { // Effectively unlimited
           const spec = levelConfig[gameState.level].special;
           gameState.bullets.push({ x: gameState.player.ship.x + gameState.player.ship.w/2 - (spec==='bread-bullets'?8:2), y: gameState.player.ship.y, w: spec==='bread-bullets'?16:4, h: spec==='bread-bullets'?16:10 });
         }
@@ -473,9 +491,10 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('keyup', (e) => { if (gameState) gameState.keys[e.key] = false; });
 
   function loop() {
+    if (!gameState.playing) return;
     update();
     draw();
-    if (gameState.playing) requestAnimationFrame(loop);
+    requestAnimationFrame(loop);
   }
 });
 </script>
