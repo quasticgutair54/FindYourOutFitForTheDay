@@ -10,954 +10,524 @@
     --glass-strong: rgba(0, 0, 0, 0.6);
     --accent: #ff6f61;
     --accent-2: #7cf3d6;
-    --cardW-desktop: 110px;
-    --cardH-desktop: 140px;
     --gap: 12px;
   }
-
-  * {
-    box-sizing: border-box; 
-    margin: 0; 
-    padding: 0; 
-  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body {
-    height: 100%; 
-    width: 100%; 
-    overflow: hidden; 
-    font-family: Arial, Helvetica, sans-serif; 
-    color: #fff; 
+    height: 100%; width: 100%;
+    overflow: hidden;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #fff;
   }
-
-  /* Background video */
   #bg-video {
-    position: fixed; 
-    inset: 0; 
-    width: 100%; 
-    height: 100%; 
-    object-fit: cover; 
-    z-index: -2; 
+    position: fixed; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover; z-index: -2;
   }
   .bg-overlay {
-    position: fixed; 
-    inset: 0; 
-    background: linear-gradient(0deg, var(--glass-strong), rgba(0, 0, 0, 0.35)); 
-    z-index: -1; 
+    position: fixed; inset: 0;
+    background: linear-gradient(0deg, var(--glass-strong), rgba(0, 0, 0, 0.35));
+    z-index: -1;
   }
-
-  /* Layout */
   .wrap {
-    height: 100vh; 
-    width: 100%; 
-    display: grid; 
-    grid-template-columns: 1fr 1fr; 
+    height: 100vh; width: 100%;
+    display: grid; grid-template-columns: 1fr 1fr;
   }
-
   .left, .right {
-    position: relative; 
-    padding: 20px; 
-    overflow: hidden; 
+    position: relative; padding: 20px;
+    overflow-y: auto; overflow-x: hidden;
   }
   .panel {
-    height: 100%; 
-    width: 100%; 
-    background: var(--glass); 
-    backdrop-filter: blur(6px); 
-    border: 1px solid rgba(255, 255, 255, 0.12); 
-    border-radius: 20px; 
-    padding: 16px; 
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
+    height: 100%; width: 100%;
+    background: var(--glass);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 20px; padding: 16px;
+    display: flex; flex-direction: column;
+    align-items: center;
   }
-
   .panel h2 {
-    font-weight: 900; 
-    letter-spacing: .3px; 
-    text-shadow: 0 2px 8px rgba(0, 0, 0, .4); 
-    margin-bottom: 10px; 
+    font-weight: 900; letter-spacing: .3px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, .4);
+    margin-bottom: 10px; text-align: center;
   }
 
-  /* ===== LEFT: GAMES ===== */
-  .games-stage {
-    flex: 1; 
-    width: 100%; 
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
-    justify-content: flex-start; 
-  }
-  
+  /* ✅ FIX: Memory board fits neatly inside its box */
   .memory-board {
-    display: grid; 
-    grid-template-columns: repeat(4, 1fr); 
-    grid-template-rows: repeat(4, 1fr);
-    gap: var(--gap); 
-    margin-top: 8px;
-    width: 100%;
-    max-width: calc(4 * var(--cardW-desktop) + 3 * var(--gap));
-    aspect-ratio: 1; /* Keeps the board square */
-    margin: 0 auto; 
-    overflow: hidden;
-    padding: 8px;
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: var(--gap); width: 100%;
+    max-width: 500px; aspect-ratio: 1;
+    margin: auto; padding: 8px;
   }
-
-  /* Artistic Card */
   .card {
-    width: 100%; /* Makes cards fill their grid cell */
-    aspect-ratio: 1; /* Makes cards square */
-    perspective: 1000px; 
-    border-radius: 14px; 
-    position: relative; 
-    cursor: pointer; 
+    aspect-ratio: 1; perspective: 1000px;
+    border-radius: 14px; position: relative; cursor: pointer;
   }
-
   .card-inner {
-    position: absolute; 
-    inset: 0; 
-    border-radius: 14px; 
-    transform-style: preserve-3d; 
-    transition: transform 480ms cubic-bezier(.2, .65, .2, 1); 
+    position: absolute; inset: 0; border-radius: 14px;
+    transform-style: preserve-3d;
+    transition: transform 480ms cubic-bezier(.2, .65, .2, 1);
   }
-
-  .card.flip .card-inner { 
-    transform: rotateY(180deg); 
-  }
-  .card.matched { 
-    animation: vanish 360ms ease forwards; 
-  }
-  @keyframes vanish {
-    0% { transform: scale(1); opacity: 1; }
-    100% { transform: scale(.85); opacity: 0; visibility: hidden; }
-  }
-
+  .card.flip .card-inner { transform: rotateY(180deg); }
+  .card.matched { animation: vanish 360ms ease forwards; }
+  @keyframes vanish { 100% { transform: scale(.85); opacity: 0; visibility: hidden; } }
   .face {
-    position: absolute; 
-    inset: 0; 
-    border-radius: 14px; 
-    backface-visibility: hidden; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    padding: 10px; 
-    text-align: center; 
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35), inset 0 0 0 1px rgba(255, 255, 255, .06); 
+    position: absolute; inset: 0; border-radius: 14px;
+    backface-visibility: hidden; display: flex;
+    align-items: center; justify-content: center;
+    padding: 10px; text-align: center;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35), inset 0 0 0 1px rgba(255, 255, 255, .06);
   }
-
-  /* Back (shows N) */
-  .back {
-    background: radial-gradient(120px 60px at 10% 10%, rgba(255, 255, 255, .08) 0 60%, transparent 61%), 
-              radial-gradient(120px 60px at 90% 20%, rgba(255, 255, 255, .08) 0 60%, transparent 61%), 
-              conic-gradient(from 210deg at 50% 50%, #1a2a6c, #b21f1f, #fdbb2d, #1a2a6c);
-    background-blend-mode: screen, screen, normal; 
-    transform: translateZ(0); 
-  }
-  .back .mark {
-    font-size: 42px; 
-    font-weight: 900; 
-    color: #fff; 
-    text-shadow: 0 3px 8px rgba(0, 0, 0, 0.55); 
-    letter-spacing: .03em; 
-  }
-
-  /* Front (design name) */
+  .back { background: conic-gradient(from 210deg at 50% 50%, #1a2a6c, #b21f1f, #fdbb2d, #1a2a6c); }
+  .back .mark { font-size: clamp(24px, 5vw, 42px); font-weight: 900; }
   .front {
-    transform: rotateY(180deg); 
-    background: linear-gradient(135deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .02)), 
-              repeating-linear-gradient(135deg, rgba(255, 255, 255, .05) 0 6px, transparent 6px 12px), 
-              radial-gradient(600px 180px at -20% 120%, rgba(124, 243, 214, .35), transparent 60%), 
-              radial-gradient(600px 180px at 120% -20%, rgba(255, 111, 97, .35), transparent 60%), 
-              #10131a; 
+    transform: rotateY(180deg); background: #10131a;
+    font-size: clamp(10px, 2.5vw, 14px); line-height: 1.2; font-weight: 800;
   }
-  .front .label {
-    font-weight: 800; 
-    line-height: 1.2; 
-    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5); 
-    font-size: 14px; 
+  .intermission, .final-message {
+    margin-top: 14px; padding: 10px 14px;
+    background: rgba(0, 0, 0, .55); border: 1px solid rgba(255, 255, 255, .15);
+    border-radius: 12px; display: none;
+    font-weight: 700; text-align: center;
   }
 
-  /* Not yet over banner */
-  .intermission {
-    margin-top: 14px; 
-    padding: 10px 14px; 
-    background: rgba(0, 0, 0, .55); 
-    border: 1px solid rgba(255, 255, 255, .15); 
-    border-radius: 12px; 
-    display: none; 
-    font-weight: 700; 
-    letter-spacing: .2px; 
-  }
-
-  /* Space Invaders */
+  /* Canvas and Game Effects */
   #siCanvas {
-    width: 100%; 
-    height: auto; 
-    max-width: 560px; 
-    aspect-ratio: 16 / 10; 
-    background: #000; 
-    border-radius: 14px; 
-    border: 1px solid rgba(255, 255, 255, .15); 
-    box-shadow: 0 10px 25px rgba(0, 0, 0, .45); 
-    display: none; 
-    margin-top: 10px; 
+    width: 100%; max-width: 560px; aspect-ratio: 16 / 10;
+    background: #000; border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, .15);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, .45);
+    display: none; margin-top: 10px;
+    transition: transform 0.2s ease-in-out, filter 0.2s linear;
   }
-
-  #gameMessage {
-      margin-top: 10px;
-      font-weight: bold;
-      color: #ff6f61;
-      text-shadow: 0 0 5px #ff6f61;
-      opacity: 0;
-      transition: opacity 1s ease-in-out;
-      min-height: 2em; /* Reserve space to prevent layout shift */
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px) rotate(-1deg); }
+    75% { transform: translateX(5px) rotate(1deg); }
   }
-
-  .level-badge {
-    margin-top: 10px; 
-    font-weight: 800; 
-    display: none; 
-  }
-  .final-message {
-    display: none; 
-    margin-top: 12px; 
-    background: rgba(0, 0, 0, .55); 
-    border: 1px solid rgba(255, 255, 255, .15); 
-    padding: 12px 14px; 
-    border-radius: 12px; 
-    text-align: center; 
-    font-weight: 700; 
-  }
-
+  .level-badge { margin-top: 10px; font-weight: 800; display: none; }
   #glitch-msg {
-      display: none;
-      position: absolute;
-      inset: 0;
-      padding: 1em;
-      text-align: center;
-      font-size: 1.5em;
-      font-weight: bold;
-      color: #7cf3d6;
-      text-shadow: 2px 2px #ff6f61, -2px -2px #0f0;
-      animation: glitch-anim 0.8s infinite;
-      z-index: 10;
+      display: none; text-align: center; font-size: 1.5em; font-weight: bold; color: var(--accent-2);
+      text-shadow: 2px 2px var(--accent), -2px -2px #0f0; animation: glitch-anim 0.8s infinite;
   }
- 
   @keyframes glitch-anim {
-    0% { transform: translate(0); text-shadow: 2px 2px #ff6f61, -2px -2px #0f0; }
-    20% { transform: translate(-3px, 3px); text-shadow: -2px -2px #ff6f61, 2px 2px #0f0; }
-    40% { transform: translate(-3px, -3px); text-shadow: 2px -2px #ff6f61, -2px 2px #0f0; }
-    60% { transform: translate(3px, 3px); text-shadow: -2px 2px #ff6f61, 2px -2px #0f0; }
-    80% { transform: translate(3px, -3px); text-shadow: 2px 2px #ff6f61, -2px -2px #0f0; }
-    100% { transform: translate(0); text-shadow: -2px 2px #ff6f61, 2px -2px #0f0; }
+    0%{transform:translate(0)} 20%{transform:translate(-3px,3px)} 40%{transform:translate(-3px,-3px)}
+    60%{transform:translate(3px,3px)} 80%{transform:translate(3px,-3px)} 100%{transform:translate(0)}
   }
 
-
-  /* ===== RIGHT: PERSONALITY PATHS ===== */
+  /* ✅ FIX: Personality paths layout is responsive and spaced */
   .paths {
-    width: 100%; 
-    flex: 1; 
-    display: grid; 
-    grid-template-columns: repeat(3, minmax(120px, 1fr)); 
-    gap: 16px; 
-    align-content: center; 
-    justify-items: center; 
-    padding: 8px;
+    width: 100%; flex: 1; display: grid;
+    grid-template-columns: repeat(3, 1fr); gap: 16px;
+    align-content: center; padding: 8px; max-width: 600px;
   }
   .path {
-    width: 100%; 
-    height: 100%;
-    aspect-ratio: 1; /* Keep path items square */
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
-    justify-content: center; 
-    background: rgba(255, 255, 255, .07); 
-    border: 1px solid rgba(255, 255, 255, .16); 
-    border-radius: 16px; 
-    text-decoration: none; 
-    color: #fff; 
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .06), 0 8px 24px rgba(0, 0, 0, .25); 
-    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; 
-    overflow: hidden; 
-    position: relative; 
+    width: 100%; aspect-ratio: 1; display: flex;
+    flex-direction: column; align-items: center; justify-content: center;
+    background: rgba(255, 255, 255, .07); border: 1px solid rgba(255, 255, 255, .16);
+    border-radius: 16px; text-decoration: none; color: #fff;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .06), 0 8px 24px rgba(0, 0, 0, .25);
+    transition: transform .18s ease; overflow: hidden; position: relative;
   }
-  .path:hover {
-    transform: translateY(-3px); 
-    border-color: rgba(255, 255, 255, .28); 
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .12), 0 14px 32px rgba(0, 0, 0, .35); 
-  }
-  .path img {
-    width: 100%; 
-    height: 100%; 
-    object-fit: cover; 
-    opacity: .9; 
-    position: absolute; 
-    inset: 0; 
-  }
+  .path:hover { transform: translateY(-3px); }
+  .path img { width: 100%; height: 100%; object-fit: cover; opacity: .9; position: absolute; inset: 0; }
   .path .label {
-    z-index: 1; 
-    padding: 6px 10px; 
-    border-radius: 10px; 
-    background: rgba(0, 0, 0, .5); 
-    border: 1px solid rgba(255, 255, 255, .15); 
-    font-weight: 800; 
-    letter-spacing: .2px; 
-    text-align: center; 
-    max-width: 90%; 
+    z-index: 1; padding: 6px 10px; border-radius: 10px;
+    background: rgba(0, 0, 0, .5); border: 1px solid rgba(255, 255, 255, .15);
+    font-weight: 800; text-align: center; max-width: 90%;
   }
+  .right .panel { justify-content: center; }
 
-  .right .panel { 
-    justify-content: center; 
-  }
-  .right h2 { 
-    margin-bottom: 10px; 
-  }
-
-  /* Small screen tweaks */
   @media (max-width: 1024px) {
-    .wrap { 
-      grid-template-columns: 1fr; 
-      grid-template-rows: 52% 48%; 
-    }
-    .paths { 
-      grid-template-columns: repeat(2, 1fr); 
-      grid-auto-rows: auto;
-      gap: 10px; 
-    }
-    .path { 
-      border-radius: 14px; 
-    }
-    .right { 
-      padding-top: 10px; 
-    }
-    .memory-board {
-      grid-template-columns: repeat(4, 1fr);
-      grid-template-rows: repeat(4, 1fr);
-    }
-    .card { 
-      width: 100%; 
-      aspect-ratio: 1;
-    }
-    .front .label { 
-      font-size: 12px; 
-    }
-    .back .mark { 
-      font-size: 34px; 
-    }
-  }
-  @media (max-width: 560px) {
-    .paths { 
-      grid-template-columns: repeat(2, 1fr); 
-      grid-auto-rows: 96px; 
-    }
+    .wrap { grid-template-columns: 1fr; grid-template-rows: auto auto; height: auto; }
+    .left, .right { padding: 10px; }
+    .panel { padding: 12px; }
+    .paths { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   }
 </style>
 </head>
 <body>
-
-  <video id="bg-video" autoplay muted loop playsinline>
-    <source src="loop-bg.mp4" type="video/mp4">
-  </video>
+  <video id="bg-video" autoplay muted loop playsinline><source src="loop-bg.mp4" type="video/mp4"></video>
   <div class="bg-overlay"></div>
-
-  <audio id="bg-music" loop>
-    <source src="running out of time.mp3" type="audio/mpeg">
-  </audio>
+  <audio id="bg-music" loop><source src="running out of time.mp3" type="audio/mpeg"></audio>
 
   <div class="wrap">
     <section class="left">
       <div class="panel">
         <h2>Memory Game</h2>
-        <div id="memoryBoard" class="memory-board" aria-label="Memory Game Board"></div>
-        <div id="intermission" class="intermission">Not yet over…</div>
+        <div id="memoryBoard" class="memory-board"></div>
+        <div id="intermission" class="intermission">The invasion begins...</div>
         <canvas id="siCanvas"></canvas>
         <div id="levelBadge" class="level-badge"></div>
-        <div id="gameMessage"></div>
-        <div id="glitch-msg">
-          You weren’t supposed to beat this… but here you are. NotTheBest, but still alive.
-        </div>
-        <div id="finalMsg" class="final-message">
-          Congratulations on playing these beautifully coded games in this beautifully coded website. Thank you for staying till here.<br/><br/>
-          One suggestion: if you want to stay and visit the personality path and find your outfit, do it. If you don’t want, then just leave… it’s your option.<br/><br/>
-          <strong>But… you actually can’t exit until you choose a personality path 😇</strong>
-        </div>
+        <div id="glitch-msg">You weren’t supposed to beat this… but here you are. NotTheBest, but still alive.</div>
+        <div id="finalMsg" class="final-message">Game Over. Choose a personality path to continue.</div>
       </div>
     </section>
-
     <section class="right">
       <div class="panel">
         <h2>Choose Your Personality Path</h2>
         <div class="paths">
-          <a class="path" href="allout-q1.html" data-path="allout">
-            <img src="allout.jpg" alt="All Out"/>
-            <span class="label">All Out</span>
-          </a>
-          <a class="path" href="somewhatout-q1.html" data-path="somewhatout">
-            <img src="somewhatout.jpg" alt="Somewhat Out"/>
-            <span class="label">Somewhat Out</span>
-          </a>
-          <a class="path" href="maybe-q1.html" data-path="maybe">
-            <img src="maybe.jpg" alt="Maybe"/>
-            <span class="label">Maybe</span>
-          </a>
-          <a class="path" href="never-q1.html" data-path="never">
-            <img src="never.jpg" alt="Never"/>
-            <span class="label">Never</span>
-          </a>
-          <a class="path" href="twosides-q1.html" data-path="twosides">
-            <img src="twosides.jpg" alt="Two Sides of the Same Coin"/>
-            <span class="label">Two Sides</span>
-          </a>
+          <a class="path" href="#"><img src="allout.jpg" alt="All Out"/><span class="label">All Out</span></a>
+          <a class="path" href="#"><img src="somewhatout.jpg" alt="Somewhat Out"/><span class="label">Somewhat Out</span></a>
+          <a class="path" href="#"><img src="maybe.jpg" alt="Maybe"/><span class="label">Maybe</span></a>
+          <a class="path" href="#"><img src="never.jpg" alt="Never"/><span class="label">Never</span></a>
+          <a class="path" href="#"><img src="twosides.jpg" alt="Two Sides"/><span class="label">Two Sides</span></a>
         </div>
       </div>
     </section>
   </div>
 
 <script>
-/* =========================
-    MUSIC: resume across pages
-    ========================= */
-let hasInteracted = false;
-function setupAudio() {
+document.addEventListener('DOMContentLoaded', () => {
+
+  // --- Global Setup: Music, Interaction, Exit Blocker ---
   const audio = document.getElementById('bg-music');
-  if (!audio) return;
-  const saved = localStorage.getItem('music-time');
-  if (saved) audio.currentTime = parseFloat(saved);
-  audio.play().catch(() => { /* will start on first user gesture */ });
-  setInterval(() => { if (!audio.paused) localStorage.setItem('music-time', audio.currentTime); }, 600);
-  window.addEventListener('beforeunload', () => localStorage.setItem('music-time', audio.currentTime));
-}
-window.addEventListener('pointerdown', () => {
-  if (!hasInteracted) { hasInteracted = true; setupAudio(); }
-}, { once: true });
+  let hasInteracted = false;
+  document.body.addEventListener('pointerdown', () => {
+    if (!hasInteracted) {
+      hasInteracted = true;
+      const savedTime = localStorage.getItem('music-time');
+      if (savedTime) audio.currentTime = parseFloat(savedTime);
+      audio.play().catch(() => {});
+      setInterval(() => { if (!audio.paused) localStorage.setItem('music-time', audio.currentTime); }, 600);
+    }
+  }, { once: true });
+  let hasChosenPath = !!localStorage.getItem('pathChosen');
+  document.querySelectorAll('.path').forEach(a => a.addEventListener('click', e => {
+    e.preventDefault(); hasChosenPath = true; localStorage.setItem('pathChosen', 'true');
+    alert("You've chosen the '" + a.querySelector('.label').textContent + "' path!");
+  }));
+  window.onbeforeunload = () => !hasChosenPath ? "Why just why? Complete what you started." : null;
 
-/* ==========================================
-    🚀 FIX: EXIT BLOCK: require path selection to leave
-    ========================================== */
-let hasChosenPath = false;
-function pathChosen() { return hasChosenPath || localStorage.getItem('pathChosen') === 'true'; }
-window.onbeforeunload = function () {
-  if (!pathChosen()) {
-    // Custom message for modern browsers
-    return "Why just why? Complete what you started."; 
-  }
-};
-document.querySelectorAll('.path').forEach(a => {
-  a.addEventListener('click', () => {
-    hasChosenPath = true;
-    localStorage.setItem('pathChosen', 'true');
+  // --- Memory Game Logic ---
+  const designNames = ["Notthebest OG", "Initial D", "Lorem Ipsum", "Your Toast", "Grapefruit x Lime", "Cake Was A Lie", "Berserk", "RANDOMODIUM"];
+  const memoryBoard = document.getElementById('memoryBoard');
+  const deck = [...designNames, ...designNames].map((name, i) => ({ id: i, name, matched: false }));
+  shuffleArray(deck);
+  let flippedCards = [], matchedPairs = 0;
+  deck.forEach(cardData => {
+    const cardEl = document.createElement('div'); cardEl.className = 'card';
+    cardEl.innerHTML = `<div class="card-inner"><div class="face back"><div class="mark">N</div></div><div class="face front">${cardData.name}</div></div>`;
+    cardEl.addEventListener('click', () => handleCardFlip(cardEl, cardData));
+    memoryBoard.appendChild(cardEl);
   });
-});
-
-/* =========================
-    MEMORY GAME (16 cards)
-    ========================= */
-const designNames = [
-  "Notthebest OG", "Initial D", "Lorem Ipsum", "Your Toast",
-  "Grapefruit x Lime", "Cake Was A Lie", "Berserk", "RANDOMODIUM"
-];
-
-const board = document.getElementById('memoryBoard');
-let deck = [...designNames, ...designNames].map((name, i) => ({ id: i, name }));
-shuffle(deck);
-
-let flipped = [];
-let matchedPairs = 0;
-
-deck.forEach(card => {
-  const el = document.createElement('div');
-  el.className = 'card';
-  el.setAttribute('role', 'button');
-  el.setAttribute('aria-label', `Memory card for ${card.name}`);
-  el.innerHTML = `
-    <div class="card-inner">
-      <div class="face back"><div class="mark">N</div></div>
-      <div class="face front"><div class="label">${card.name}</div></div>
-    </div>
-  `;
-  el.addEventListener('click', () => onFlip(el, card.name));
-  board.appendChild(el);
-});
-
-function onFlip(el, name) {
-  if (el.classList.contains('flip') || el.classList.contains('matched')) return;
-  if (flipped.length === 2) return;
-
-  el.classList.add('flip');
-  flipped.push({ el, name });
-
-  if (flipped.length === 2) {
-    const [a, b] = flipped;
-    const isMatch = a.name === b.name;
-    if (isMatch) {
-      setTimeout(() => {
-        a.el.classList.add('matched');
-        b.el.classList.add('matched');
-        matchedPairs += 1;
-        flipped = [];
-        if (matchedPairs === designNames.length) {
-          showIntermissionThenSpaceInvaders();
-        }
-      }, 380);
-    } else {
-      setTimeout(() => {
-        a.el.classList.remove('flip');
-        b.el.classList.remove('flip');
-        flipped = [];
-      }, 850);
+  function handleCardFlip(cardEl, cardData) {
+    if (flippedCards.length === 2 || cardEl.classList.contains('flip') || cardData.matched) return;
+    cardEl.classList.add('flip'); flippedCards.push({ el: cardEl, data: cardData });
+    if (flippedCards.length === 2) {
+      const [first, second] = flippedCards;
+      if (first.data.name === second.data.name) {
+        first.data.matched = true; second.data.matched = true; matchedPairs++;
+        setTimeout(() => {
+          first.el.classList.add('matched'); second.el.classList.add('matched'); flippedCards = [];
+          if (matchedPairs === designNames.length) showIntermissionThenSpaceInvaders();
+        }, 400);
+      } else {
+        setTimeout(() => { first.el.classList.remove('flip'); second.el.classList.remove('flip'); flippedCards = []; }, 900);
+      }
     }
   }
-}
-
-function shuffle(arr) {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-}
-
-/* ==================================================
-    🚀 FIX & EDIT: Space Invaders (8 levels)
-    ================================================== */
-const siCanvas = document.getElementById('siCanvas');
-const levelBadge = document.getElementById('levelBadge');
-const intermission = document.getElementById('intermission');
-const finalMsg = document.getElementById('finalMsg');
-const glitchMsg = document.getElementById('glitch-msg');
-const gameMessageDiv = document.getElementById('gameMessage');
-
-const levelConfig = [
-  { name: "Notthebest OG", rows: 3, speed: 1.5, fireRate: 0.005, alienType: 'normal', special: null },
-  { name: "Initial D", rows: 3, speed: 2, fireRate: 0.007, alienType: 'zigzag', special: null },
-  { name: "Lorem Ipsum", rows: 4, speed: 1.8, fireRate: 0.01, alienType: 'text', special: null },
-  { name: "Your Toast", rows: 4, speed: 2, fireRate: 0.012, alienType: 'toaster', special: 'bread-bullets' },
-  { name: "Grapefruit x Lime", rows: 4, speed: 1.8, fireRate: 0.01, alienType: 'normal', special: 'lemons' },
-  { name: "Cake Was A Lie", rows: 5, speed: 2.2, fireRate: 0.015, alienType: 'cupcake', special: null },
-  { name: "Berserk", rows: 5, speed: 2.8, fireRate: 0.02, alienType: 'aggressive', special: null },
-  { name: "RANDOMODIUM", rows: 6, speed: 3, fireRate: 0.025, alienType: 'chaotic', special: 'chaos' }
-];
-
-let ctx, W, H, animId;
-
-function showIntermissionThenSpaceInvaders() {
-  intermission.style.display = 'inline-block';
-  setTimeout(() => {
-    intermission.style.display = 'none';
-    startSpaceInvaders();
-  }, 5000);
-}
-
-function startSpaceInvaders() {
-  board.style.display = 'none';
-  siCanvas.style.display = 'block';
-  levelBadge.style.display = 'block';
-
-  ctx = siCanvas.getContext('2d', { alpha: false });
-  W = 560; H = 350;
-  siCanvas.width = W; siCanvas.height = H;
-
-  // 🚀 FIX: Player object now includes lives and invincibility state
-  let player = {
-    ship: { x: W / 2, y: H - 22, w: 28, h: 12, speed: 5, invincible: false, invincibleTimer: 0 },
-    lives: 3
-  };
-  
-  let playerBullets = [];
-  let aliens = [];
-  let alienBullets = [];
-  let alienDx = 1;
-  let tick = 0;
-  let keys = {};
-  let playing = true;
-  let currentLevel = 0;
-  let lemons = []; // For Grapefruit x Lime
-  let chaosObjects = []; // For RANDOMODIUM
-  let messageCount = 0;
-  let messageTimer;
-  let screenTilt = 0;
-
-  const alienSprites = {
-      'normal': (x, y, w, h) => { ctx.fillStyle = "#ffd966"; ctx.fillRect(x, y, w, h); },
-      'zigzag': (x, y, w, h) => { ctx.fillStyle = "#7cf3d6"; ctx.fillRect(x, y, w, h); },
-      'text': (x, y, w, h) => { ctx.fillStyle = "#FFF"; ctx.font = "12px monospace"; ctx.fillText("TEXT", x, y + 10); },
-      'toaster': (x, y, w, h) => { ctx.fillStyle = "grey"; ctx.fillRect(x, y, w, h); ctx.fillStyle = "white"; ctx.fillRect(x + 5, y + 5, w - 10, h - 10); },
-      'cupcake': (x, y, w, h) => { ctx.fillStyle = "pink"; ctx.fillRect(x, y, w, h); ctx.fillStyle = "brown"; ctx.beginPath(); ctx.arc(x + w/2, y + h/2, w/3, 0, Math.PI * 2); ctx.fill(); },
-      'aggressive': (x, y, w, h) => { ctx.fillStyle = "#ff6f61"; ctx.fillRect(x, y, w, h); },
-      'chaotic': (x, y, w, h) => { ctx.fillStyle = `hsl(${tick % 360}, 100%, 50%)`; ctx.fillRect(x, y, w, h); }
-  };
- 
-  const chaosObjectSprites = {
-    'book': (x, y) => { ctx.fillStyle = "brown"; ctx.fillRect(x, y, 20, 30); },
-    'cash': (x, y) => { ctx.fillStyle = "green"; ctx.fillRect(x, y, 40, 20); },
-    'question': (x, y) => { ctx.fillStyle = "yellow"; ctx.font = "20px bold"; ctx.fillText("?", x, y + 15); },
-    'donut': (x, y) => { ctx.fillStyle = "pink"; ctx.beginPath(); ctx.arc(x, y, 15, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = "brown"; ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI * 2); ctx.fill(); },
-    'glasses': (x, y) => { ctx.fillStyle = "black"; ctx.fillRect(x, y, 30, 10); },
-    'blob': (x, y, w, h) => { ctx.fillStyle = "lightblue"; ctx.beginPath(); ctx.ellipse(x, y, w / 2, h / 2, 0, 0, 2 * Math.PI); ctx.fill(); }
-  };
-
-  function setLevel(i) {
-    if (i >= levelConfig.length) {
-      endSpaceInvaders(true); // true = win
-      return;
+  function shuffleArray(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
     }
-    currentLevel = i;
-    const config = levelConfig[i];
-    levelBadge.textContent = `Level ${i + 1} — ${config.name}`;
-   
-    aliens = [];
-    const cols = 10;
-    const startX = 40, startY = 40;
-    for (let r = 0; r < config.rows; r++) {
+  }
+
+  // --- Space Invaders Logic ---
+  const siCanvas = document.getElementById('siCanvas');
+  const levelBadge = document.getElementById('levelBadge');
+  const intermission = document.getElementById('intermission');
+  const finalMsg = document.getElementById('finalMsg');
+  const glitchMsg = document.getElementById('glitch-msg');
+
+  const levelConfig = [
+    { name: "Notthebest OG", rows: 2, speed: 1.2, fireRate: 0.004, alienType: 'normal' },
+    { name: "Initial D", rows: 3, speed: 1.5, fireRate: 0.006, alienType: 'zigzag' },
+    { name: "Lorem Ipsum", rows: 3, speed: 1.4, fireRate: 0.008, alienType: 'text' },
+    { name: "Your Toast", rows: 4, speed: 1.8, fireRate: 0.01, alienType: 'toaster', special: 'bread-bullets' },
+    { name: "Grapefruit x Lime", rows: 4, speed: 1.6, fireRate: 0.01, alienType: 'normal', special: 'lemons' },
+    { name: "Cake Was A Lie", rows: 4, speed: 2.2, fireRate: 0.015, alienType: 'cupcake' },
+    { name: "Berserk", rows: 5, speed: 2.8, fireRate: 0.025, alienType: 'aggressive' },
+    { name: "RANDOMODIUM", rows: 5, speed: 3.0, fireRate: 0.03, alienType: 'chaotic', special: 'chaos' }
+  ];
+
+  let ctx, W, H, gameState;
+
+  function showIntermissionThenSpaceInvaders() {
+    intermission.style.display = 'block';
+    setTimeout(() => {
+      intermission.style.display = 'none';
+      memoryBoard.style.display = 'none';
+      startSpaceInvaders();
+    }, 4000);
+  }
+
+  function startSpaceInvaders() {
+    siCanvas.style.display = 'block';
+    levelBadge.style.display = 'block';
+    ctx = siCanvas.getContext('2d');
+    W = 560; H = 350;
+    siCanvas.width = W; siCanvas.height = H;
+    
+    gameState = {
+      player: {
+        ship: { x: W / 2 - 14, y: H - 35, w: 28, h: 20, speed: 5 },
+        lives: 3, invincibleTimer: 0
+      },
+      playerBullets: [], aliens: [], alienBullets: [],
+      lemons: [], chaosObjects: [],
+      alienDx: 1, tick: 0, keys: {}, playing: true, currentLevel: -1,
+      effects: { screenShake: 0, invisibility: 0, colorInvert: 0, screenTilt: 0, cashNote: 0 }
+    };
+
+    setLevel(0);
+    loop();
+  }
+
+  function setLevel(levelIndex) {
+    if (levelIndex >= levelConfig.length) {
+      endSpaceInvaders(true); return;
+    }
+    gameState.currentLevel = levelIndex;
+    const config = levelConfig[levelIndex];
+    levelBadge.textContent = `Level ${levelIndex + 1} — ${config.name}`;
+    
+    gameState.aliens = [];
+    const cols = 11, rows = config.rows;
+    const startX = 30, startY = 40;
+    for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
-        aliens.push({
-          x: startX + c * 48,
-          y: startY + r * 32,
-          w: 22,
-          h: 14,
-          alive: true,
-          type: config.alienType,
-          originalX: startX + c * 48,
+        gameState.aliens.push({
+          x: startX + c * 42, y: startY + r * 30,
+          w: 24, h: 18, alive: true,
+          type: config.alienType, originalX: startX + c * 42,
         });
       }
     }
-    alienDx = config.speed;
-    lemons = [];
-    chaosObjects = [];
-    alienBullets = [];
-    playerBullets = [];
+    gameState.alienDx = config.speed;
+    gameState.playerBullets = [];
+    gameState.alienBullets = [];
+    gameState.lemons = [];
+    gameState.chaosObjects = [];
 
-    startMessageTimer();
-  }
-
-  function handlePlayerHit() {
-    if (player.ship.invincible) return;
-
-    player.lives--;
-    
-    if (player.lives <= 0) {
-      playing = false;
-      endSpaceInvaders(false); // false = loss
-    } else {
-      // Respawn with invincibility
-      player.ship.x = W / 2;
-      player.ship.y = H - 22;
-      player.ship.invincible = true;
-      player.ship.invincibleTimer = 120; // 120 frames = ~2 seconds
-      alienBullets = [];
+    if (config.special === 'lemons') {
+      for (let i = 0; i < 7; i++) {
+        gameState.lemons.push({ x: Math.random() * W, y: Math.random() * (H / 2) + 20, w: 12, h: 16 });
+      }
     }
   }
 
-  function rect(a, b) {
-    return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
-  }
- 
-  // Player Ship drawing function
+  const alienSprites = {
+    'normal': (a) => { ctx.fillStyle = "#aaffaa"; ctx.fillRect(a.x, a.y, a.w, a.h); },
+    'zigzag': (a) => { ctx.fillStyle = "#7cf3d6"; ctx.fillRect(a.x, a.y, a.w, a.h); },
+    'text': (a) => { ctx.font = "14px monospace"; ctx.fillStyle = "#fff"; ctx.fillText("ipsüm", a.x, a.y + 14); },
+    'toaster': (a) => { ctx.fillStyle = "#aaaaaa"; ctx.fillRect(a.x, a.y, a.w, a.h); ctx.fillStyle = "#444444"; ctx.fillRect(a.x + 6, a.y + 3, a.w - 12, 5); },
+    'cupcake': (a) => { ctx.fillStyle = "#e6a4b4"; ctx.beginPath(); ctx.arc(a.x + a.w/2, a.y + a.h/2 - 2, a.w/2.2, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = "#634832"; ctx.fillRect(a.x, a.y + a.h/2, a.w, a.h/2);},
+    'aggressive': (a) => { ctx.fillStyle = "#ff6f61"; ctx.fillRect(a.x, a.y, a.w, a.h); },
+    'chaotic': (a) => { ctx.fillStyle = `hsl(${gameState.tick % 360}, 100%, 50%)`; ctx.fillRect(a.x, a.y, a.w, a.h); }
+  };
+  const chaosObjectSprites = {
+    'book': (o) => { ctx.fillStyle = "#8B4513"; ctx.fillRect(o.x, o.y, 30, 40); },
+    'cash': (o) => { ctx.fillStyle = "#228B22"; ctx.fillRect(o.x, o.y, 50, 25); },
+    'question': (o) => { ctx.font = "30px bold"; ctx.fillStyle = "yellow"; ctx.fillText("?", o.x, o.y + 30); },
+    'donut': (o) => { ctx.fillStyle = "#FFB6C1"; ctx.beginPath(); ctx.arc(o.x, o.y, 20, 0, 7); ctx.fill(); ctx.fillStyle = "#000"; ctx.beginPath(); ctx.arc(o.x, o.y, 10, 0, 7); ctx.fill(); },
+    'glass': (o) => { ctx.fillStyle = "black"; ctx.fillRect(o.x, o.y, 40, 15); },
+    'blob': (o) => { ctx.fillStyle = "cyan"; ctx.beginPath(); ctx.arc(o.x, o.y, o.size, 0, 7); ctx.fill(); }
+  };
   function drawShip(ship) {
-    // Flash if invincible
-    if (player.ship.invincible && tick % 10 < 5) {
-        return;
-    }
-    
+    if (gameState.player.invincibleTimer > 0 && gameState.tick % 10 < 5) return;
     ctx.fillStyle = "#7cf3d6";
     ctx.beginPath();
-    ctx.moveTo(ship.x, ship.y + ship.h);
-    ctx.lineTo(ship.x + ship.w * 0.1, ship.y + ship.h * 0.2);
-    ctx.lineTo(ship.x + ship.w * 0.4, ship.y + ship.h * 0.2);
-    ctx.lineTo(ship.x + ship.w * 0.5, ship.y);
-    ctx.lineTo(ship.x + ship.w * 0.6, ship.y + ship.h * 0.2);
-    ctx.lineTo(ship.x + ship.w * 0.9, ship.y + ship.h * 0.2);
+    ctx.moveTo(ship.x + ship.w / 2, ship.y);
     ctx.lineTo(ship.x + ship.w, ship.y + ship.h);
+    ctx.lineTo(ship.x, ship.y + ship.h);
     ctx.closePath();
     ctx.fill();
-
-    ctx.fillStyle = "#a8e6cf";
-    ctx.beginPath();
-    ctx.arc(ship.x + ship.w / 2, ship.y + ship.h * 0.35, 4, 0, Math.PI * 2);
-    ctx.fill();
-   
-    ctx.fillStyle = "#a8e6cf";
-    ctx.fillRect(ship.x - 3, ship.y + ship.h * 0.7, 3, 5);
-    ctx.fillRect(ship.x + ship.w, ship.y + ship.h * 0.7, 3, 5);
+    ctx.fillStyle = "#000";
+    ctx.fillRect(ship.x + ship.w/2 - 2, ship.y + 8, 4, 4);
   }
 
   function update() {
-    if (!playing) return;
-    tick++;
-    const config = levelConfig[currentLevel];
-    const ship = player.ship;
-
-    // Handle invincibility timer
-    if (ship.invincible) {
-        ship.invincibleTimer--;
-        if(ship.invincibleTimer <= 0) {
-            ship.invincible = false;
-        }
-    }
-
-    // Player ship movement
-    if (keys['ArrowLeft']) ship.x = Math.max(6, ship.x - ship.speed);
-    if (keys['ArrowRight']) ship.x = Math.min(W - ship.w - 6, ship.x - ship.speed);
-   
-    // Alien movement logic
-    let minX = Infinity, maxX = -Infinity;
-   
+    if (!gameState.playing) return;
+    gameState.tick++;
+    const { player, keys, aliens, alienBullets, playerBullets, chaosObjects, lemons } = gameState;
+    const config = levelConfig[gameState.currentLevel];
+    
+    if (player.invincibleTimer > 0) player.invincibleTimer--;
+    
+    if (keys['ArrowLeft']) player.ship.x = Math.max(0, player.ship.x - player.ship.speed);
+    if (keys['ArrowRight']) player.ship.x = Math.min(W - player.ship.w, player.ship.x + player.ship.speed);
+    
+    let wallHit = false;
     aliens.forEach(a => {
-        if (!a.alive) return;
-       
-        if (config.alienType === 'zigzag') {
-            a.x = a.originalX + Math.sin(tick * 0.05) * 40;
-            if(tick % 120 === 0) a.y += 10;
-        } 
-        else if (config.alienType === 'chaotic') {
-            a.x += Math.random() > 0.5 ? alienDx : -alienDx;
-            if(tick % 60 === 0) a.y += Math.random() > 0.5 ? 10 : -10;
-        }
-        else {
-            a.x += alienDx;
-        }
-
-        minX = Math.min(minX, a.x);
-        maxX = Math.max(maxX, a.x + a.w);
+      if (!a.alive) return;
+      if (config.alienType === 'zigzag') a.x = a.originalX + Math.sin((gameState.tick + a.originalX) * 0.05) * 50;
+      else if (config.alienType === 'chaotic') a.x += (Math.random() - 0.5) * gameState.alienDx;
+      else a.x += gameState.alienDx;
+      if (a.x < 0 || a.x + a.w > W) wallHit = true;
+      if (a.y + a.h >= player.ship.y) endSpaceInvaders(false);
     });
 
-    if (minX < 8 || maxX > W - 8) {
-      if (config.alienType !== 'zigzag' && config.alienType !== 'chaotic') {
-        alienDx = -alienDx;
-        aliens.forEach(a => { if (a.alive) a.y += 10; });
-      }
+    if (wallHit && config.alienType !== 'zigzag') {
+      gameState.alienDx *= -1;
+      aliens.forEach(a => a.y += 15);
     }
-
-    // Alien firing
+    
     if (Math.random() < config.fireRate) {
-        const activeAliens = aliens.filter(a => a.alive);
-        if (activeAliens.length > 0) {
-            const shooter = activeAliens[Math.floor(Math.random() * activeAliens.length)];
-            let bulletW = 3, bulletH = 8, bulletColor = "#ff6f61";
-            if (config.special === 'bread-bullets') {
-              bulletW = 15; bulletH = 15; bulletColor = "#a1662f";
-            }
-            // 🚀 FIX: Alien bullets are red now
-            alienBullets.push({ x: shooter.x + shooter.w / 2 - bulletW / 2, y: shooter.y + shooter.h, w: bulletW, h: bulletH, color: bulletColor });
-        }
+      const activeAliens = aliens.filter(a => a.alive);
+      if (activeAliens.length > 0) {
+        const shooter = activeAliens[Math.floor(Math.random() * activeAliens.length)];
+        alienBullets.push({ x: shooter.x + shooter.w / 2 - 2, y: shooter.y + shooter.h, w: 4, h: 10 });
+      }
     }
-   
-    // Special object spawning for RANDOMODIUM
-    if (currentLevel === 7 && Math.random() < 0.005) {
-        const types = ['book', 'cash', 'question', 'donut', 'glasses', 'blob'];
+    
+    if (config.special === 'chaos') {
+      if (Math.random() < 0.01) {
+        const types = ['book', 'cash', 'question', 'donut', 'glass', 'blob'];
         const type = types[Math.floor(Math.random() * types.length)];
-        chaosObjects.push({
-            x: Math.random() * (W - 40) + 20,
-            y: -30,
-            type: type,
-            w: 30, h: 30,
-            dy: Math.random() * 0.5 + 0.5
-        });
+        chaosObjects.push({ type, x: Math.random() * W, y: -50, dy: 1 + Math.random(), size: 10 + Math.random() * 10 });
+      }
+      if (Math.random() < 0.001) gameState.effects.colorInvert = 60;
+      if (Math.random() < 0.001) gameState.effects.screenTilt = 60;
+      if (Math.random() < 0.0005) { audio.currentTime = Math.random() * audio.duration; }
     }
+    Object.keys(gameState.effects).forEach(e => { if (gameState.effects[e] > 0) gameState.effects[e]--; });
+    
+    playerBullets.forEach(b => b.y -= 7);
+    alienBullets.forEach(b => b.y += 4);
+    [...chaosObjects, ...lemons].forEach(o => o.y += (o.dy || 0.5));
+    if(chaosObjects.find(o => o.type === 'blob')) chaosObjects.find(o => o.type === 'blob').size += Math.sin(gameState.tick * 0.1);
 
-    // Update and filter bullets
-    playerBullets.forEach(b => b.y -= 6);
-    playerBullets = playerBullets.filter(b => b.y > -10);
-   
-    alienBullets.forEach(b => b.y += 3);
-    alienBullets = alienBullets.filter(b => b.y < H + 10);
-   
-    // Update special objects
-    lemons.forEach(l => l.y += 1);
-    lemons = lemons.filter(l => l.y < H + 10);
-    chaosObjects.forEach(o => o.y += o.dy);
-    chaosObjects = chaosObjects.filter(o => o.y < H + 10);
-
-    // Collisions
-    playerBullets.forEach(b => {
-      // 🚀 FIX: Loop backwards to safely remove items while iterating
-      for (let i = aliens.length - 1; i >= 0; i--) {
-        const a = aliens[i];
-        if (a.alive && rect(b, a)) {
-          a.alive = false;
-          b.y = -200; // Deactivate bullet
-          break; // Bullet can only hit one alien
+    for (let i = playerBullets.length - 1; i >= 0; i--) {
+      const b = playerBullets[i];
+      let hit = false;
+      for (const a of aliens) {
+        if (a.alive && rect(b, a)) { a.alive = false; hit = true; break; }
+      }
+      for (const l of lemons) { if (rect(b, l)) { hit = true; break; } }
+      for (const o of chaosObjects) {
+        if (rect(b, o)) {
+          if (o.type === 'book' || o.type === 'donut' || o.type === 'blob') hit = true;
+          if (o.type === 'question') { gameState.effects.screenShake = 30; o.y = H + 50; }
         }
       }
-      if (config.special === 'lemons') {
-          lemons.forEach(l => {
-              if (rect(b, l)) b.y = -200;
-          });
-      }
-      if (config.special === 'chaos') {
-          chaosObjects.forEach(o => {
-              if (rect(b, o)) {
-                  if (o.type === 'book') b.y = -200;
-                  if (o.type === 'question') screenShake();
-              }
-          });
-      }
-    });
-
-    // Check alien bullet collision with ship
-    alienBullets.forEach(b => {
-        if(rect(b, ship)) {
-            b.y = H + 20; // Deactivate bullet
-            handlePlayerHit();
-        }
-    });
-
-    // Check if any alien has reached the player's y-position
-    aliens.forEach(a => {
-      if (a.alive && a.y + a.h >= ship.y) {
-        playing = false;
-        endSpaceInvaders(false);
-      }
-    });
-
-    if (aliens.filter(a => a.alive).length === 0) {
-      setLevel(currentLevel + 1);
+      if (hit) playerBullets.splice(i, 1);
     }
+
+    for (let i = alienBullets.length - 1; i >= 0; i--) {
+        const b = alienBullets[i];
+        if (player.invincibleTimer === 0 && rect(b, player.ship)) {
+            player.lives--;
+            player.invincibleTimer = 120;
+            alienBullets.splice(i, 1);
+            if (player.lives <= 0) endSpaceInvaders(false);
+            break;
+        }
+    }
+    
+    for (let i = chaosObjects.length - 1; i >= 0; i--) {
+      const o = chaosObjects[i];
+      if (rect(o, player.ship)) {
+        if (o.type === 'cash') gameState.effects.cashNote = 120;
+        if (o.type === 'glass') gameState.effects.invisibility = 180;
+        chaosObjects.splice(i, 1);
+      }
+    }
+
+    if (aliens.every(a => !a.alive)) setLevel(gameState.currentLevel + 1);
   }
 
   function draw() {
-    if (!playing) return;
-    const config = levelConfig[currentLevel];
-   
+    ctx.clearRect(0, 0, W, H);
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, W, H);
-    ctx.fillStyle = "#0f2a";
-    for (let s = 0; s < 80; s++) {
-      const x = (s * 67 + (tick * 0.7 | 0)) % W;
-      const y = (s * 37 + (tick * 0.5 | 0)) % H;
-      ctx.fillRect(x, y, 2, 2);
-    }
+    
+    const { player, playerBullets, aliens, alienBullets, chaosObjects, lemons, effects } = gameState;
+    
+    siCanvas.style.filter = effects.colorInvert > 0 ? 'invert(1)' : 'none';
+    siCanvas.style.transform = effects.screenTilt > 0 ? `rotate(${Math.sin(gameState.tick*0.2)}deg)` : 'none';
+    if (effects.screenShake > 0) siCanvas.style.animation = 'shake 0.1s infinite';
+    else siCanvas.style.animation = 'none';
 
-    chaosObjects.forEach(o => {
-        if (o.type === 'blob') {
-            const blobW = o.w * (1 + 0.2 * Math.sin(tick * 0.1));
-            const blobH = o.h * (1 + 0.2 * Math.cos(tick * 0.1));
-            chaosObjectSprites['blob'](o.x, o.y, blobW, blobH);
-        } else {
-            chaosObjectSprites[o.type](o.x, o.y);
-        }
-    });
-   
     drawShip(player.ship);
-
-    // 🚀 FIX: Player bullets are now accent color 2
-    ctx.fillStyle = "#7cf3d6";
-    playerBullets.forEach(b => ctx.fillRect(b.x, b.y, 3, 8));
-    alienBullets.forEach(b => {
-      ctx.fillStyle = b.color;
+    
+    playerBullets.forEach(b => {
+      ctx.fillStyle = levelConfig[gameState.currentLevel].special === 'bread-bullets' ? '#D2B48C' : '#7cf3d6';
       ctx.fillRect(b.x, b.y, b.w, b.h);
     });
-   
-    lemons.forEach(l => {
-      ctx.fillStyle = "yellow";
-      ctx.beginPath();
-      ctx.ellipse(l.x, l.y, 10, 15, 0, 0, Math.PI * 2);
-      ctx.fill();
-    });
 
-    aliens.forEach(a => {
-      if (!a.alive) return;
-      if (alienSprites[a.type]) {
-          alienSprites[a.type](a.x, a.y, a.w, a.h);
-      } else {
-          ctx.fillStyle = "#ffd966";
-          ctx.fillRect(a.x, a.y, a.w, a.h);
-      }
-    });
-
-    // Draw HUD
-    ctx.globalAlpha = 0.12;
-    ctx.fillStyle = "#fff";
-    ctx.font = "700 42px monospace";
-    ctx.fillText(`L${currentLevel + 1}`, 12, 48);
-    ctx.globalAlpha = 1;
+    alienBullets.forEach(b => { ctx.fillStyle = "#ff6f61"; ctx.fillRect(b.x, b.y, b.w, b.h); });
+    lemons.forEach(l => { ctx.fillStyle = "yellow"; ctx.fillRect(l.x, l.y, l.w, l.h); });
+    chaosObjects.forEach(o => chaosObjectSprites[o.type](o));
     
-    // 🚀 FIX: Draw remaining lives
-    ctx.font = "700 18px monospace";
-    ctx.fillStyle = "#fff";
+    if (effects.invisibility === 0) {
+        aliens.forEach(a => { if (a.alive) alienSprites[a.type](a); });
+    }
+
+    if (effects.cashNote > 0) {
+        ctx.fillStyle = "#228B22";
+        ctx.font = "bold 60px sans-serif";
+        ctx.fillText("$!#%", W / 4, H / 2);
+    }
+    
+    ctx.fillStyle = "#fff"; ctx.font = "18px monospace";
+    ctx.fillText(`LIVES: ${player.lives}`, 10, 25);
     ctx.textAlign = "right";
-    ctx.fillText(`LIVES: ${player.lives}`, W - 15, 30);
+    ctx.fillText(`LEVEL ${gameState.currentLevel + 1}`, W - 10, 25);
     ctx.textAlign = "left";
+
+    if (gameState.playing) requestAnimationFrame(draw);
   }
+
+  function endSpaceInvaders(didWin) {
+    gameState.playing = false;
+    cancelAnimationFrame(gameState.animId);
+    siCanvas.style.display = 'none';
+    levelBadge.style.display = 'none';
+    
+    if (didWin && gameState.currentLevel >= levelConfig.length - 1) {
+      glitchMsg.style.display = 'block';
+    } else {
+      finalMsg.style.display = 'block';
+    }
+  }
+  
+  function rect(a, b) {
+    return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if (gameState && gameState.playing) {
+      if (e.key === ' ') {
+        e.preventDefault();
+        if (gameState.playerBullets.length < 5) {
+          const spec = levelConfig[gameState.currentLevel].special;
+          gameState.playerBullets.push({
+            x: gameState.player.ship.x + gameState.player.ship.w / 2 - (spec === 'bread-bullets' ? 8 : 2),
+            y: gameState.player.ship.y,
+            w: spec === 'bread-bullets' ? 16 : 4,
+            h: spec === 'bread-bullets' ? 16 : 10
+          });
+        }
+      }
+      gameState.keys[e.key] = true;
+    }
+  });
+  window.addEventListener('keyup', (e) => {
+    if (gameState) {
+      gameState.keys[e.key] = false;
+    }
+  });
 
   function loop() {
     update();
     draw();
-    if (playing) {
-        animId = requestAnimationFrame(loop);
+    if (gameState.playing) {
+      gameState.animId = requestAnimationFrame(loop);
     }
   }
-
-  function endSpaceInvaders(didWin) {
-    playing = false;
-    cancelAnimationFrame(animId);
-    levelBadge.style.display = 'none';
-   
-    // 🚀 FIX: Different end messages for win/loss
-    if (didWin && currentLevel >= levelConfig.length - 1) {
-        siCanvas.style.display = 'none';
-        glitchMsg.style.display = 'block';
-    } else {
-        finalMsg.style.display = 'block';
-    }
-  }
-
-  function screenShake() {
-      siCanvas.style.animation = 'shake 0.2s ease-in-out 3';
-      setTimeout(() => { siCanvas.style.animation = ''; }, 600);
-  }
-
-  const messages = [
-      "What the hell are you doing?",
-      "What is this tomfoolery?",
-      "Just get it done and move ahead.",
-      "You don't have all day."
-  ];
-
-  function showRandomMessage() {
-      if (messageCount >= 3) {
-          clearInterval(messageTimer);
-          return;
-      }
-      const message = messages[Math.floor(Math.random() * messages.length)];
-      gameMessageDiv.textContent = message;
-      gameMessageDiv.style.opacity = 1;
-     
-      setTimeout(() => {
-          gameMessageDiv.style.opacity = 0;
-      }, 3000);
-     
-      messageCount++;
-  }
- 
-  function startMessageTimer() {
-      messageCount = 0;
-      clearInterval(messageTimer);
-      messageTimer = setInterval(showRandomMessage, 10000 + Math.random() * 10000);
-  }
-
-  // input
-  window.addEventListener('keydown', (e) => {
-    if (e.key === ' ') {
-      // 🚀 FIX: Prevent firing too fast (cooldown)
-      if (playerBullets.length < 4) {
-          playerBullets.push({ x: player.ship.x + player.ship.w / 2 - 1.5, y: player.ship.y - 8 });
-      }
-    } else {
-      keys[e.key] = true;
-    }
-  });
-  window.addEventListener('keyup', (e) => { keys[e.key] = false; });
-
-  // init
-  setLevel(0);
-  loop();
-}
-
-/* ======================
-    Accessibility fixes
-    ====================== */
-document.addEventListener('keydown', (e) => {
-  if (['ArrowLeft', 'ArrowRight', ' '].includes(e.key)) e.preventDefault();
-}, { passive: false });
+});
 </script>
 </body>
 </html>
