@@ -344,6 +344,7 @@
     font-size: 14px;
   }
 
+  /* This is the crucial class for locking the paths */
   .right.locked .paths {
     filter: blur(5px);
     pointer-events: none;
@@ -437,7 +438,7 @@
 <script>
 /**
  * ==================================================================================
- * EXTREMELY DETAILED JAVASCRIPT LOGIC
+ * EXTREMELY DETAILED JAVASCRIPT LOGIC - FINAL VERSION
  *
  * This script is intentionally long and heavily commented to ensure every single
  * feature is implemented correctly and is easy to understand.
@@ -485,12 +486,12 @@ document.addEventListener('DOMContentLoaded', () => {
   let hasInteracted = false; // Tracks if the user has clicked at least once.
 
   // --- Initial Page Setup ---
-  // Check if the welcome screen was already shown in this browser session.
+  // Check if the welcome screen has been shown in this browser session.
   if (sessionStorage.getItem('welcomeShown')) {
     DOM.welcomeOverlay.style.display = 'none';
     appState.flowStarted = true;
   }
-  // Check if games were completed in a previous visit. If so, unlock the paths.
+  // Check if games were already completed in a previous visit. If so, unlock the paths.
   if (appState.gamesDone) {
       DOM.rightPanel.classList.remove('locked');
   }
@@ -517,6 +518,7 @@ document.addEventListener('DOMContentLoaded', () => {
    * After 5 warnings, it reloads the page as a penalty.
    */
   document.body.addEventListener('click', (event) => {
+    // Determine if the click was inside a valid interactive area.
     const isInsideContent = DOM.gameContainer.contains(event.target) || DOM.rightPanel.contains(event.target);
     const isWelcomeClick = DOM.welcomeOverlay.contains(event.target);
 
@@ -524,6 +526,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (appState.flowStarted && !isInsideContent && !appState.gamesDone && !isWelcomeClick) {
       appState.outsideClicks++;
       if (appState.outsideClicks > 5) {
+        // Penalty for not focusing: reload the entire page.
         location.reload();
         return;
       }
@@ -536,21 +539,26 @@ document.addEventListener('DOMContentLoaded', () => {
     DOM.outerMessage.style.display = 'none';
   });
   
+  // Fallback for starting media if the welcome screen was already dismissed.
+  document.body.addEventListener('pointerdown', () => {
+    if (!hasInteracted && sessionStorage.getItem('welcomeShown')) { hasInteracted = true; setupAudioAndVideo(); }
+  });
+
   /**
-   * Handles clicks on the personality paths.
+   * Handles clicks on the personality paths, checking if they are unlocked.
    * If the game isn't finished, it prevents navigation and gives a visual "shake" cue.
    * If the game IS finished, it allows navigation and sets the state for the exit prompt.
    */
   DOM.paths.forEach(pathLink => pathLink.addEventListener('click', event => {
     if (!appState.gamesDone) {
-        event.preventDefault();
+        event.preventDefault(); // Stop navigation if locked.
         DOM.lockMessage.style.transition = 'transform 0.2s ease';
-        DOM.lockMessage.style.transform = 'scale(1.1)';
+        DOM.lockMessage.style.transform = 'scale(1.1)'; // Give visual feedback.
         setTimeout(() => DOM.lockMessage.style.transform = 'scale(1)', 200);
     } else {
         appState.pathChosen = true;
         localStorage.setItem('pathChosen', 'true');
-        // The link will navigate as normal.
+        // The link will now navigate as normal.
     }
   }));
 
@@ -562,7 +570,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (appState.gamesDone && !appState.pathChosen) {
         return "Not so fast internet warrior, complete what you started";
     }
-    return null; // Return null to allow the user to exit freely.
+    return null; // Return null to allow exiting freely.
   };
 
   /**
@@ -842,6 +850,7 @@ document.addEventListener('DOMContentLoaded', () => {
    * PART 4: UTILITY FUNCTIONS
    * ==================================================================================
    */
+  // A simple collision detection function for two rectangles.
   function rect(a, b) { return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
 
 });
