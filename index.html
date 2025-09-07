@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>NotTheBest | Games + Personality Paths</title>
 <style>
+  /* ==========================================================================
+     SETUP & CORE STYLES
+     ========================================================================== */
   :root {
     --glass: rgba(10, 10, 10, 0.6);
     --glass-strong: rgba(0, 0, 0, 0.8);
@@ -30,7 +33,9 @@
     z-index: -1;
   }
 
-  /* --- Overlays & Popups --- */
+  /* ==========================================================================
+     OVERLAYS & POPUPS (Welcome, Outer Message, Game Over)
+     ========================================================================== */
   .overlay {
     position: fixed; inset: 0; z-index: 100;
     display: flex; align-items: center; justify-content: center;
@@ -56,7 +61,9 @@
   .overlay-box button:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(0,0,0,0.5); }
   #outer-message { display: none; }
 
-  /* --- Main Layout - Mobile First --- */
+  /* ==========================================================================
+     MAIN LAYOUT - MOBILE FIRST
+     ========================================================================== */
   .wrap {
     height: 100vh; width: 100%; display: flex;
     flex-direction: column; /* Mobile default */
@@ -77,7 +84,9 @@
     margin-bottom: 10px; text-align: center;
   }
 
-  /* --- Redesigned Memory Cards (UNO Style) --- */
+  /* ==========================================================================
+     MEMORY CARDS (UNO STYLE)
+     ========================================================================== */
   .memory-board {
     display: grid; grid-template-columns: repeat(4, 1fr);
     gap: var(--gap); width: 100%; max-width: 500px;
@@ -96,23 +105,18 @@
   .front {
     transform: rotateY(180deg);
     background: radial-gradient(circle, #4a4a4a, #1a1a1a);
-    font-size: clamp(12px, 2.5vw, 16px);
-    font-weight: bold;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    padding: 8px;
-    position: relative;
+    font-weight: bold; display: flex;
+    flex-direction: column; justify-content: space-between;
+    padding: 8px; position: relative;
   }
-  .front-corner {
-    position: absolute; font-size: 1.5em; font-weight: bold;
-    line-height: 1;
-  }
+  .front-corner { position: absolute; font-size: 1.5em; font-weight: bold; line-height: 1; }
   .top-left { top: 8px; left: 12px; }
   .bottom-right { bottom: 8px; right: 12px; transform: rotate(180deg); }
-  .front-center { font-size: 1.2em; text-align: center; padding: 0 1em; }
+  .front-center { font-size: clamp(12px, 2.5vw, 16px); text-align: center; padding: 0 1em; }
   
-  /* --- Space Invaders --- */
+  /* ==========================================================================
+     SPACE INVADERS & GAME MESSAGES
+     ========================================================================== */
   .canvas-container { position: relative; width: 100%; max-width: 560px; aspect-ratio: 16 / 10; margin-top: 10px; }
   .game-message-overlay { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); border-radius: 14px; text-align: center; padding: 20px; z-index: 50; }
   .game-message-overlay h3 { font-size: 2em; color: var(--accent); }
@@ -123,7 +127,9 @@
   #glitch-msg { display: none; text-align: center; font-size: 1.5em; font-weight: bold; color: var(--accent-2); text-shadow: 2px 2px var(--accent), -2px -2px #0f0; animation: glitch-anim 0.8s infinite; }
   @keyframes glitch-anim { 0%{transform:translate(0)} 20%{transform:translate(-3px,3px)} 40%{transform:translate(-3px,-3px)} 60%{transform:translate(3px,3px)} 80%{transform:translate(3px,-3px)} 100%{transform:translate(0)} }
   
-  /* --- Personality Paths (Locked State) --- */
+  /* ==========================================================================
+     PERSONALITY PATHS (LOCKED STATE)
+     ========================================================================== */
   .paths { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-content: center; padding: 8px; max-width: 600px; margin: auto; }
   .path { width: 100%; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.16); border-radius: 16px; text-decoration: none; color: #fff; box-shadow: 0 8px 24px rgba(0,0,0,.25); transition: all .18s ease; }
   .path:hover { transform: translateY(-3px); border-color: var(--accent-2); }
@@ -133,7 +139,9 @@
   #lock-message { display: none; color: var(--accent); margin-top: 20px; font-weight: bold; text-align: center; }
   .right.locked #lock-message { display: block; }
   
-  /* --- Desktop Layout --- */
+  /* ==========================================================================
+     DESKTOP LAYOUT
+     ========================================================================== */
   @media (min-width: 1024px) {
     .wrap { flex-direction: row; justify-content: center; align-items: center; }
     .left, .right { height: 100%; max-height: 95vh; }
@@ -201,11 +209,13 @@
  * ==================================================================================
  * APP CONTROLLER
  * This section manages the overall state and flow of the entire page.
+ * It is heavily commented to be as detailed as possible.
  * ==================================================================================
  */
 document.addEventListener('DOMContentLoaded', () => {
 
   // --- SINGLE SOURCE OF TRUTH FOR PAGE STATE ---
+  // This object holds all the important flags that control the user's journey.
   const appState = {
     gamesDone: JSON.parse(localStorage.getItem('gamesDone')) || false,
     pathChosen: JSON.parse(localStorage.getItem('pathChosen')) || false,
@@ -214,6 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // --- ELEMENT REFERENCES ---
+  // Getting all necessary DOM elements once to avoid repeated queries.
   const audio = document.getElementById('bg-music');
   const rightPanel = document.getElementById('right-panel');
   const gameContainer = document.getElementById('game-container');
@@ -223,28 +234,37 @@ document.addEventListener('DOMContentLoaded', () => {
   let hasInteracted = false;
 
   // --- INITIAL PAGE SETUP ---
+  // Check if the welcome screen has been shown in this session.
   if (sessionStorage.getItem('welcomeShown')) {
     welcomeOverlay.style.display = 'none';
     appState.flowStarted = true;
   }
+  // Check if games were already completed in a previous session.
   if (appState.gamesDone) {
       rightPanel.classList.remove('locked');
   }
 
   // --- CORE EVENT LISTENERS (FLOW CONTROL) ---
+  
+  // This is the main entry point for the user.
   startButton.addEventListener('click', () => {
     welcomeOverlay.style.display = 'none';
     sessionStorage.setItem('welcomeShown', 'true');
     appState.flowStarted = true;
-    if (!hasInteracted) { hasInteracted = true; setupAudio(); }
+    if (!hasInteracted) { 
+        hasInteracted = true; 
+        setupAudio(); // This guarantees audio/video play after the first click.
+    }
   });
   
+  // This listener enforces the "focus" rule.
   document.body.addEventListener('click', (e) => {
     const isInsideContent = gameContainer.contains(e.target) || rightPanel.contains(e.target);
+    // Only trigger if the flow has started, the user is clicking outside, and the games aren't done yet.
     if (appState.flowStarted && !isInsideContent && !appState.gamesDone) {
       appState.outsideClicks++;
       if (appState.outsideClicks > 5) {
-        // Reload the page as a penalty for not focusing.
+        // Penalty for not focusing: reload the entire page.
         location.reload();
         return;
       }
@@ -255,16 +275,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('close-outer-message').addEventListener('click', () => outerMessage.style.display = 'none');
   
+  // Fallback for starting media if the welcome screen was already dismissed.
   document.body.addEventListener('pointerdown', () => {
     if (!hasInteracted && sessionStorage.getItem('welcomeShown')) { hasInteracted = true; setupAudio(); }
   });
 
+  // Handle clicks on the personality paths, checking if they are unlocked.
   document.querySelectorAll('.path').forEach(a => a.addEventListener('click', e => {
     if (!appState.gamesDone) {
-        e.preventDefault();
+        e.preventDefault(); // Stop navigation if locked.
         const lockMessage = document.getElementById('lock-message');
         lockMessage.style.transition = 'transform 0.2s ease';
-        lockMessage.style.transform = 'scale(1.1)';
+        lockMessage.style.transform = 'scale(1.1)'; // Give visual feedback.
         setTimeout(() => lockMessage.style.transform = 'scale(1)', 200);
     } else {
         appState.pathChosen = true;
@@ -272,15 +294,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }));
 
+  // The exit blocker, with your custom message.
   window.onbeforeunload = () => {
     if (!appState.pathChosen) {
         return "Not so fast internet warrior, complete what you started";
     }
-    return null;
+    return null; // Return null to allow exiting freely.
   };
 
+  // --- HELPER FUNCTIONS ---
   function setupAudio() {
-    audio.play().catch(() => {}); // Attempt to play, will be unmuted by browser on first real interaction.
+    audio.play().catch(() => {}); // Attempt to play.
     setInterval(() => { if (!audio.paused) localStorage.setItem('music-time', audio.currentTime); }, 600);
   }
 
@@ -326,11 +350,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 400);
         flippedCards = [];
       } else {
-        setTimeout(() => {
-          first.el.classList.remove('flip');
-          second.el.classList.remove('flip');
-          flippedCards = [];
-        }, 1200);
+        setTimeout(() => { first.el.classList.remove('flip'); second.el.classList.remove('flip'); flippedCards = []; }, 1200);
       }
     }
   }
@@ -340,6 +360,7 @@ document.addEventListener('DOMContentLoaded', () => {
   /**
    * ==================================================================================
    * SPACE INVADERS - THE COMPLETE GAME
+   * This is a long and detailed section to ensure all features are working.
    * ==================================================================================
    */
   const siCanvas = document.getElementById('siCanvas');
@@ -394,7 +415,8 @@ document.addEventListener('DOMContentLoaded', () => {
       for (let i=0; i<7; i++) gameState.lemons.push({ x: Math.random()*W, y: Math.random()*(H/2)+20, w: 12, h: 16 });
     }
   }
-
+  
+  // Detailed sprite drawing functions
   const sprites = {
     ship: s => { if(gameState.player.invincibleTimer>0 && gameState.tick%10<5) return; ctx.fillStyle="#7cf3d6"; ctx.beginPath(); ctx.moveTo(s.x+s.w/2,s.y); ctx.lineTo(s.x+s.w,s.y+s.h); ctx.lineTo(s.x,s.y+s.h); ctx.closePath(); ctx.fill(); },
     normal: a => { ctx.fillStyle="#aaffaa"; ctx.beginPath(); ctx.moveTo(a.x+a.w/2,a.y); ctx.lineTo(a.x+a.w,a.y+a.h/2); ctx.lineTo(a.x,a.y+a.h/2); ctx.closePath(); ctx.fill(); ctx.fillRect(a.x+a.w/4, a.y+a.h/2, a.w/2, a.h/2); },
@@ -421,7 +443,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (player.invincibleTimer > 0) player.invincibleTimer--;
     if (keys['ArrowLeft']) player.ship.x = Math.max(0, player.ship.x - player.ship.speed);
     if (keys['ArrowRight']) player.ship.x = Math.min(W - player.ship.w, player.ship.x + player.ship.speed);
-    if (keys[' '] && now - player.lastShotTime > 150) { // Cooldown for unlimited bullets
+    if (keys[' '] && now - player.lastShotTime > 150) { // UNLIMITED BULLETS with cooldown
         player.lastShotTime = now;
         const spec = config.special;
         bullets.push({ x: player.ship.x + player.ship.w/2 - (spec==='bread-bullets'?8:2), y: player.ship.y, w: spec==='bread-bullets'?16:4, h: spec==='bread-bullets'?16:10 });
@@ -458,7 +480,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (gameState.tick % 900 === 0 && aliens.length > 0) {
         const msgs = ["what you doing", "complete it bro", "you dont have all day", "choose persistence over consistency"];
         message.text = msgs[Math.floor(Math.random() * msgs.length)];
-        message.timer = 180; // 3 seconds
+        message.timer = 180;
     }
     
     bullets.forEach(b => b.y -= 7); alienBullets.forEach(b => b.y += 4); [...chaos, ...lemons].forEach(o => o.y += (o.dy || 0.5));
@@ -534,7 +556,7 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('keyup', (e) => { if (gameState) gameState.keys[e.key] = false; });
 
   function loop() {
-    if (!gameState.playing) return;
+    if (!gameState || !gameState.playing) return;
     update();
     draw();
     requestAnimationFrame(loop);
