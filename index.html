@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Home | Games + Personality Paths</title>
+<title>NotTheBest | Games + Personality Paths</title>
 <style>
   :root {
-    --glass: rgba(0, 0, 0, 0.6);
-    --glass-strong: rgba(0, 0, 0, 0.75);
+    --glass: rgba(10, 10, 10, 0.6);
+    --glass-strong: rgba(0, 0, 0, 0.8);
     --accent: #ff6f61;
     --accent-2: #7cf3d6;
     --gap: 10px;
@@ -16,7 +16,7 @@
   html, body {
     height: 100%; width: 100%;
     overflow: hidden;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: #fff;
     background: #000;
   }
@@ -30,26 +30,30 @@
     z-index: -1;
   }
 
-  /* --- Popups and Overlays --- */
+  /* --- Overlays & Popups --- */
   .overlay {
     position: fixed; inset: 0; z-index: 100;
     display: flex; align-items: center; justify-content: center;
     background: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(8px);
     text-align: center; padding: 20px;
+    animation: fadeIn 0.5s ease;
   }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   .overlay-box {
     background: var(--glass); border: 1px solid rgba(255,255,255,0.2);
     border-radius: 20px; padding: 30px; max-width: 500px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
   }
-  .overlay-box h1 { color: var(--accent-2); margin-bottom: 15px; }
+  .overlay-box h1 { color: var(--accent-2); margin-bottom: 15px; text-shadow: 0 0 10px var(--accent-2); }
   .overlay-box p { margin-bottom: 25px; line-height: 1.6; }
   .overlay-box button {
     padding: 12px 25px; border-radius: 10px; border: none;
     background: var(--accent); color: #fff; font-weight: bold;
-    cursor: pointer; transition: transform 0.2s;
+    cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
   }
-  .overlay-box button:hover { transform: scale(1.05); }
+  .overlay-box button:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(0,0,0,0.5); }
   #outer-message { display: none; }
 
   /* --- Main Layout - Mobile First --- */
@@ -73,27 +77,41 @@
     margin-bottom: 10px; text-align: center;
   }
 
-  /* --- Memory Cards (Redesigned) --- */
+  /* --- Redesigned Memory Cards (UNO Style) --- */
   .memory-board {
     display: grid; grid-template-columns: repeat(4, 1fr);
     gap: var(--gap); width: 100%; max-width: 500px;
     aspect-ratio: 1; margin: auto; padding: 8px;
   }
   .card { aspect-ratio: 1; perspective: 1000px; cursor: pointer; }
-  .card-inner { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform 0.5s; }
+  .card-inner { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1); }
   .card.flip .card-inner { transform: rotateY(180deg); }
   .card.matched { animation: vanish 0.4s forwards; }
   @keyframes vanish { 100% { transform: scale(0.9); opacity: 0; } }
-  .face { position: absolute; width:100%; height:100%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; padding: 5px; text-align: center; border-radius: 10px; box-shadow: 0 6px 18px rgba(0,0,0,0.4); }
+  .face { position: absolute; width:100%; height:100%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 10px; box-shadow: 0 6px 18px rgba(0,0,0,0.4); }
   .back {
     background: radial-gradient(circle at 10% 20%, rgba(255,255,255,0.2), transparent), conic-gradient(from 210deg at 50% 50%, #1a2a6c, #b21f1f, #fdbb2d, #1a2a6c);
     font-size: clamp(30px, 8vw, 50px); font-weight: 900;
   }
-  .front { transform: rotateY(180deg); background: #10131a; font-size: clamp(12px, 2.5vw, 16px); font-weight: bold; display: flex; flex-direction: column; justify-content: space-between; padding: 8px; }
-  .front::before, .front::after { content: attr(data-name); display: block; font-size: 0.7em; }
-  .front::after { transform: rotate(180deg); }
-  .front-center { font-size: 1.2em; text-align: center; }
-
+  .front {
+    transform: rotateY(180deg);
+    background: radial-gradient(circle, #4a4a4a, #1a1a1a);
+    font-size: clamp(12px, 2.5vw, 16px);
+    font-weight: bold;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 8px;
+    position: relative;
+  }
+  .front-corner {
+    position: absolute; font-size: 1.5em; font-weight: bold;
+    line-height: 1;
+  }
+  .top-left { top: 8px; left: 12px; }
+  .bottom-right { bottom: 8px; right: 12px; transform: rotate(180deg); }
+  .front-center { font-size: 1.2em; text-align: center; padding: 0 1em; }
+  
   /* --- Space Invaders --- */
   .canvas-container { position: relative; width: 100%; max-width: 560px; aspect-ratio: 16 / 10; margin-top: 10px; }
   .game-message-overlay { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); border-radius: 14px; text-align: center; padding: 20px; z-index: 50; }
@@ -179,14 +197,23 @@
   </div>
 
 <script>
+/**
+ * ==================================================================================
+ * APP CONTROLLER
+ * This section manages the overall state and flow of the entire page.
+ * ==================================================================================
+ */
 document.addEventListener('DOMContentLoaded', () => {
 
+  // --- SINGLE SOURCE OF TRUTH FOR PAGE STATE ---
   const appState = {
     gamesDone: JSON.parse(localStorage.getItem('gamesDone')) || false,
     pathChosen: JSON.parse(localStorage.getItem('pathChosen')) || false,
     outsideClicks: 0,
     flowStarted: false,
   };
+
+  // --- ELEMENT REFERENCES ---
   const audio = document.getElementById('bg-music');
   const rightPanel = document.getElementById('right-panel');
   const gameContainer = document.getElementById('game-container');
@@ -195,10 +222,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const outerMessage = document.getElementById('outer-message');
   let hasInteracted = false;
 
+  // --- INITIAL PAGE SETUP ---
   if (sessionStorage.getItem('welcomeShown')) {
     welcomeOverlay.style.display = 'none';
     appState.flowStarted = true;
   }
+  if (appState.gamesDone) {
+      rightPanel.classList.remove('locked');
+  }
+
+  // --- CORE EVENT LISTENERS (FLOW CONTROL) ---
   startButton.addEventListener('click', () => {
     welcomeOverlay.style.display = 'none';
     sessionStorage.setItem('welcomeShown', 'true');
@@ -206,15 +239,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!hasInteracted) { hasInteracted = true; setupAudio(); }
   });
   
-  if (appState.gamesDone) {
-      rightPanel.classList.remove('locked');
-  }
-  
   document.body.addEventListener('click', (e) => {
     const isInsideContent = gameContainer.contains(e.target) || rightPanel.contains(e.target);
-    if (appState.flowStarted && !isInsideContent) {
+    if (appState.flowStarted && !isInsideContent && !appState.gamesDone) {
       appState.outsideClicks++;
       if (appState.outsideClicks > 5) {
+        // Reload the page as a penalty for not focusing.
         location.reload();
         return;
       }
@@ -222,6 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
       outerMessage.style.display = 'flex';
     }
   });
+
   document.getElementById('close-outer-message').addEventListener('click', () => outerMessage.style.display = 'none');
   
   document.body.addEventListener('pointerdown', () => {
@@ -229,48 +260,88 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.querySelectorAll('.path').forEach(a => a.addEventListener('click', e => {
-    if (!appState.gamesDone) e.preventDefault();
-    else { appState.pathChosen = true; localStorage.setItem('pathChosen', 'true'); }
+    if (!appState.gamesDone) {
+        e.preventDefault();
+        const lockMessage = document.getElementById('lock-message');
+        lockMessage.style.transition = 'transform 0.2s ease';
+        lockMessage.style.transform = 'scale(1.1)';
+        setTimeout(() => lockMessage.style.transform = 'scale(1)', 200);
+    } else {
+        appState.pathChosen = true;
+        localStorage.setItem('pathChosen', 'true');
+    }
   }));
-  window.onbeforeunload = () => !appState.pathChosen ? "Not so fast internet warrior, complete what you started" : null;
+
+  window.onbeforeunload = () => {
+    if (!appState.pathChosen) {
+        return "Not so fast internet warrior, complete what you started";
+    }
+    return null;
+  };
 
   function setupAudio() {
-    const savedTime = localStorage.getItem('music-time');
-    if (savedTime) audio.currentTime = parseFloat(savedTime);
-    audio.play().catch(() => {});
+    audio.play().catch(() => {}); // Attempt to play, will be unmuted by browser on first real interaction.
     setInterval(() => { if (!audio.paused) localStorage.setItem('music-time', audio.currentTime); }, 600);
   }
 
+  /**
+   * ==================================================================================
+   * MEMORY GAME LOGIC
+   * ==================================================================================
+   */
   const designNames = ["Notthebest OG", "Initial D", "Lorem Ipsum", "Your Toast", "Grapefruit x Lime", "Cake Was A Lie", "Berserk", "RANDOMODIUM"];
   const memoryBoard = document.getElementById('memoryBoard');
-  let deck = [...designNames, ...designNames].map((name, i) => ({ id: i, name }));
+  const unoSymbols = ['🚫', '🔄', '+2', '+4', '🎨', '0', '1', '5'];
+  let deck = [...designNames, ...designNames].map((name, i) => ({ id: i, name, symbol: unoSymbols[i % unoSymbols.length] }));
   shuffleArray(deck);
   let flippedCards = [], matchedPairs = 0;
+
   deck.forEach(cardData => {
     const cardEl = document.createElement('div'); cardEl.className = 'card';
-    cardEl.innerHTML = `<div class="card-inner"><div class="face back">N</div><div class="face front" data-name="${cardData.name}"><span class="front-center">${cardData.name}</span></div></div>`;
+    cardEl.innerHTML = `
+        <div class="card-inner">
+            <div class="face back">N</div>
+            <div class="face front" data-name="${cardData.name}">
+                <div class="front-corner top-left">${cardData.symbol}</div>
+                <div class="front-center">${cardData.name}</div>
+                <div class="front-corner bottom-right">${cardData.symbol}</div>
+            </div>
+        </div>`;
     cardEl.addEventListener('click', () => handleCardFlip(cardEl, cardData.name));
     memoryBoard.appendChild(cardEl);
   });
+
   function handleCardFlip(cardEl, name) {
     if (flippedCards.length === 2 || cardEl.classList.contains('flip')) return;
-    cardEl.classList.add('flip'); flippedCards.push({ el: cardEl, name });
+    cardEl.classList.add('flip');
+    flippedCards.push({ el: cardEl, name });
     if (flippedCards.length === 2) {
       const [first, second] = flippedCards;
       if (first.name === second.name) {
         matchedPairs++;
         setTimeout(() => {
-          first.el.classList.add('matched'); second.el.classList.add('matched');
+          first.el.classList.add('matched');
+          second.el.classList.add('matched');
           if (matchedPairs === designNames.length) startSpaceInvaders();
         }, 400);
         flippedCards = [];
       } else {
-        setTimeout(() => { first.el.classList.remove('flip'); second.el.classList.remove('flip'); flippedCards = []; }, 1000);
+        setTimeout(() => {
+          first.el.classList.remove('flip');
+          second.el.classList.remove('flip');
+          flippedCards = [];
+        }, 1200);
       }
     }
   }
+
   function shuffleArray(arr) { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } }
 
+  /**
+   * ==================================================================================
+   * SPACE INVADERS - THE COMPLETE GAME
+   * ==================================================================================
+   */
   const siCanvas = document.getElementById('siCanvas');
   const levelBadge = document.getElementById('levelBadge');
   const gameOverScreen = document.getElementById('gameOverScreen');
@@ -384,7 +455,7 @@ document.addEventListener('DOMContentLoaded', () => {
     Object.keys(effects).forEach(e => { if (effects[e]>0) effects[e]--; });
     
     if (message.timer > 0) message.timer--; else message.text = '';
-    if (gameState.tick % 900 === 0) {
+    if (gameState.tick % 900 === 0 && aliens.length > 0) {
         const msgs = ["what you doing", "complete it bro", "you dont have all day", "choose persistence over consistency"];
         message.text = msgs[Math.floor(Math.random() * msgs.length)];
         message.timer = 180; // 3 seconds
@@ -446,7 +517,7 @@ document.addEventListener('DOMContentLoaded', () => {
       finalWinMsg.style.display = 'none';
       setTimeout(() => {
           document.getElementById('glitch-msg').style.display = 'none';
-          finalWinMsg.innerHTML = "Congratulations on finishing these beautifully coded games... You can stay here, explore the personality path... or you can leave everything behind... It's your choice.";
+          finalWinMsg.innerHTML = "Congratulations on finishing these beautifully coded games... You can stay here, explore the personality path, get your outfit, or you can leave everything behind... It's your choice.";
           finalWinMsg.style.display = 'block';
       }, 4000);
       appState.gamesDone = true;
@@ -459,7 +530,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
   function rect(a, b) { return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
 
-  window.addEventListener('keydown', (e) => { if (gameState && gameState.playing) gameState.keys[e.key] = true; });
+  window.addEventListener('keydown', (e) => { if (gameState && gameState.playing) { e.preventDefault(); gameState.keys[e.key] = true; }});
   window.addEventListener('keyup', (e) => { if (gameState) gameState.keys[e.key] = false; });
 
   function loop() {
