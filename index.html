@@ -3,857 +3,1016 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>NotTheBest | Games + Personality Paths</title>
+<title>Home | Games + Personality Paths</title>
 <style>
-  /* ==========================================================================
-     [1] SETUP & CORE STYLES
-     ========================================================================== */
-
-  /* --- CSS Variables for easy theme management --- */
   :root {
-    --glass: rgba(10, 10, 10, 0.6);
-    --glass-strong: rgba(0, 0, 0, 0.8);
+    --glass: rgba(0, 0, 0, 0.45);
+    --glass-strong: rgba(0, 0, 0, 0.6);
     --accent: #ff6f61;
     --accent-2: #7cf3d6;
-    --text-light: #ffffff;
-    --text-dark: #1c1e21;
-    --gap: 15px; /* Increased gap for better mobile spacing */
+    --cardW-desktop: 110px;
+    --cardH-desktop: 140px;
+    --gap: 12px;
   }
 
-  /* --- Global Reset --- */
   * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+    box-sizing: border-box; 
+    margin: 0; 
+    padding: 0; 
   }
-
-  /* --- Body and HTML Styling --- */
   html, body {
-    height: 100%;
-    width: 100%;
-    overflow: hidden; /* Prevent scrolling on the main page */
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: var(--text-light);
-    background: #000;
+    height: 100%; 
+    width: 100%; 
+    overflow: hidden; 
+    font-family: Arial, Helvetica, sans-serif; 
+    color: #fff; 
   }
 
-  /* --- Background Video and Overlay --- */
+  /* Background video */
   #bg-video {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    z-index: -2;
+    position: fixed; 
+    inset: 0; 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+    z-index: -2; 
   }
-
   .bg-overlay {
-    position: fixed;
-    inset: 0;
-    background: linear-gradient(0deg, var(--glass-strong), rgba(0, 0, 0, 0.45));
-    z-index: -1;
+    position: fixed; 
+    inset: 0; 
+    background: linear-gradient(0deg, var(--glass-strong), rgba(0, 0, 0, 0.35)); 
+    z-index: -1; 
   }
 
-  /* ==========================================================================
-     [2] OVERLAYS & POPUPS (Welcome, Outer Message, Game Over)
-     ========================================================================== */
-
+  /* 🚀 NEW: Welcome Modal & Overlay styles */
   .overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 100;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(10px);
-    text-align: center;
-    padding: 20px;
-    animation: fadeIn 0.5s ease;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(8px);
+      z-index: 999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      flex-direction: column;
+      padding: 20px;
   }
-  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-  .overlay-box {
-    background: var(--glass);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 20px;
-    padding: 30px;
-    max-width: 500px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  .overlay-content {
+      background: #10131a;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 500px;
+      font-size: 1.2em;
   }
-
-  .overlay-box h1 {
-    color: var(--accent-2);
-    margin-bottom: 15px;
-    text-shadow: 0 0 10px var(--accent-2);
+  .start-btn {
+      padding: 12px 24px;
+      margin-top: 20px;
+      font-size: 1.1em;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+      background: var(--accent-2);
+      color: #10131a;
+      cursor: pointer;
+      transition: transform 0.2s;
   }
-
-  .overlay-box p {
-    margin-bottom: 25px;
-    line-height: 1.6;
+  .start-btn:hover {
+      transform: scale(1.05);
   }
-
-  .overlay-box button {
-    padding: 12px 25px;
-    border-radius: 10px;
-    border: none;
-    background: var(--accent);
-    color: var(--text-light);
-    font-weight: bold;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-  }
-
-  .overlay-box button:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
-  }
-
-  #outer-message {
-    display: none; /* Initially hidden */
+  /* 🚀 NEW: Outside click message */
+  #outside-click-msg {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.85);
+      border: 1px solid var(--accent);
+      padding: 15px 25px;
+      border-radius: 10px;
+      font-weight: bold;
+      z-index: 998;
+      display: none;
   }
 
-  /* ==========================================================================
-     [3] MAIN LAYOUT - ROBUST & MOBILE FIRST
-     ========================================================================== */
-  
+  /* Layout */
   .wrap {
-    height: 100vh;
-    width: 100%;
-    display: flex;
-    /* Mobile First: A single column, scrollable layout */
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
-    gap: var(--gap);
-    padding: var(--gap);
-    overflow: auto;
+    height: 100vh; 
+    width: 100%; 
+    display: grid; 
+    grid-template-columns: 1fr 1fr; 
   }
 
   .left, .right {
-    width: 100%;
-    max-width: 700px;
+    position: relative; 
+    padding: 20px; 
+    overflow: hidden; 
   }
-
   .panel {
-    width: 100%;
-    background: var(--glass);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 20px;
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    height: 100%; 
+    width: 100%; 
+    background: var(--glass); 
+    backdrop-filter: blur(6px); 
+    border: 1px solid rgba(255, 255, 255, 0.12); 
+    border-radius: 20px; 
+    padding: 16px; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
   }
 
   .panel h2 {
-    font-weight: 900;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, .4);
-    margin-bottom: 10px;
-    text-align: center;
+    font-weight: 900; 
+    letter-spacing: .3px; 
+    text-shadow: 0 2px 8px rgba(0, 0, 0, .4); 
+    margin-bottom: 10px; 
   }
 
-  /* ==========================================================================
-     [4] MEMORY CARDS (UNO STYLE)
-     ========================================================================== */
-  
+  /* ===== LEFT: GAMES ===== */
+  .games-stage {
+    flex: 1; 
+    width: 100%; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: flex-start; 
+  }
+
+  /* 🚀 FIX: Memory board CSS */
   .memory-board {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: var(--gap);
+    display: grid; 
+    grid-template-columns: repeat(4, 1fr); 
+    grid-template-rows: repeat(4, 1fr);
+    gap: var(--gap); 
+    margin-top: 8px;
     width: 100%;
-    max-width: 500px;
-    aspect-ratio: 1;
-    margin: auto;
+    max-width: calc(4 * var(--cardW-desktop) + 3 * var(--gap));
+    aspect-ratio: 1; 
+    margin: 0 auto; 
+    overflow: hidden;
     padding: 8px;
   }
 
+  /* 🚀 NEW: Redesigned Card styles */
   .card {
-    aspect-ratio: 1;
-    perspective: 1000px;
-    cursor: pointer;
+    width: 100%; 
+    aspect-ratio: 1; 
+    perspective: 1000px; 
+    border-radius: 14px; 
+    position: relative; 
+    cursor: pointer; 
   }
-
   .card-inner {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    transform-style: preserve-3d;
-    transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+    position: absolute; 
+    inset: 0; 
+    border-radius: 14px; 
+    transform-style: preserve-3d; 
+    transition: transform 480ms cubic-bezier(.2, .65, .2, 1); 
   }
-
-  .card.flip .card-inner { transform: rotateY(180deg); }
-  .card.matched { animation: vanish 0.4s forwards; }
-  @keyframes vanish { 100% { transform: scale(0.9); opacity: 0; } }
-
+  .card.flip .card-inner { 
+    transform: rotateY(180deg); 
+  }
+  .card.matched { 
+    animation: vanish 360ms ease forwards; 
+  }
+  @keyframes vanish {
+    0% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(.85); opacity: 0; visibility: hidden; }
+  }
   .face {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    backface-visibility: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    border-radius: 10px;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+    position: absolute; 
+    inset: 0; 
+    border-radius: 14px; 
+    backface-visibility: hidden; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    padding: 10px; 
+    text-align: center; 
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35), inset 0 0 0 1px rgba(255, 255, 255, .06); 
   }
-
+  /* 🚀 Redesigned Card Back (UNO style) */
   .back {
-    background: radial-gradient(circle at 10% 20%, rgba(255,255,255,0.2), transparent),
-                conic-gradient(from 210deg at 50% 50%, #1a2a6c, #b21f1f, #fdbb2d, #1a2a6c);
-    font-size: clamp(30px, 8vw, 50px);
+    background: linear-gradient(135deg, #1A2A6C, #B21F1F, #FDBB2D);
+  }
+  .back .mark {
+    font-size: 80px;
     font-weight: 900;
-  }
-
-  .front {
-    transform: rotateY(180deg);
-    background: radial-gradient(circle, #4a4a4a, #1a1a1a);
-    font-weight: bold;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    padding: 8px;
-    position: relative;
-  }
-
-  .front-corner {
-    position: absolute;
-    font-size: 1.5em;
-    font-weight: bold;
-    line-height: 1;
-    text-shadow: 0 0 3px #000;
-  }
-  .top-left { top: 8px; left: 12px; }
-  .bottom-right { bottom: 8px; right: 12px; transform: rotate(180deg); }
-  .front-center {
-    font-size: clamp(12px, 2.5vw, 16px);
-    text-align: center;
-    padding: 0 1em;
-  }
-
-  /* ==========================================================================
-     [5] SPACE INVADERS & GAME MESSAGES
-     ========================================================================== */
-
-  .canvas-container {
-    position: relative;
-    width: 100%;
-    max-width: 560px;
-    aspect-ratio: 16 / 10;
-    margin-top: 10px;
-  }
-
-  .game-message-overlay {
-    position: absolute;
-    inset: 0;
-    display: none; /* Hidden by default */
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0,0,0,0.7);
-    backdrop-filter: blur(5px);
-    border-radius: 14px;
-    text-align: center;
-    padding: 20px;
-    z-index: 50;
-  }
-  .game-message-overlay h3 { font-size: 2em; color: var(--accent); }
-  .game-message-overlay button { margin-top: 20px; }
-
-  #siCanvas {
-    width: 100%;
-    height: 100%;
-    background: #000;
-    border-radius: 14px;
-    display: none; /* Hidden by default */
-    transition: transform 0.2s, filter 0.2s;
-  }
-
-  @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-5px) rotate(-1deg); }
-    75% { transform: translateX(5px) rotate(1deg); }
-  }
-
-  .level-badge {
-    margin-top: 10px;
-    font-weight: 800;
-    display: none;
-  }
-
-  #glitch-msg {
-    display: none;
-    text-align: center;
-    font-size: 1.5em;
-    font-weight: bold;
-    color: var(--accent-2);
-    text-shadow: 2px 2px var(--accent), -2px -2px #0f0;
-    animation: glitch-anim 0.8s infinite;
-  }
-  @keyframes glitch-anim {
-    0%{transform:translate(0)} 20%{transform:translate(-3px,3px)} 40%{transform:translate(-3px,-3px)}
-    60%{transform:translate(3px,3px)} 80%{transform:translate(3px,-3px)} 100%{transform:translate(0)}
-  }
-
-  /* ==========================================================================
-     [6] PERSONALITY PATHS (LOCKED STATE)
-     ========================================================================== */
-
-  .paths {
-    width: 100%;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-    align-content: center;
-    padding: 8px;
-    max-width: 600px;
-    margin: auto;
-  }
-
-  .path {
-    width: 100%;
-    aspect-ratio: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    background: rgba(255, 255, 255, .07);
-    border: 1px solid rgba(255, 255, 255, .16);
-    border-radius: 16px;
-    text-decoration: none;
     color: #fff;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
-    transition: all .18s ease;
+    text-shadow: 0 3px 8px rgba(0, 0, 0, 0.55);
+    letter-spacing: .03em;
   }
-  .path:hover {
-    transform: translateY(-3px);
-    border-color: var(--accent-2);
+  /* 🚀 Redesigned Card Front (UNO style) */
+  .front {
+    transform: rotateY(180deg); 
+    background: linear-gradient(135deg, #f0f0f0 0%, #d8d8d8 100%);
+    position: relative;
+    color: #10131a;
   }
-  .path .emoji {
-    font-size: clamp(30px, 8vw, 50px);
-    filter: drop-shadow(0 0 5px rgba(0,0,0,0.5));
+  .front::before, .front::after {
+      content: attr(data-uno-symbol);
+      position: absolute;
+      font-size: 1.5em;
+      font-weight: bold;
+      color: #10131a;
   }
-  .path .label {
-    font-weight: 800;
-    text-align: center;
-    font-size: 14px;
+  .front::before { top: 8px; left: 8px; }
+  .front::after { bottom: 8px; right: 8px; transform: rotate(180deg); }
+  .front .label {
+    font-weight: 800; 
+    line-height: 1.2; 
+    text-shadow: 0 2px 6px rgba(255, 255, 255, 0.5); 
+    font-size: 14px; 
+    color: #10131a;
   }
 
-  /* This is the crucial class for locking the paths */
-  .right.locked .paths {
-    filter: blur(5px);
-    pointer-events: none;
-    opacity: 0.6;
+  /* 🚀 NEW: Game messages & Game Over screen */
+  #gameMessage {
+      margin-top: 10px;
+      font-weight: bold;
+      color: #ff6f61;
+      text-shadow: 0 0 5px #ff6f61;
+      opacity: 0;
+      transition: opacity 1s ease-in-out;
+      min-height: 2em;
   }
-
-  #lock-message {
-    display: none;
-    color: var(--accent);
-    margin-top: 20px;
-    font-weight: bold;
-    text-align: center;
-  }
-  .right.locked #lock-message { display: block; }
-
-  /* ==========================================================================
-     [7] DESKTOP LAYOUT - Overrides mobile-first styles
-     ========================================================================== */
-
-  @media (min-width: 1024px) {
-    .wrap {
-      flex-direction: row;
+  #gameOverScreen {
+      display: none;
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.9);
+      backdrop-filter: blur(4px);
+      z-index: 10;
       justify-content: center;
       align-items: center;
+      flex-direction: column;
+      text-align: center;
+      font-size: 2em;
+      font-weight: bold;
+  }
+  #gameOverScreen button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 0.8em;
+      cursor: pointer;
+  }
+
+  /* 🚀 EDIT: Glitchy win message styles */
+  #glitch-msg {
+      display: none;
+      position: absolute;
+      inset: 0;
+      padding: 1em;
+      text-align: center;
+      font-size: 1.5em;
+      font-weight: bold;
+      color: #7cf3d6;
+      text-shadow: 2px 2px #ff6f61, -2px -2px #0f0;
+      animation: glitch-anim 0.8s infinite;
+      z-index: 10;
+  }
+  
+  @keyframes glitch-anim {
+    0% { transform: translate(0); text-shadow: 2px 2px #ff6f61, -2px -2px #0f0; }
+    20% { transform: translate(-3px, 3px); text-shadow: -2px -2px #ff6f61, 2px 2px #0f0; }
+    40% { transform: translate(-3px, -3px); text-shadow: 2px -2px #ff6f61, -2px 2px #0f0; }
+    60% { transform: translate(3px, 3px); text-shadow: -2px 2px #ff6f61, 2px -2px #0f0; }
+    80% { transform: translate(3px, -3px); text-shadow: 2px 2px #ff6f61, -2px -2px #0f0; }
+    100% { transform: translate(0); text-shadow: -2px 2px #ff6f61, 2px -2px #0f0; }
+  }
+
+  /* 🚀 NEW: Blur effect for right panel */
+  .right.blurred {
+      filter: blur(5px);
+      pointer-events: none;
+  }
+
+  /* ===== RIGHT: PERSONALITY PATHS ===== */
+  .paths {
+    width: 100%; 
+    flex: 1; 
+    display: grid; 
+    grid-template-columns: repeat(3, minmax(120px, 1fr)); 
+    gap: 16px; 
+    align-content: center; 
+    justify-items: center; 
+    padding: 8px;
+  }
+  .path {
+    width: 100%; 
+    height: 100%;
+    aspect-ratio: 1; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+    background: rgba(255, 255, 255, .07); 
+    border: 1px solid rgba(255, 255, 255, .16); 
+    border-radius: 16px; 
+    text-decoration: none; 
+    color: #fff; 
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .06), 0 8px 24px rgba(0, 0, 0, .25); 
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; 
+    overflow: hidden; 
+    position: relative; 
+  }
+  .path:hover {
+    transform: translateY(-3px); 
+    border-color: rgba(255, 255, 255, .28); 
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .12), 0 14px 32px rgba(0, 0, 0, .35); 
+  }
+  .path img {
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+    opacity: .9; 
+    position: absolute; 
+    inset: 0; 
+  }
+  .path .label {
+    z-index: 1; 
+    padding: 6px 10px; 
+    border-radius: 10px; 
+    background: rgba(0, 0, 0, .5); 
+    border: 1px solid rgba(255, 255, 255, .15); 
+    font-weight: 800; 
+    letter-spacing: .2px; 
+    text-align: center; 
+    max-width: 90%; 
+  }
+
+  .right .panel { 
+    justify-content: center; 
+  }
+  .right h2 { 
+    margin-bottom: 10px; 
+  }
+
+  /* Small screen tweaks */
+  @media (max-width: 1024px) {
+    .wrap { 
+      grid-template-columns: 1fr; 
+      grid-template-rows: 52% 48%; 
     }
-    .left, .right {
-      height: 100%;
-      max-height: 95vh;
+    .paths { 
+      grid-template-columns: repeat(2, 1fr); 
+      grid-auto-rows: auto;
+      gap: 10px; 
     }
-    .paths {
-      grid-template-columns: repeat(3, 1fr);
+    .path { 
+      border-radius: 14px; 
+    }
+    .right { 
+      padding-top: 10px; 
+    }
+    .memory-board {
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: repeat(4, 1fr);
+    }
+    .card { 
+      width: 100%; 
+      aspect-ratio: 1;
+    }
+    .front .label { 
+      font-size: 12px; 
+    }
+    .back .mark { 
+      font-size: 34px; 
+    }
+  }
+  @media (max-width: 560px) {
+    .paths { 
+      grid-template-columns: repeat(2, 1fr); 
+      grid-auto-rows: 96px; 
     }
   }
 </style>
 </head>
 <body>
 
-  <video id="bg-video" autoplay muted loop playsinline><source src="loop-bg.mp4" type="video/mp4"></video>
-  <div class="bg-overlay"></div>
-  <audio id="bg-music" loop><source src="running out of time.mp3" type="audio/mpeg"></audio>
-
   <div id="welcome-overlay" class="overlay">
-    <div class="overlay-box">
-      <h1>Hey, hi, hello!</h1>
-      <p>How are you doing? You can start exploring now. Complete the challenges on the left to unlock your personality path on the right.</p>
-      <button id="start-button">Start Exploring</button>
+    <div class="overlay-content">
+      <p>Hey hi hello how are you doing so basically you can start exploring now.</p>
+      <button id="start-btn" class="start-btn">Let's Get Started</button>
     </div>
   </div>
 
-  <div id="outer-message" class="overlay">
-    <div class="overlay-box">
-      <p id="random-message-text"></p>
-      <button id="close-outer-message">Got it</button>
-    </div>
-  </div>
+  <div id="outside-click-msg"></div>
+  
+  <video id="bg-video" autoplay muted loop playsinline>
+    <source src="loop-bg.mp4" type="video/mp4">
+  </video>
+  <div class="bg-overlay"></div>
 
-  <div class="wrap" id="main-content">
-    <section class="left" id="game-container">
+  <audio id="bg-music" loop>
+    <source src="running out of time.mp3" type="audio/mpeg">
+  </audio>
+
+  <div class="wrap">
+    <section class="left">
       <div class="panel">
-        <h2>The Challenges</h2>
-        <div id="memoryBoard" class="memory-board"></div>
-        <div class="canvas-container">
-            <canvas id="siCanvas"></canvas>
-            <div id="gameOverScreen" class="game-message-overlay">
-                <h3>GAME OVER</h3>
-                <button id="tryAgainBtn">Try Again</button>
-            </div>
-            <div id="winScreen" class="game-message-overlay">
-                <div id="glitch-msg">You weren’t supposed to beat this… but here you are. NotTheBest, but still alive.</div>
-                <div id="final-win-message" style="display:none; font-size: 1.1em; line-height: 1.5;"></div>
-            </div>
-        </div>
+        <h2>Memory Game</h2>
+        <div id="memoryBoard" class="memory-board" aria-label="Memory Game Board"></div>
+        <div id="intermission" class="intermission">Not yet over…</div>
+        <canvas id="siCanvas"></canvas>
+        <div id="gameMessage"></div>
         <div id="levelBadge" class="level-badge"></div>
+
+        <div id="gameOverScreen">
+            <p>GAME OVER</p>
+            <button id="tryAgainBtn">Try Again</button>
+        </div>
+
+        <div id="glitch-msg">
+          You weren’t supposed to beat this… but here you are. NotTheBest, but still alive.
+        </div>
+        <div id="finalMsg" class="final-message">
+          Congratulations on playing these beautifully coded games in this beautifully coded website. Thank you for staying till here.<br/><br/>
+          One suggestion: if you want to stay and visit the personality path and find your outfit, do it. If you don’t want, then just leave… it’s your option.<br/><br/>
+          <strong>But… you actually can’t exit until you choose a personality path 😇</strong>
+        </div>
       </div>
     </section>
-    <section class="right locked" id="right-panel">
+
+    <section class="right" id="right-panel">
       <div class="panel">
-        <h2>Choose Your Path</h2>
-        <div id="lock-message">Complete the challenges first to unlock your path.</div>
+        <h2>Choose Your Personality Path</h2>
         <div class="paths">
-          <a class="path" href="allout-q1.html"><span class="emoji">💥</span><span class="label">All Out</span></a>
-          <a class="path" href="somewhatout-q1.html"><span class="emoji">🤔</span><span class="label">Somewhat Out</span></a>
-          <a class="path" href="maybe-q1.html"><span class="emoji">🤷</span><span class="label">Maybe</span></a>
-          <a class="path" href="never-q1.html"><span class="emoji">🚫</span><span class="label">Never</span></a>
-          <a class="path" href="twosides-q1.html"><span class="emoji">☯️</span><span class="label">Two Sides</span></a>
+          <a class="path" href="allout-q1.html" data-path="allout">
+            <img src="allout.jpg" alt="All Out"/>
+            <span class="label">All Out</span>
+          </a>
+          <a class="path" href="somewhatout-q1.html" data-path="somewhatout">
+            <img src="somewhatout.jpg" alt="Somewhat Out"/>
+            <span class="label">Somewhat Out</span>
+          </a>
+          <a class="path" href="maybe-q1.html" data-path="maybe">
+            <img src="maybe.jpg" alt="Maybe"/>
+            <span class="label">Maybe</span>
+          </a>
+          <a class="path" href="never-q1.html" data-path="never">
+            <img src="never.jpg" alt="Never"/>
+            <span class="label">Never</span>
+          </a>
+          <a class="path" href="twosides-q1.html" data-path="twosides">
+            <img src="twosides.jpg" alt="Two Sides of the Same Coin"/>
+            <span class="label">Two Sides</span>
+          </a>
         </div>
       </div>
     </section>
   </div>
 
 <script>
-/**
- * ==================================================================================
- * EXTREMELY DETAILED JAVASCRIPT LOGIC - FINAL VERSION
- *
- * This script is intentionally long and heavily commented to ensure every single
- * feature is implemented correctly and is easy to understand.
- *
- * It is broken down into four main parts:
- * 1. App Controller: Manages the overall page state and user flow.
- * 2. Memory Game: Logic for the card-matching game.
- * 3. Space Invaders: The complete, detailed logic for the 8-level arcade game.
- * 4. Helper Functions: Reusable utility functions.
- * ==================================================================================
- */
+/* ==========================================================
+    🚀 NEW: Initial Load, User Flow & Interaction Logic (Part A)
+   ========================================================== */
+const welcomeOverlay = document.getElementById('welcome-overlay');
+const startBtn = document.getElementById('start-btn');
+const bgVideo = document.getElementById('bg-video');
+const bgMusic = document.getElementById('bg-music');
+const rightPanel = document.getElementById('right-panel');
+const outsideClickMsg = document.getElementById('outside-click-msg');
+const mainWrap = document.querySelector('.wrap');
+let outsideClicks = 0;
 
-// This main function wraps all our code to ensure it only runs after the page's HTML is fully loaded.
-document.addEventListener('DOMContentLoaded', () => {
-
-  /**
-   * ----------------------------------------------------------------
-   * PART 1: APP CONTROLLER & STATE MANAGEMENT
-   * This is the brain of the application. It controls the user's
-   * entire journey from the welcome screen to the final choice.
-   * ----------------------------------------------------------------
-   */
-
-  // This object is the single source of truth for the application's state.
-  const appState = {
-    gamesDone: JSON.parse(localStorage.getItem('gamesDone')) || false,
-    pathChosen: JSON.parse(localStorage.getItem('pathChosen')) || false,
-    outsideClicks: 0,
-    flowStarted: false,
-  };
-
-  // Store all DOM element references in one place for performance and clarity.
-  const DOM = {
-    audio: document.getElementById('bg-music'),
-    video: document.getElementById('bg-video'),
-    rightPanel: document.getElementById('right-panel'),
-    gameContainer: document.getElementById('game-container'),
-    welcomeOverlay: document.getElementById('welcome-overlay'),
-    startButton: document.getElementById('start-button'),
-    outerMessage: document.getElementById('outer-message'),
-    paths: document.querySelectorAll('.path'),
-    lockMessage: document.getElementById('lock-message')
-  };
-
-  let hasInteracted = false; // Tracks if the user has clicked at least once.
-
-  // --- Initial Page Setup ---
-  // Check if the welcome screen has been shown in this browser session.
-  if (sessionStorage.getItem('welcomeShown')) {
-    DOM.welcomeOverlay.style.display = 'none';
-    appState.flowStarted = true;
-  }
-  // Check if games were already completed in a previous visit. If so, unlock the paths.
-  if (appState.gamesDone) {
-      DOM.rightPanel.classList.remove('locked');
-  }
-
-  // --- Core Event Listeners (User Flow Control) ---
-  
-  /**
-   * This is the main entry point for the user. Clicking the start button
-   * initiates the entire experience and handles browser media autoplay policies.
-   */
-  DOM.startButton.addEventListener('click', () => {
-    DOM.welcomeOverlay.style.display = 'none';
-    sessionStorage.setItem('welcomeShown', 'true');
-    appState.flowStarted = true;
-    if (!hasInteracted) { 
-        hasInteracted = true; 
-        setupAudioAndVideo();
-    }
-  });
-  
-  /**
-   * This listener enforces the "focus" rule. If the user clicks outside the
-   * designated content areas during the game phase, it shows a warning.
-   * After 5 warnings, it reloads the page as a penalty.
-   */
-  document.body.addEventListener('click', (event) => {
-    // Determine if the click was inside a valid interactive area.
-    const isInsideContent = DOM.gameContainer.contains(event.target) || DOM.rightPanel.contains(event.target);
-    const isWelcomeClick = DOM.welcomeOverlay.contains(event.target);
-
-    // This logic only runs AFTER the welcome screen is gone AND BEFORE the games are won.
-    if (appState.flowStarted && !isInsideContent && !appState.gamesDone && !isWelcomeClick) {
-      appState.outsideClicks++;
-      if (appState.outsideClicks > 5) {
-        // Penalty for not focusing: reload the entire page.
-        location.reload();
-        return;
-      }
-      document.getElementById('random-message-text').textContent = "explore inside the container not outside it because just a plain looping bg is there. focus bro";
-      DOM.outerMessage.style.display = 'flex';
-    }
-  });
-
-  document.getElementById('close-outer-message').addEventListener('click', () => {
-    DOM.outerMessage.style.display = 'none';
-  });
-  
-  // Fallback for starting media if the welcome screen was already dismissed.
-  document.body.addEventListener('pointerdown', () => {
-    if (!hasInteracted && sessionStorage.getItem('welcomeShown')) { hasInteracted = true; setupAudioAndVideo(); }
-  });
-
-  /**
-   * Handles clicks on the personality paths, checking if they are unlocked.
-   * If the game isn't finished, it prevents navigation and gives a visual "shake" cue.
-   * If the game IS finished, it allows navigation and sets the state for the exit prompt.
-   */
-  DOM.paths.forEach(pathLink => pathLink.addEventListener('click', event => {
-    if (!appState.gamesDone) {
-        event.preventDefault(); // Stop navigation if locked.
-        DOM.lockMessage.style.transition = 'transform 0.2s ease';
-        DOM.lockMessage.style.transform = 'scale(1.1)'; // Give visual feedback.
-        setTimeout(() => DOM.lockMessage.style.transform = 'scale(1)', 200);
-    } else {
-        appState.pathChosen = true;
-        localStorage.setItem('pathChosen', 'true');
-        // The link will now navigate as normal.
-    }
-  }));
-
-  /**
-   * The final exit blocker. It checks if the user has won the game but hasn't
-   * yet chosen a path. If so, it displays the custom warning message.
-   */
-  window.onbeforeunload = () => {
-    if (appState.gamesDone && !appState.pathChosen) {
-        return "Not so fast internet warrior, complete what you started";
-    }
-    return null; // Return null to allow exiting freely.
-  };
-
-  /**
-   * Function to handle starting the background media.
-   * This is tied to the first user interaction to comply with browser policies.
-   */
-  function setupAudioAndVideo() {
-    // Attempt to play audio. It will work because this is called after a user click.
-    DOM.audio.play().catch(e => console.error("Audio play failed:", e));
-    
-    // Resume from saved time if available.
-    const savedTime = localStorage.getItem('music-time');
-    if (savedTime) DOM.audio.currentTime = parseFloat(savedTime);
-    
-    // Periodically save music time to local storage.
-    setInterval(() => { if (!DOM.audio.paused) localStorage.setItem('music-time', DOM.audio.currentTime); }, 600);
-  }
-
-  /**
-   * ==================================================================================
-   * PART 2: MEMORY GAME LOGIC
-   * ==================================================================================
-   */
-  const designNames = ["Notthebest OG", "Initial D", "Lorem Ipsum", "Your Toast", "Grapefruit x Lime", "Cake Was A Lie", "Berserk", "RANDOMODIUM"];
-  const memoryBoard = document.getElementById('memoryBoard');
-  const unoSymbols = ['🚫', '🔄', '+2', '+4', '🎨', '0', '1', '5'];
-  let deck = [...designNames, ...designNames].map((name, i) => ({ id: i, name, symbol: unoSymbols[i % unoSymbols.length] }));
-  shuffleArray(deck);
-  let flippedCards = [], matchedPairs = 0;
-
-  deck.forEach(cardData => {
-    const cardEl = document.createElement('div'); cardEl.className = 'card';
-    cardEl.innerHTML = `
-        <div class="card-inner">
-            <div class="face back">N</div>
-            <div class="face front" data-name="${cardData.name}">
-                <div class="front-corner top-left">${cardData.symbol}</div>
-                <div class="front-center">${cardData.name}</div>
-                <div class="front-corner bottom-right">${cardData.symbol}</div>
-            </div>
-        </div>`;
-    cardEl.addEventListener('click', () => handleCardFlip(cardEl, cardData.name));
-    memoryBoard.appendChild(cardEl);
-  });
-
-  function handleCardFlip(cardEl, name) {
-    if (flippedCards.length === 2 || cardEl.classList.contains('flip')) return;
-    cardEl.classList.add('flip');
-    flippedCards.push({ el: cardEl, name });
-    if (flippedCards.length === 2) {
-      const [first, second] = flippedCards;
-      if (first.name === second.name) {
-        matchedPairs++;
-        setTimeout(() => {
-          first.el.classList.add('matched'); second.el.classList.add('matched');
-          if (matchedPairs === designNames.length) startSpaceInvaders();
-        }, 400);
-        flippedCards = [];
-      } else {
-        setTimeout(() => { first.el.classList.remove('flip'); second.el.classList.remove('flip'); flippedCards = []; }, 1200);
-      }
-    }
-  }
-
-  /**
-   * ==================================================================================
-   * PART 3: SPACE INVADERS - THE COMPLETE, DETAILED GAME
-   * ==================================================================================
-   */
-  const siCanvas = document.getElementById('siCanvas');
-  const levelBadge = document.getElementById('levelBadge');
-  const gameOverScreen = document.getElementById('gameOverScreen');
-  const winScreen = document.getElementById('winScreen');
-  const tryAgainBtn = document.getElementById('tryAgainBtn');
-  const levelConfig = [
-    { name: "Notthebest OG", rows: 2, speed: 1, fireRate: 0.005, alienType: 'normal' },
-    { name: "Initial D", rows: 2, speed: 1.5, fireRate: 0.007, alienType: 'zigzag' },
-    { name: "Lorem Ipsum", rows: 3, speed: 1.4, fireRate: 0.009, alienType: 'text' },
-    { name: "Your Toast", rows: 3, speed: 1.8, fireRate: 0.012, alienType: 'toaster', special: 'bread-bullets' },
-    { name: "Grapefruit x Lime", rows: 4, speed: 1.6, fireRate: 0.01, alienType: 'normal', special: 'lemons' },
-    { name: "Cake Was A Lie", rows: 4, speed: 2.2, fireRate: 0.015, alienType: 'cupcake' },
-    { name: "Berserk", rows: 5, speed: 2.8, fireRate: 0.025, alienType: 'aggressive' },
-    { name: "RANDOMODIUM", rows: 5, speed: 3.0, fireRate: 0.03, alienType: 'chaotic', special: 'chaos' }
-  ];
-  let ctx, W, H, gameState, animationFrameId;
-
-  tryAgainBtn.addEventListener('click', startSpaceInvaders);
-
-  function startSpaceInvaders() {
-    memoryBoard.style.display = 'none';
-    gameOverScreen.style.display = 'none'; winScreen.style.display = 'none';
-    siCanvas.style.display = 'block'; levelBadge.style.display = 'block';
-    ctx = siCanvas.getContext('2d'); W = 560; H = 350;
-    siCanvas.width = W; siCanvas.height = H;
-    gameState = {
-      player: { ship: { x: W/2-14, y: H-35, w: 28, h: 20, speed: 5 }, lives: 3, invincibleTimer: 0, lastShotTime: 0 },
-      bullets: [], aliens: [], alienBullets: [], lemons: [], chaos: [],
-      alienDx: 1, tick: 0, keys: {}, playing: true, level: -1,
-      effects: { shake: 0, invis: 0, invert: 0, tilt: 0, cash: 0 },
-      message: { text: '', timer: 0 }
-    };
-    setLevel(0); 
-    if (animationFrameId) cancelAnimationFrame(animationFrameId);
-    loop();
-  }
-
-  function setLevel(idx) {
-    if (idx >= levelConfig.length) { endSpaceInvaders(true); return; }
-    gameState.level = idx;
-    const config = levelConfig[idx];
-    levelBadge.textContent = `Level ${idx + 1} — ${config.name}`;
-    gameState.aliens = [];
-    for (let r = 0; r < config.rows; r++) {
-      for (let c = 0; c < 11; c++) {
-        gameState.aliens.push({ x: 30+c*42, y: 40+r*30, w: 24, h: 18, alive: true, type: config.alienType, originalX: 30+c*42 });
-      }
-    }
-    gameState.alienDx = config.speed;
-    gameState.bullets = []; gameState.alienBullets = []; gameState.lemons = []; gameState.chaos = [];
-    if (config.special === 'lemons') {
-      for (let i=0; i<7; i++) gameState.lemons.push({ x: Math.random()*W, y: Math.random()*(H/2)+20, w: 12, h: 16 });
-    }
-  }
-  
-  // This large object contains all the custom drawing functions for game entities.
-  const sprites = {
-    ship: s => { if(gameState.player.invincibleTimer>0 && gameState.tick%10<5) return; ctx.fillStyle="#7cf3d6"; ctx.beginPath(); ctx.moveTo(s.x+s.w/2,s.y); ctx.lineTo(s.x+s.w,s.y+s.h); ctx.lineTo(s.x,s.y+s.h); ctx.closePath(); ctx.fill(); },
-    normal: a => { ctx.fillStyle="#aaffaa"; ctx.beginPath(); ctx.moveTo(a.x+a.w/2,a.y); ctx.lineTo(a.x+a.w,a.y+a.h/2); ctx.lineTo(a.x,a.y+a.h/2); ctx.closePath(); ctx.fill(); ctx.fillRect(a.x+a.w/4, a.y+a.h/2, a.w/2, a.h/2); },
-    zigzag: a => { ctx.fillStyle="#7cf3d6"; ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(a.x+a.w,a.y+a.h/2); ctx.lineTo(a.x,a.y+a.h); ctx.closePath(); ctx.fill(); },
-    text: a => { ctx.font="14px monospace"; ctx.fillStyle="#fff"; ctx.fillText("ipsüm",a.x,a.y+14); },
-    toaster: a => { ctx.fillStyle="#b0b0b0"; ctx.fillRect(a.x,a.y,a.w,a.h); ctx.fillStyle="#444"; ctx.fillRect(a.x+a.w/2-3,a.y-2,6,4); ctx.fillStyle="#222"; ctx.fillRect(a.x+5,a.y+5,a.w-10,4);},
-    cupcake: a => { ctx.fillStyle="#634832"; ctx.fillRect(a.x,a.y+a.h/2,a.w,a.h/2); ctx.fillStyle="#e6a4b4"; ctx.beginPath(); ctx.arc(a.x+a.w/2,a.y+a.h/2,a.w/2,Math.PI,2*Math.PI); ctx.fill(); ctx.fillStyle="red"; ctx.beginPath(); ctx.arc(a.x+a.w/2,a.y+3,2,0,7); ctx.fill(); },
-    aggressive: a => { ctx.fillStyle="#ff6f61"; ctx.beginPath(); ctx.moveTo(a.x,a.y+a.h); ctx.lineTo(a.x+a.w/2,a.y); ctx.lineTo(a.x+a.w,a.y+a.h); ctx.lineTo(a.x+a.w*0.8,a.y+a.h*0.8); ctx.lineTo(a.x+a.w*0.2,a.y+a.h*0.8); ctx.closePath(); ctx.fill(); },
-    chaotic: a => { ctx.fillStyle=`hsl(${gameState.tick%360},100%,50%)`; ctx.fillRect(a.x,a.y,a.w,a.h);},
-    book: o => { ctx.fillStyle="#8B4513"; ctx.fillRect(o.x,o.y,30,40);},
-    cash: o => { ctx.fillStyle="#228B22"; ctx.fillRect(o.x,o.y,50,25);},
-    question: o => { ctx.font="30px bold"; ctx.fillStyle="yellow"; ctx.fillText("?",o.x,o.y+30);},
-    donut: o => { ctx.fillStyle="#FFB6C1"; ctx.beginPath(); ctx.arc(o.x,o.y,20,0,7); ctx.fill(); ctx.fillStyle="#000"; ctx.beginPath(); ctx.arc(o.x,o.y,10,0,7); ctx.fill();},
-    glass: o => { ctx.fillStyle="#000"; ctx.fillRect(o.x,o.y,40,15);},
-    blob: o => { ctx.fillStyle="cyan"; ctx.beginPath(); ctx.arc(o.x,o.y,o.size,0,7); ctx.fill();}
-  };
-
-  // The main game update function, called every frame.
-  function update() {
-    if (!gameState.playing) return;
-    const now = Date.now();
-    gameState.tick++;
-    const { player, keys, aliens, alienBullets, bullets, chaos, lemons, effects, message } = gameState;
-    const config = levelConfig[gameState.level];
-    if (player.invincibleTimer > 0) player.invincibleTimer--;
-    if (keys['ArrowLeft']) player.ship.x = Math.max(0, player.ship.x - player.ship.speed);
-    if (keys['ArrowRight']) player.ship.x = Math.min(W - player.ship.w, player.ship.x + player.ship.speed);
-    if (keys[' '] && now - player.lastShotTime > 150) { // UNLIMITED BULLETS with cooldown
-        player.lastShotTime = now;
-        const spec = config.special;
-        bullets.push({ x: player.ship.x + player.ship.w/2 - (spec==='bread-bullets'?8:2), y: player.ship.y, w: spec==='bread-bullets'?16:4, h: spec==='bread-bullets'?16:10 });
-    }
-    
-    let wallHit = false;
-    aliens.forEach(a => {
-      if (!a.alive) return;
-      if (config.alienType === 'zigzag') a.x = a.originalX + Math.sin((gameState.tick + a.originalX) * 0.05) * 50;
-      else if (config.alienType === 'chaotic') a.x += (Math.random() - 0.5) * gameState.alienDx;
-      else a.x += gameState.alienDx;
-      if (a.x < 0 || a.x + a.w > W) wallHit = true;
-      if (a.y + a.h >= player.ship.y) { if(player.invincibleTimer === 0) { player.lives--; player.invincibleTimer = 120; if (player.lives <= 0) endSpaceInvaders(false); } a.alive = false; }
-    });
-    if (wallHit && config.alienType !== 'zigzag') { gameState.alienDx *= -1; aliens.forEach(a => a.y += 15); }
-    
-    if (Math.random() < config.fireRate) {
-      const active = aliens.filter(a => a.alive);
-      if (active.length > 0) {
-        const shooter = active[Math.floor(Math.random() * active.length)];
-        alienBullets.push({ x: shooter.x + shooter.w/2-2, y: shooter.y+shooter.h, w: 4, h: 10 });
-      }
-    }
-    
-    if (config.special === 'chaos') {
-      if (Math.random() < 0.015) { const types = ['book','cash','question','donut','glass','blob']; chaos.push({ type: types[Math.floor(Math.random()*types.length)], x: Math.random()*W, y: -50, dy: 1+Math.random(), size: 10+Math.random()*10 }); }
-      if (Math.random() < 0.001) effects.invert = 120;
-      if (Math.random() < 0.001) effects.tilt = 120;
-      if (Math.random() < 0.0005 && audio.duration > 0) { audio.currentTime = Math.random() * audio.duration; }
-    }
-    Object.keys(effects).forEach(e => { if (effects[e]>0) effects[e]--; });
-    
-    if (message.timer > 0) message.timer--; else message.text = '';
-    if (gameState.tick % 900 === 0 && aliens.length > 0) {
-        const msgs = ["what you doing", "complete it bro", "you dont have all day", "choose persistence over consistency"];
-        message.text = msgs[Math.floor(Math.random() * msgs.length)];
-        message.timer = 180;
-    }
-    
-    bullets.forEach(b => b.y -= 7); alienBullets.forEach(b => b.y += 4); [...chaos, ...lemons].forEach(o => o.y += (o.dy || 0.5));
-    chaos.forEach(o => { if(o.type==='blob') o.size += Math.sin(gameState.tick*0.1); });
-
-    for (let i = bullets.length - 1; i >= 0; i--) {
-      const b = bullets[i]; let hit = false;
-      for (const a of aliens) { if (a.alive && rect(b,a)) { a.alive = false; hit = true; break; }}
-      if(hit){ bullets.splice(i, 1); continue; }
-      for (const l of lemons) { if (rect(b,l)) { hit = true; break; }}
-      if(hit){ bullets.splice(i, 1); continue; }
-      for (const o of chaos) { if (rect(b,o)) { if (['book','donut','blob'].includes(o.type)) hit = true; if (o.type === 'question') { effects.shake=30; o.y=H+50; } } }
-      if (hit) bullets.splice(i, 1);
-    }
-    for (let i = alienBullets.length - 1; i >= 0; i--) {
-      const b = alienBullets[i];
-      if (player.invincibleTimer === 0 && rect(b, player.ship)) { player.lives--; player.invincibleTimer = 120; alienBullets.splice(i, 1); if (player.lives <= 0) endSpaceInvaders(false); break; }
-    }
-    for (let i = chaos.length - 1; i >= 0; i--) {
-      const o = chaos[i];
-      if (rect(o, player.ship)) { if (o.type === 'cash') effects.cash = 120; if (o.type === 'glass') effects.invis = 180; chaos.splice(i, 1); }
-    }
-
-    if (aliens.every(a => !a.alive)) setLevel(gameState.level + 1);
-  }
-
-  // The main game draw function, called every frame.
-  function draw() {
-    if (!gameState || !gameState.playing) return;
-    const { player, bullets, aliens, alienBullets, chaos, lemons, effects, message } = gameState;
-    ctx.clearRect(0, 0, W, H); ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, H);
-    siCanvas.style.filter = effects.invert > 0 ? 'invert(1)' : 'none';
-    siCanvas.style.transform = effects.tilt > 0 ? `rotate(${Math.sin(gameState.tick*0.2)}deg)` : 'none';
-    siCanvas.style.animation = effects.shake > 0 ? 'shake 0.1s infinite' : 'none';
-
-    sprites.ship(player.ship);
-    bullets.forEach(b => { ctx.fillStyle = levelConfig[gameState.level].special==='bread-bullets' ? '#D2B48C' : '#7cf3d6'; ctx.fillRect(b.x, b.y, b.w, b.h); });
-    alienBullets.forEach(b => { ctx.fillStyle = "#ff6f61"; ctx.fillRect(b.x, b.y, b.w, b.h); });
-    lemons.forEach(l => { ctx.fillStyle = "yellow"; ctx.fillRect(l.x, l.y, l.w, l.h); });
-    chaos.forEach(o => sprites[o.type](o));
-    if (effects.invis === 0) aliens.forEach(a => { if (a.alive) sprites[a.type](a); });
-    if (effects.cash > 0) { ctx.fillStyle="#228B22"; ctx.font="bold 60px sans-serif"; ctx.fillText("$!#%", W/4, H/2); }
-    ctx.fillStyle="#fff"; ctx.font="18px monospace";
-    ctx.fillText(`LIVES: ${player.lives}`, 10, 25);
-    ctx.textAlign="right"; ctx.fillText(`LEVEL ${gameState.level+1}`, W-10, 25);
-    ctx.textAlign="left";
-    if (message.timer > 0) { ctx.font="bold 24px sans-serif"; ctx.fillStyle="rgba(255,255,255,0.7)"; ctx.textAlign="center"; ctx.fillText(message.text, W/2, H/2); ctx.textAlign="left"; }
-  }
-
-  // Handles the end of the game, for both winning and losing.
-  function endSpaceInvaders(didWin) {
-    gameState.playing = false;
-    cancelAnimationFrame(animationFrameId);
-    levelBadge.style.display = 'none';
-    if (didWin) {
-      winScreen.style.display = 'flex';
-      document.getElementById('glitch-msg').style.display = 'block';
-      const finalWinMsg = document.getElementById('final-win-message');
-      finalWinMsg.style.display = 'none';
-      setTimeout(() => {
-          document.getElementById('glitch-msg').style.display = 'none';
-          finalWinMsg.innerHTML = "Congratulations on finishing these beautifully coded games... You can stay here, explore the personality path, get your outfit, or you can leave everything behind... It's your choice.";
-          finalWinMsg.style.display = 'block';
-      }, 4000);
-      appState.gamesDone = true;
-      localStorage.setItem('gamesDone', 'true');
-      rightPanel.classList.remove('locked');
-    } else {
-      gameOverScreen.style.display = 'flex';
-    }
-  }
-  
-  // --- Game Input Handlers ---
-  window.addEventListener('keydown', (e) => { if (gameState && gameState.playing) { e.preventDefault(); gameState.keys[e.key] = true; }});
-  window.addEventListener('keyup', (e) => { if (gameState) gameState.keys[e.key] = false; });
-
-  // The main animation loop.
-  function loop() {
-    if (!gameState.playing) return;
-    update();
-    draw();
-    animationFrameId = requestAnimationFrame(loop);
-  }
-
-  /**
-   * ==================================================================================
-   * PART 4: UTILITY FUNCTIONS
-   * ==================================================================================
-   */
-  // A simple collision detection function for two rectangles.
-  function rect(a, b) { return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
-
+// Show the welcome message on page load
+window.addEventListener('load', () => {
+    welcomeOverlay.style.display = 'flex';
+    rightPanel.classList.add('blurred');
 });
+
+// Start button functionality
+startBtn.addEventListener('click', () => {
+    welcomeOverlay.style.display = 'none';
+    bgVideo.play();
+    setupAudio();
+});
+
+// Outside click logic
+document.addEventListener('click', (e) => {
+    if (welcomeOverlay.style.display === 'flex') return;
+    if (!mainWrap.contains(e.target) || rightPanel.contains(e.target) && !rightPanel.classList.contains('unlocked')) {
+        outsideClicks++;
+        outsideClickMsg.textContent = "explore inside the container not outside it because just a plain looping bg is there. focus bro";
+        outsideClickMsg.style.display = 'block';
+
+        setTimeout(() => {
+            outsideClickMsg.style.display = 'none';
+        }, 2000);
+
+        if (outsideClicks >= 6) {
+            location.reload(); // Force a full page reload
+        }
+    }
+});
+
+/* =========================
+    MUSIC: resume across pages
+    ========================= */
+let hasInteracted = false;
+function setupAudio() {
+  const audio = document.getElementById('bg-music');
+  if (!audio) return;
+  const saved = localStorage.getItem('music-time');
+  if (saved) audio.currentTime = parseFloat(saved);
+  audio.play().catch(() => { /* will start on first user gesture */ });
+  setInterval(() => { if (!audio.paused) localStorage.setItem('music-time', audio.currentTime); }, 600);
+  window.addEventListener('beforeunload', () => localStorage.setItem('music-time', audio.currentTime));
+}
+window.addEventListener('pointerdown', () => {
+  if (!hasInteracted) { hasInteracted = true; setupAudio(); }
+}, { once: true });
+
+/* ==========================================
+    🚀 EDIT: EXIT BLOCK: require path selection to leave
+    ========================================== */
+let hasChosenPath = false;
+function pathChosen() { return hasChosenPath || localStorage.getItem('pathChosen') === 'true'; }
+window.onbeforeunload = function () {
+  if (!pathChosen()) {
+    return "Not so fast internet warrior, complete what you started"; 
+  }
+};
+document.querySelectorAll('.path').forEach(a => {
+  a.addEventListener('click', () => {
+    hasChosenPath = true;
+    localStorage.setItem('pathChosen', 'true');
+  });
+});
+
+/* =========================
+    🚀 NEW: MEMORY GAME (16 cards)
+    ========================= */
+const designNames = [
+  "Notthebest OG", "Initial D", "Lorem Ipsum", "Your Toast",
+  "Grapefruit x Lime", "Cake Was A Lie", "Berserk", "RANDOMODIUM"
+];
+const unoSymbols = ["🚫", "🔄", "+2", "+4", "🎨", "0", "1", "5"];
+
+const board = document.getElementById('memoryBoard');
+let deck = [...designNames, ...designNames].map((name, i) => ({ id: i, name, uno: unoSymbols[i % unoSymbols.length] }));
+shuffle(deck);
+
+let flipped = [];
+let matchedPairs = 0;
+
+deck.forEach(card => {
+  const el = document.createElement('div');
+  el.className = 'card';
+  el.setAttribute('role', 'button');
+  el.setAttribute('aria-label', `Memory card for ${card.name}`);
+  el.innerHTML = `
+    <div class="card-inner">
+      <div class="face back"><div class="mark">N</div></div>
+      <div class="face front" data-uno-symbol="${card.uno}">
+        <div class="label">${card.name}</div>
+      </div>
+    </div>
+  `;
+  el.addEventListener('click', () => onFlip(el, card.name));
+  board.appendChild(el);
+});
+
+function onFlip(el, name) {
+  if (el.classList.contains('flip') || el.classList.contains('matched')) return;
+  if (flipped.length === 2) return;
+
+  el.classList.add('flip');
+  flipped.push({ el, name });
+
+  if (flipped.length === 2) {
+    const [a, b] = flipped;
+    const isMatch = a.name === b.name;
+    if (isMatch) {
+      setTimeout(() => {
+        a.el.classList.add('matched');
+        b.el.classList.add('matched');
+        matchedPairs += 1;
+        flipped = [];
+        if (matchedPairs === designNames.length) {
+          showIntermissionThenSpaceInvaders();
+        }
+      }, 380);
+    } else {
+      setTimeout(() => {
+        a.el.classList.remove('flip');
+        b.el.classList.remove('flip');
+        flipped = [];
+      }, 850);
+    }
+  }
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
+/* ==================================================
+    🚀 FINAL: SPACE INVADERS (8 levels)
+   ================================================== */
+const siCanvas = document.getElementById('siCanvas');
+const levelBadge = document.getElementById('levelBadge');
+const intermission = document.getElementById('intermission');
+const finalMsg = document.getElementById('finalMsg');
+const glitchMsg = document.getElementById('glitch-msg');
+const gameMessageDiv = document.getElementById('gameMessage');
+const gameOverScreen = document.getElementById('gameOverScreen');
+const tryAgainBtn = document.getElementById('tryAgainBtn');
+
+const levelConfig = [
+  { name: "Notthebest OG", rows: 2, speed: 1.5, fireRate: 0.005, alienType: 'normal', special: null },
+  { name: "Initial D", rows: 2, speed: 2, fireRate: 0.007, alienType: 'zigzag', special: null },
+  { name: "Lorem Ipsum", rows: 3, speed: 1.8, fireRate: 0.01, alienType: 'text', special: null },
+  { name: "Your Toast", rows: 3, speed: 2, fireRate: 0.012, alienType: 'toaster', special: 'bread-bullets' },
+  { name: "Grapefruit x Lime", rows: 4, speed: 1.8, fireRate: 0.01, alienType: 'normal', special: 'lemons' },
+  { name: "Cake Was A Lie", rows: 4, speed: 2.2, fireRate: 0.015, alienType: 'cupcake', special: null },
+  { name: "Berserk", rows: 5, speed: 2.8, fireRate: 0.02, alienType: 'aggressive', special: null },
+  { name: "RANDOMODIUM", rows: 6, speed: 3, fireRate: 0.025, alienType: 'chaotic', special: 'chaos' }
+];
+
+let ctx, W, H, animId;
+let ship, playerBullets, aliens, alienBullets, alienDx;
+let tick, keys, playing, currentLevel, lemons, chaosObjects;
+let messageCount, messageTimer, lastShotTime = 0;
+
+function showIntermissionThenSpaceInvaders() {
+  intermission.style.display = 'inline-block';
+  setTimeout(() => {
+    intermission.style.display = 'none';
+    startSpaceInvaders();
+  }, 5000);
+}
+
+function startSpaceInvaders() {
+  board.style.display = 'none';
+  siCanvas.style.display = 'block';
+  levelBadge.style.display = 'block';
+
+  ctx = siCanvas.getContext('2d', { alpha: false });
+  W = 560; H = 350;
+  siCanvas.width = W; siCanvas.height = H;
+
+  // Initialize game state
+  ship = { x: W / 2, y: H - 22, w: 28, h: 12, speed: 5, lives: 3 };
+  playerBullets = [];
+  aliens = [];
+  alienBullets = [];
+  alienDx = 1;
+  tick = 0;
+  keys = {};
+  playing = true;
+  currentLevel = -1; // Start at -1 to call setLevel(0)
+  lemons = [];
+  chaosObjects = [];
+
+  setLevel(0);
+  loop();
+}
+
+// 🚀 FIX: Game Over logic
+function showGameOver() {
+    playing = false;
+    cancelAnimationFrame(animId);
+    siCanvas.style.display = 'none';
+    levelBadge.style.display = 'none';
+    gameMessageDiv.style.opacity = 0;
+    gameOverScreen.style.display = 'flex';
+    tryAgainBtn.onclick = () => {
+        gameOverScreen.style.display = 'none';
+        startSpaceInvaders();
+    };
+}
+
+const alienSprites = {
+  'normal': (x, y, w, h) => { ctx.fillStyle = "#ffd966"; ctx.fillRect(x, y, w, h); },
+  'zigzag': (x, y, w, h) => { ctx.fillStyle = "#7cf3d6"; ctx.fillRect(x, y, w, h); },
+  'text': (x, y, w, h) => { ctx.fillStyle = "#FFF"; ctx.font = "12px monospace"; ctx.fillText("LOREM", x, y + 10); },
+  'toaster': (x, y, w, h) => { ctx.fillStyle = "grey"; ctx.fillRect(x, y, w, h); ctx.fillStyle = "white"; ctx.fillRect(x + 5, y + 5, w - 10, h - 10); },
+  'cupcake': (x, y, w, h) => { ctx.fillStyle = "pink"; ctx.fillRect(x, y, w, h); ctx.fillStyle = "brown"; ctx.beginPath(); ctx.arc(x + w/2, y + h/2, w/3, 0, Math.PI * 2); ctx.fill(); },
+  'aggressive': (x, y, w, h) => { ctx.fillStyle = "#ff6f61"; ctx.fillRect(x, y, w, h); },
+  'chaotic': (x, y, w, h) => { ctx.fillStyle = "red"; ctx.fillRect(x, y, w, h); }
+};
+
+const chaosObjectSprites = {
+  'book': (x, y) => { ctx.fillStyle = "brown"; ctx.fillRect(x, y, 20, 30); },
+  'cash': (x, y) => { ctx.fillStyle = "green"; ctx.fillRect(x, y, 40, 20); },
+  'question': (x, y) => { ctx.fillStyle = "yellow"; ctx.font = "20px bold"; ctx.fillText("?", x, y + 15); },
+  'donut': (x, y) => { ctx.fillStyle = "pink"; ctx.beginPath(); ctx.arc(x, y, 15, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = "brown"; ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI * 2); ctx.fill(); },
+  'glasses': (x, y) => { ctx.fillStyle = "black"; ctx.fillRect(x, y, 30, 10); },
+  'blob': (x, y, w, h) => { ctx.fillStyle = "lightblue"; ctx.beginPath(); ctx.ellipse(x, y, w / 2, h / 2, 0, 0, 2 * Math.PI); ctx.fill(); }
+};
+
+function setLevel(i) {
+  if (i >= levelConfig.length) {
+    endSpaceInvaders();
+    return;
+  }
+  currentLevel = i;
+  const config = levelConfig[i];
+  levelBadge.textContent = `Level ${i + 1} — ${config.name}`;
+  
+  aliens = [];
+  const cols = 10;
+  const startX = 40, startY = 40;
+  for (let r = 0; r < config.rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      aliens.push({
+        x: startX + c * 48,
+        y: startY + r * 32,
+        w: 22,
+        h: 14,
+        alive: true,
+        type: config.alienType,
+        originalX: startX + c * 48,
+        hit: false
+      });
+    }
+  }
+  alienDx = config.speed;
+  lemons = [];
+  chaosObjects = [];
+  startMessageTimer();
+}
+
+function rect(a, b) {
+  return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+}
+
+function drawShip() {
+  ctx.fillStyle = "#7cf3d6";
+  ctx.beginPath();
+  ctx.moveTo(ship.x, ship.y + ship.h);
+  ctx.lineTo(ship.x + ship.w * 0.1, ship.y + ship.h * 0.2);
+  ctx.lineTo(ship.x + ship.w * 0.4, ship.y + ship.h * 0.2);
+  ctx.lineTo(ship.x + ship.w * 0.5, ship.y);
+  ctx.lineTo(ship.x + ship.w * 0.6, ship.y + ship.h * 0.2);
+  ctx.lineTo(ship.x + ship.w * 0.9, ship.y + ship.h * 0.2);
+  ctx.lineTo(ship.x + ship.w, ship.y + ship.h);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = "#a8e6cf";
+  ctx.beginPath();
+  ctx.arc(ship.x + ship.w / 2, ship.y + ship.h * 0.35, 4, 0, Math.PI * 2);
+  ctx.fill();
+  
+  ctx.fillStyle = "#a8e6cf";
+  ctx.fillRect(ship.x - 3, ship.y + ship.h * 0.7, 3, 5);
+  ctx.fillRect(ship.x + ship.w, ship.y + ship.h * 0.7, 3, 5);
+}
+
+function update() {
+  if (!playing) return;
+  tick++;
+  const config = levelConfig[currentLevel];
+
+  if (keys['ArrowLeft']) ship.x = Math.max(6, ship.x - ship.speed);
+  if (keys['ArrowRight']) ship.x = Math.min(W - ship.w - 6, ship.x + ship.speed);
+  
+  // Bullets with cooldown
+  const now = Date.now();
+  if (keys[' '] && now - lastShotTime > 150) {
+      playerBullets.push({ x: ship.x + ship.w / 2 - 1.5, y: ship.y - 8, w: 3, h: 8 });
+      lastShotTime = now;
+  }
+  playerBullets.forEach(b => b.y -= 6);
+  playerBullets = playerBullets.filter(b => b.y > -10);
+
+  // Alien movement logic
+  let minX = Infinity, maxX = -Infinity;
+  let allAliensDead = true;
+  
+  aliens.forEach(a => {
+      if (!a.alive) return;
+      allAliensDead = false;
+      
+      if (config.alienType === 'zigzag') {
+          a.x = a.originalX + Math.sin(tick * 0.05) * 40;
+          if(tick % 120 === 0) a.y += 10;
+      } else if (config.alienType === 'chaotic') {
+          a.x += Math.random() > 0.5 ? alienDx : -alienDx;
+          if(tick % 60 === 0) a.y += Math.random() > 0.5 ? 10 : -10;
+      } else {
+          a.x += alienDx;
+      }
+
+      minX = Math.min(minX, a.x);
+      maxX = Math.max(maxX, a.x + a.w);
+  });
+
+  if (allAliensDead) {
+    setLevel(currentLevel + 1);
+    return;
+  }
+  
+  if (minX < 8 || maxX > W - 8) {
+    if (config.alienType !== 'zigzag' && config.alienType !== 'chaotic') alienDx = -alienDx;
+    aliens.forEach(a => {
+        if (config.alienType !== 'zigzag' && config.alienType !== 'chaotic') a.y += 10;
+    });
+  }
+
+  // Alien firing
+  if (Math.random() < config.fireRate) {
+    const activeAliens = aliens.filter(a => a.alive);
+    if (activeAliens.length > 0) {
+        const shooter = activeAliens[Math.floor(Math.random() * activeAliens.length)];
+        let bulletW = 3, bulletH = 8;
+        let bulletColor = "white";
+        if (config.special === 'bread-bullets') {
+          bulletW = 15; bulletH = 15; bulletColor = "brown";
+        }
+        alienBullets.push({ x: shooter.x + shooter.w / 2 - bulletW / 2, y: shooter.y + shooter.h, w: bulletW, h: bulletH, color: bulletColor });
+    }
+  }
+  
+  if (currentLevel === 7 && Math.random() < 0.005) {
+    const types = ['book', 'cash', 'question', 'donut', 'glasses', 'blob'];
+    const type = types[Math.floor(Math.random() * types.length)];
+    const object = {
+        x: Math.random() * (W - 40) + 20, y: -30, type: type, w: 30, h: 30, dy: Math.random() * 0.5 + 0.5
+    };
+    chaosObjects.push(object);
+  }
+
+  // Update and filter bullets
+  alienBullets.forEach(b => b.y += 3);
+  alienBullets = alienBullets.filter(b => b.y < H + 10);
+  
+  lemons.forEach(l => l.y += 1);
+  lemons = lemons.filter(l => l.y < H + 10);
+  chaosObjects.forEach(o => o.y += o.dy);
+  chaosObjects = chaosObjects.filter(o => o.y < H + 10);
+
+  // Collisions
+  playerBullets.forEach(b => {
+    aliens.forEach(a => {
+      if (a.alive && rect(b, a)) {
+        a.alive = false;
+        b.y = -20;
+      }
+    });
+    if (config.special === 'lemons') {
+        lemons.forEach(l => {
+            if (rect(b, l)) {
+                b.y = -20;
+            }
+        });
+    }
+    if (config.special === 'chaos') {
+        chaosObjects.forEach(o => {
+            if (rect(b, o)) {
+                if (o.type === 'book') { b.y = -20; }
+                if (o.type === 'question') { screenShake(); }
+            }
+        });
+    }
+  });
+
+  // Check alien bullet collision with ship
+  alienBullets.forEach(b => {
+      if(rect(b, ship)) {
+          ship.lives--;
+          b.y = H + 20; // Deactivate bullet
+          if (ship.lives <= 0) {
+              showGameOver();
+          }
+      }
+  });
+}
+
+function draw() {
+  if (!playing) return;
+  const config = levelConfig[currentLevel];
+  
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "#0f2a";
+  for (let s = 0; s < 80; s++) {
+    const x = (s * 67 + (tick * 0.7 | 0)) % W;
+    const y = (s * 37 + (tick * 0.5 | 0)) % H;
+    ctx.fillRect(x, y, 2, 2);
+  }
+
+  chaosObjects.forEach(o => {
+      if (o.type === 'blob') {
+          const blobW = o.w * (1 + 0.2 * Math.sin(tick * 0.1));
+          const blobH = o.h * (1 + 0.2 * Math.cos(tick * 0.1));
+          chaosObjectSprites['blob'](o.x, o.y, blobW, blobH);
+      } else {
+          chaosObjectSprites[o.type](o.x, o.y);
+      }
+  });
+  
+  drawShip();
+
+  ctx.fillStyle = "#ff6f61";
+  playerBullets.forEach(b => ctx.fillRect(b.x, b.y, b.w, b.h));
+  alienBullets.forEach(b => {
+      ctx.fillStyle = b.color;
+      ctx.fillRect(b.x, b.y, b.w, b.h);
+  });
+  
+  lemons.forEach(l => {
+    ctx.fillStyle = "yellow";
+    ctx.beginPath();
+    ctx.ellipse(l.x, l.y, l.w, l.h, 0, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  aliens.forEach(a => {
+    if (!a.alive) return;
+    if (alienSprites[a.type]) {
+        alienSprites[a.type](a.x, a.y, a.w, a.h);
+    } else {
+        ctx.fillStyle = "#ffd966";
+        ctx.fillRect(a.x, a.y, a.w, a.h);
+    }
+  });
+
+  ctx.globalAlpha = 0.12;
+  ctx.fillStyle = "#fff";
+  ctx.font = "700 42px monospace";
+  ctx.fillText(`L${currentLevel + 1}`, 12, 48);
+  ctx.globalAlpha = 1;
+
+  // 🚀 NEW: Draw player lives
+  ctx.fillStyle = "#7cf3d6";
+  ctx.font = "700 16px Arial";
+  ctx.fillText(`LIVES: ${ship.lives}`, W - 80, H - 10);
+}
+
+function loop() {
+  if (!playing) return;
+  update();
+  draw();
+  animId = requestAnimationFrame(loop);
+}
+
+// 🚀 EDIT: Final win logic
+function endSpaceInvaders() {
+  playing = false;
+  cancelAnimationFrame(animId);
+  levelBadge.style.display = 'none';
+  siCanvas.style.display = 'none';
+  gameMessageDiv.style.display = 'none';
+  
+  glitchMsg.style.display = 'block';
+  setTimeout(() => {
+    glitchMsg.style.display = 'none';
+    finalMsg.style.display = 'block';
+    // 🚀 UNLOCK THE RIGHT PANEL
+    rightPanel.classList.remove('blurred');
+  }, 4000);
+}
+
+function screenShake() {
+    siCanvas.style.animation = 'shake 0.2s ease-in-out 3';
+    setTimeout(() => { siCanvas.style.animation = ''; }, 600);
+}
+
+const messages = [
+    "what you doing",
+    "complete it bro",
+    "choose persistence over consistency",
+    "what the hell are you doing?",
+    "what is this tomfoolery?",
+    "just get it done and move ahead",
+    "you dont have all day"
+];
+
+function showRandomMessage() {
+    if (messageCount >= 3) {
+        clearInterval(messageTimer);
+        return;
+    }
+    const message = messages[Math.floor(Math.random() * messages.length)];
+    gameMessageDiv.textContent = message;
+    gameMessageDiv.style.opacity = 1;
+    
+    setTimeout(() => {
+        gameMessageDiv.style.opacity = 0;
+    }, 3000);
+    
+    messageCount++;
+}
+
+function startMessageTimer() {
+    messageCount = 0;
+    clearInterval(messageTimer);
+    messageTimer = setInterval(() => {
+        showRandomMessage();
+    }, 10000 + Math.random() * 10000);
+}
+
+window.addEventListener('keydown', (e) => {
+  if (['ArrowLeft', 'ArrowRight', ' '].includes(e.key)) e.preventDefault();
+}, { passive: false });
 </script>
 </body>
 </html>
