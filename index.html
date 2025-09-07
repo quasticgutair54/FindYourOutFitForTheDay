@@ -6,146 +6,376 @@
 <title>NotTheBest | Games + Personality Paths</title>
 <style>
   /* ==========================================================================
-     SETUP & CORE STYLES
+     [1] SETUP & CORE STYLES
      ========================================================================== */
+
+  /* --- CSS Variables for easy theme management --- */
   :root {
     --glass: rgba(10, 10, 10, 0.6);
     --glass-strong: rgba(0, 0, 0, 0.8);
     --accent: #ff6f61;
     --accent-2: #7cf3d6;
-    --gap: 10px;
+    --text-light: #ffffff;
+    --text-dark: #1c1e21;
+    --gap: 15px; /* Increased gap for better mobile spacing */
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* --- Global Reset --- */
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* --- Body and HTML Styling --- */
   html, body {
-    height: 100%; width: 100%;
-    overflow: hidden;
+    height: 100%;
+    width: 100%;
+    overflow: hidden; /* Prevent scrolling on the main page */
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #fff;
+    color: var(--text-light);
     background: #000;
   }
+
+  /* --- Background Video and Overlay --- */
   #bg-video {
-    position: fixed; inset: 0; width: 100%; height: 100%;
-    object-fit: cover; z-index: -2;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: -2;
   }
+
   .bg-overlay {
-    position: fixed; inset: 0;
+    position: fixed;
+    inset: 0;
     background: linear-gradient(0deg, var(--glass-strong), rgba(0, 0, 0, 0.45));
     z-index: -1;
   }
 
   /* ==========================================================================
-     OVERLAYS & POPUPS (Welcome, Outer Message, Game Over)
+     [2] OVERLAYS & POPUPS (Welcome, Outer Message, Game Over)
      ========================================================================== */
+
   .overlay {
-    position: fixed; inset: 0; z-index: 100;
-    display: flex; align-items: center; justify-content: center;
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(8px);
-    text-align: center; padding: 20px;
+    backdrop-filter: blur(10px);
+    text-align: center;
+    padding: 20px;
     animation: fadeIn 0.5s ease;
   }
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
   .overlay-box {
-    background: var(--glass); border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 20px; padding: 30px; max-width: 500px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    background: var(--glass);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    padding: 30px;
+    max-width: 500px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
   }
-  .overlay-box h1 { color: var(--accent-2); margin-bottom: 15px; text-shadow: 0 0 10px var(--accent-2); }
-  .overlay-box p { margin-bottom: 25px; line-height: 1.6; }
+
+  .overlay-box h1 {
+    color: var(--accent-2);
+    margin-bottom: 15px;
+    text-shadow: 0 0 10px var(--accent-2);
+  }
+
+  .overlay-box p {
+    margin-bottom: 25px;
+    line-height: 1.6;
+  }
+
   .overlay-box button {
-    padding: 12px 25px; border-radius: 10px; border: none;
-    background: var(--accent); color: #fff; font-weight: bold;
-    cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    padding: 12px 25px;
+    border-radius: 10px;
+    border: none;
+    background: var(--accent);
+    color: var(--text-light);
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
   }
-  .overlay-box button:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(0,0,0,0.5); }
-  #outer-message { display: none; }
+
+  .overlay-box button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+  }
+
+  #outer-message {
+    display: none; /* Initially hidden */
+  }
 
   /* ==========================================================================
-     MAIN LAYOUT - MOBILE FIRST
+     [3] MAIN LAYOUT - ROBUST & MOBILE FIRST
      ========================================================================== */
+  
   .wrap {
-    height: 100vh; width: 100%; display: flex;
-    flex-direction: column; /* Mobile default */
-    justify-content: flex-start; align-items: center;
-    gap: 15px; padding: 15px; overflow: auto;
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    /* Mobile First: A single column, scrollable layout */
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    gap: var(--gap);
+    padding: var(--gap);
+    overflow: auto;
   }
+
   .left, .right {
-    width: 100%; max-width: 700px;
+    width: 100%;
+    max-width: 700px;
   }
+
   .panel {
-    width: 100%; background: var(--glass);
-    backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 20px; padding: 16px;
-    display: flex; flex-direction: column; align-items: center;
+    width: 100%;
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
+
   .panel h2 {
-    font-weight: 900; text-shadow: 0 2px 8px rgba(0,0,0,.4);
-    margin-bottom: 10px; text-align: center;
+    font-weight: 900;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, .4);
+    margin-bottom: 10px;
+    text-align: center;
   }
 
   /* ==========================================================================
-     MEMORY CARDS (UNO STYLE)
+     [4] MEMORY CARDS (UNO STYLE)
      ========================================================================== */
+  
   .memory-board {
-    display: grid; grid-template-columns: repeat(4, 1fr);
-    gap: var(--gap); width: 100%; max-width: 500px;
-    aspect-ratio: 1; margin: auto; padding: 8px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--gap);
+    width: 100%;
+    max-width: 500px;
+    aspect-ratio: 1;
+    margin: auto;
+    padding: 8px;
   }
-  .card { aspect-ratio: 1; perspective: 1000px; cursor: pointer; }
-  .card-inner { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1); }
+
+  .card {
+    aspect-ratio: 1;
+    perspective: 1000px;
+    cursor: pointer;
+  }
+
+  .card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
   .card.flip .card-inner { transform: rotateY(180deg); }
   .card.matched { animation: vanish 0.4s forwards; }
   @keyframes vanish { 100% { transform: scale(0.9); opacity: 0; } }
-  .face { position: absolute; width:100%; height:100%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 10px; box-shadow: 0 6px 18px rgba(0,0,0,0.4); }
-  .back {
-    background: radial-gradient(circle at 10% 20%, rgba(255,255,255,0.2), transparent), conic-gradient(from 210deg at 50% 50%, #1a2a6c, #b21f1f, #fdbb2d, #1a2a6c);
-    font-size: clamp(30px, 8vw, 50px); font-weight: 900;
+
+  .face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    border-radius: 10px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
   }
+
+  .back {
+    background: radial-gradient(circle at 10% 20%, rgba(255,255,255,0.2), transparent),
+                conic-gradient(from 210deg at 50% 50%, #1a2a6c, #b21f1f, #fdbb2d, #1a2a6c);
+    font-size: clamp(30px, 8vw, 50px);
+    font-weight: 900;
+  }
+
   .front {
     transform: rotateY(180deg);
     background: radial-gradient(circle, #4a4a4a, #1a1a1a);
-    font-weight: bold; display: flex;
-    flex-direction: column; justify-content: space-between;
-    padding: 8px; position: relative;
+    font-weight: bold;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 8px;
+    position: relative;
   }
-  .front-corner { position: absolute; font-size: 1.5em; font-weight: bold; line-height: 1; }
+
+  .front-corner {
+    position: absolute;
+    font-size: 1.5em;
+    font-weight: bold;
+    line-height: 1;
+    text-shadow: 0 0 3px #000;
+  }
   .top-left { top: 8px; left: 12px; }
   .bottom-right { bottom: 8px; right: 12px; transform: rotate(180deg); }
-  .front-center { font-size: clamp(12px, 2.5vw, 16px); text-align: center; padding: 0 1em; }
-  
+  .front-center {
+    font-size: clamp(12px, 2.5vw, 16px);
+    text-align: center;
+    padding: 0 1em;
+  }
+
   /* ==========================================================================
-     SPACE INVADERS & GAME MESSAGES
+     [5] SPACE INVADERS & GAME MESSAGES
      ========================================================================== */
-  .canvas-container { position: relative; width: 100%; max-width: 560px; aspect-ratio: 16 / 10; margin-top: 10px; }
-  .game-message-overlay { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); border-radius: 14px; text-align: center; padding: 20px; z-index: 50; }
+
+  .canvas-container {
+    position: relative;
+    width: 100%;
+    max-width: 560px;
+    aspect-ratio: 16 / 10;
+    margin-top: 10px;
+  }
+
+  .game-message-overlay {
+    position: absolute;
+    inset: 0;
+    display: none; /* Hidden by default */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(5px);
+    border-radius: 14px;
+    text-align: center;
+    padding: 20px;
+    z-index: 50;
+  }
   .game-message-overlay h3 { font-size: 2em; color: var(--accent); }
-  .game-message-overlay button { margin-top: 20px; padding: 10px 20px; background: var(--accent-2); color: #000; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
-  #siCanvas { width: 100%; height: 100%; background: #000; border-radius: 14px; display: none; transition: transform 0.2s, filter 0.2s; }
-  @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px) rotate(-1deg)} 75%{transform:translateX(5px) rotate(1deg)} }
-  .level-badge { margin-top: 10px; font-weight: 800; display: none; }
-  #glitch-msg { display: none; text-align: center; font-size: 1.5em; font-weight: bold; color: var(--accent-2); text-shadow: 2px 2px var(--accent), -2px -2px #0f0; animation: glitch-anim 0.8s infinite; }
-  @keyframes glitch-anim { 0%{transform:translate(0)} 20%{transform:translate(-3px,3px)} 40%{transform:translate(-3px,-3px)} 60%{transform:translate(3px,3px)} 80%{transform:translate(3px,-3px)} 100%{transform:translate(0)} }
-  
+  .game-message-overlay button { margin-top: 20px; }
+
+  #siCanvas {
+    width: 100%;
+    height: 100%;
+    background: #000;
+    border-radius: 14px;
+    display: none; /* Hidden by default */
+    transition: transform 0.2s, filter 0.2s;
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px) rotate(-1deg); }
+    75% { transform: translateX(5px) rotate(1deg); }
+  }
+
+  .level-badge {
+    margin-top: 10px;
+    font-weight: 800;
+    display: none;
+  }
+
+  #glitch-msg {
+    display: none;
+    text-align: center;
+    font-size: 1.5em;
+    font-weight: bold;
+    color: var(--accent-2);
+    text-shadow: 2px 2px var(--accent), -2px -2px #0f0;
+    animation: glitch-anim 0.8s infinite;
+  }
+  @keyframes glitch-anim {
+    0%{transform:translate(0)} 20%{transform:translate(-3px,3px)} 40%{transform:translate(-3px,-3px)}
+    60%{transform:translate(3px,3px)} 80%{transform:translate(3px,-3px)} 100%{transform:translate(0)}
+  }
+
   /* ==========================================================================
-     PERSONALITY PATHS (LOCKED STATE)
+     [6] PERSONALITY PATHS (LOCKED STATE)
      ========================================================================== */
-  .paths { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-content: center; padding: 8px; max-width: 600px; margin: auto; }
-  .path { width: 100%; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.16); border-radius: 16px; text-decoration: none; color: #fff; box-shadow: 0 8px 24px rgba(0,0,0,.25); transition: all .18s ease; }
-  .path:hover { transform: translateY(-3px); border-color: var(--accent-2); }
-  .path .emoji { font-size: clamp(30px, 8vw, 50px); filter: drop-shadow(0 0 5px rgba(0,0,0,0.5)); }
-  .path .label { font-weight: 800; text-align: center; font-size: 14px; }
-  .right.locked .paths { filter: blur(5px); pointer-events: none; opacity: 0.6; }
-  #lock-message { display: none; color: var(--accent); margin-top: 20px; font-weight: bold; text-align: center; }
+
+  .paths {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    align-content: center;
+    padding: 8px;
+    max-width: 600px;
+    margin: auto;
+  }
+
+  .path {
+    width: 100%;
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, .07);
+    border: 1px solid rgba(255, 255, 255, .16);
+    border-radius: 16px;
+    text-decoration: none;
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
+    transition: all .18s ease;
+  }
+  .path:hover {
+    transform: translateY(-3px);
+    border-color: var(--accent-2);
+  }
+  .path .emoji {
+    font-size: clamp(30px, 8vw, 50px);
+    filter: drop-shadow(0 0 5px rgba(0,0,0,0.5));
+  }
+  .path .label {
+    font-weight: 800;
+    text-align: center;
+    font-size: 14px;
+  }
+
+  .right.locked .paths {
+    filter: blur(5px);
+    pointer-events: none;
+    opacity: 0.6;
+  }
+
+  #lock-message {
+    display: none;
+    color: var(--accent);
+    margin-top: 20px;
+    font-weight: bold;
+    text-align: center;
+  }
   .right.locked #lock-message { display: block; }
-  
+
   /* ==========================================================================
-     DESKTOP LAYOUT
+     [7] DESKTOP LAYOUT - Overrides mobile-first styles
      ========================================================================== */
+
   @media (min-width: 1024px) {
-    .wrap { flex-direction: row; justify-content: center; align-items: center; }
-    .left, .right { height: 100%; max-height: 95vh; }
-    .paths { grid-template-columns: repeat(3, 1fr); }
+    .wrap {
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+    }
+    .left, .right {
+      height: 100%;
+      max-height: 95vh;
+    }
+    .paths {
+      grid-template-columns: repeat(3, 1fr);
+    }
   }
 </style>
 </head>
@@ -207,15 +437,31 @@
 <script>
 /**
  * ==================================================================================
- * APP CONTROLLER
- * This section manages the overall state and flow of the entire page.
- * It is heavily commented to be as detailed as possible.
+ * EXTREMELY DETAILED JAVASCRIPT LOGIC
+ *
+ * This script is intentionally long and heavily commented to ensure every single
+ * feature is implemented correctly and is easy to understand.
+ *
+ * It is broken down into four main parts:
+ * 1. App Controller: Manages the overall page state and user flow.
+ * 2. Memory Game: Logic for the card-matching game.
+ * 3. Space Invaders: The complete, detailed logic for the 8-level arcade game.
+ * 4. Helper Functions: Reusable utility functions.
  * ==================================================================================
  */
+
+// This main function wraps all our code to ensure it only runs after the page's HTML is fully loaded.
 document.addEventListener('DOMContentLoaded', () => {
 
-  // --- SINGLE SOURCE OF TRUTH FOR PAGE STATE ---
-  // This object holds all the important flags that control the user's journey.
+  /**
+   * ----------------------------------------------------------------
+   * PART 1: APP CONTROLLER & STATE MANAGEMENT
+   * This is the brain of the application. It controls the user's
+   * entire journey from the welcome screen to the final choice.
+   * ----------------------------------------------------------------
+   */
+
+  // This object is the single source of truth for the application's state.
   const appState = {
     gamesDone: JSON.parse(localStorage.getItem('gamesDone')) || false,
     pathChosen: JSON.parse(localStorage.getItem('pathChosen')) || false,
@@ -223,94 +469,121 @@ document.addEventListener('DOMContentLoaded', () => {
     flowStarted: false,
   };
 
-  // --- ELEMENT REFERENCES ---
-  // Getting all necessary DOM elements once to avoid repeated queries.
-  const audio = document.getElementById('bg-music');
-  const rightPanel = document.getElementById('right-panel');
-  const gameContainer = document.getElementById('game-container');
-  const welcomeOverlay = document.getElementById('welcome-overlay');
-  const startButton = document.getElementById('start-button');
-  const outerMessage = document.getElementById('outer-message');
-  let hasInteracted = false;
+  // Store all DOM element references in one place for performance and clarity.
+  const DOM = {
+    audio: document.getElementById('bg-music'),
+    video: document.getElementById('bg-video'),
+    rightPanel: document.getElementById('right-panel'),
+    gameContainer: document.getElementById('game-container'),
+    welcomeOverlay: document.getElementById('welcome-overlay'),
+    startButton: document.getElementById('start-button'),
+    outerMessage: document.getElementById('outer-message'),
+    paths: document.querySelectorAll('.path'),
+    lockMessage: document.getElementById('lock-message')
+  };
 
-  // --- INITIAL PAGE SETUP ---
-  // Check if the welcome screen has been shown in this session.
+  let hasInteracted = false; // Tracks if the user has clicked at least once.
+
+  // --- Initial Page Setup ---
+  // Check if the welcome screen was already shown in this browser session.
   if (sessionStorage.getItem('welcomeShown')) {
-    welcomeOverlay.style.display = 'none';
+    DOM.welcomeOverlay.style.display = 'none';
     appState.flowStarted = true;
   }
-  // Check if games were already completed in a previous session.
+  // Check if games were completed in a previous visit. If so, unlock the paths.
   if (appState.gamesDone) {
-      rightPanel.classList.remove('locked');
+      DOM.rightPanel.classList.remove('locked');
   }
 
-  // --- CORE EVENT LISTENERS (FLOW CONTROL) ---
+  // --- Core Event Listeners (User Flow Control) ---
   
-  // This is the main entry point for the user.
-  startButton.addEventListener('click', () => {
-    welcomeOverlay.style.display = 'none';
+  /**
+   * This is the main entry point for the user. Clicking the start button
+   * initiates the entire experience and handles browser media autoplay policies.
+   */
+  DOM.startButton.addEventListener('click', () => {
+    DOM.welcomeOverlay.style.display = 'none';
     sessionStorage.setItem('welcomeShown', 'true');
     appState.flowStarted = true;
     if (!hasInteracted) { 
         hasInteracted = true; 
-        setupAudio(); // This guarantees audio/video play after the first click.
+        setupAudioAndVideo();
     }
   });
   
-  // This listener enforces the "focus" rule.
-  document.body.addEventListener('click', (e) => {
-    const isInsideContent = gameContainer.contains(e.target) || rightPanel.contains(e.target);
-    // Only trigger if the flow has started, the user is clicking outside, and the games aren't done yet.
-    if (appState.flowStarted && !isInsideContent && !appState.gamesDone) {
+  /**
+   * This listener enforces the "focus" rule. If the user clicks outside the
+   * designated content areas during the game phase, it shows a warning.
+   * After 5 warnings, it reloads the page as a penalty.
+   */
+  document.body.addEventListener('click', (event) => {
+    const isInsideContent = DOM.gameContainer.contains(event.target) || DOM.rightPanel.contains(event.target);
+    const isWelcomeClick = DOM.welcomeOverlay.contains(event.target);
+
+    // This logic only runs AFTER the welcome screen is gone AND BEFORE the games are won.
+    if (appState.flowStarted && !isInsideContent && !appState.gamesDone && !isWelcomeClick) {
       appState.outsideClicks++;
       if (appState.outsideClicks > 5) {
-        // Penalty for not focusing: reload the entire page.
         location.reload();
         return;
       }
       document.getElementById('random-message-text').textContent = "explore inside the container not outside it because just a plain looping bg is there. focus bro";
-      outerMessage.style.display = 'flex';
+      DOM.outerMessage.style.display = 'flex';
     }
   });
 
-  document.getElementById('close-outer-message').addEventListener('click', () => outerMessage.style.display = 'none');
-  
-  // Fallback for starting media if the welcome screen was already dismissed.
-  document.body.addEventListener('pointerdown', () => {
-    if (!hasInteracted && sessionStorage.getItem('welcomeShown')) { hasInteracted = true; setupAudio(); }
+  document.getElementById('close-outer-message').addEventListener('click', () => {
+    DOM.outerMessage.style.display = 'none';
   });
-
-  // Handle clicks on the personality paths, checking if they are unlocked.
-  document.querySelectorAll('.path').forEach(a => a.addEventListener('click', e => {
+  
+  /**
+   * Handles clicks on the personality paths.
+   * If the game isn't finished, it prevents navigation and gives a visual "shake" cue.
+   * If the game IS finished, it allows navigation and sets the state for the exit prompt.
+   */
+  DOM.paths.forEach(pathLink => pathLink.addEventListener('click', event => {
     if (!appState.gamesDone) {
-        e.preventDefault(); // Stop navigation if locked.
-        const lockMessage = document.getElementById('lock-message');
-        lockMessage.style.transition = 'transform 0.2s ease';
-        lockMessage.style.transform = 'scale(1.1)'; // Give visual feedback.
-        setTimeout(() => lockMessage.style.transform = 'scale(1)', 200);
+        event.preventDefault();
+        DOM.lockMessage.style.transition = 'transform 0.2s ease';
+        DOM.lockMessage.style.transform = 'scale(1.1)';
+        setTimeout(() => DOM.lockMessage.style.transform = 'scale(1)', 200);
     } else {
         appState.pathChosen = true;
         localStorage.setItem('pathChosen', 'true');
+        // The link will navigate as normal.
     }
   }));
 
-  // The exit blocker, with your custom message.
+  /**
+   * The final exit blocker. It checks if the user has won the game but hasn't
+   * yet chosen a path. If so, it displays the custom warning message.
+   */
   window.onbeforeunload = () => {
-    if (!appState.pathChosen) {
+    if (appState.gamesDone && !appState.pathChosen) {
         return "Not so fast internet warrior, complete what you started";
     }
-    return null; // Return null to allow exiting freely.
+    return null; // Return null to allow the user to exit freely.
   };
 
-  // --- HELPER FUNCTIONS ---
-  function setupAudio() {
-    audio.play().catch(() => {}); // Attempt to play.
-    setInterval(() => { if (!audio.paused) localStorage.setItem('music-time', audio.currentTime); }, 600);
+  /**
+   * Function to handle starting the background media.
+   * This is tied to the first user interaction to comply with browser policies.
+   */
+  function setupAudioAndVideo() {
+    // Attempt to play audio. It will work because this is called after a user click.
+    DOM.audio.play().catch(e => console.error("Audio play failed:", e));
+    
+    // Resume from saved time if available.
+    const savedTime = localStorage.getItem('music-time');
+    if (savedTime) DOM.audio.currentTime = parseFloat(savedTime);
+    
+    // Periodically save music time to local storage.
+    setInterval(() => { if (!DOM.audio.paused) localStorage.setItem('music-time', DOM.audio.currentTime); }, 600);
   }
 
   /**
    * ==================================================================================
-   * MEMORY GAME LOGIC
+   * PART 2: MEMORY GAME LOGIC
    * ==================================================================================
    */
   const designNames = ["Notthebest OG", "Initial D", "Lorem Ipsum", "Your Toast", "Grapefruit x Lime", "Cake Was A Lie", "Berserk", "RANDOMODIUM"];
@@ -344,8 +617,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (first.name === second.name) {
         matchedPairs++;
         setTimeout(() => {
-          first.el.classList.add('matched');
-          second.el.classList.add('matched');
+          first.el.classList.add('matched'); second.el.classList.add('matched');
           if (matchedPairs === designNames.length) startSpaceInvaders();
         }, 400);
         flippedCards = [];
@@ -355,12 +627,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function shuffleArray(arr) { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } }
-
   /**
    * ==================================================================================
-   * SPACE INVADERS - THE COMPLETE GAME
-   * This is a long and detailed section to ensure all features are working.
+   * PART 3: SPACE INVADERS - THE COMPLETE, DETAILED GAME
    * ==================================================================================
    */
   const siCanvas = document.getElementById('siCanvas');
@@ -378,7 +647,7 @@ document.addEventListener('DOMContentLoaded', () => {
     { name: "Berserk", rows: 5, speed: 2.8, fireRate: 0.025, alienType: 'aggressive' },
     { name: "RANDOMODIUM", rows: 5, speed: 3.0, fireRate: 0.03, alienType: 'chaotic', special: 'chaos' }
   ];
-  let ctx, W, H, gameState;
+  let ctx, W, H, gameState, animationFrameId;
 
   tryAgainBtn.addEventListener('click', startSpaceInvaders);
 
@@ -395,7 +664,9 @@ document.addEventListener('DOMContentLoaded', () => {
       effects: { shake: 0, invis: 0, invert: 0, tilt: 0, cash: 0 },
       message: { text: '', timer: 0 }
     };
-    setLevel(0); loop();
+    setLevel(0); 
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    loop();
   }
 
   function setLevel(idx) {
@@ -416,7 +687,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
   
-  // Detailed sprite drawing functions
+  // This large object contains all the custom drawing functions for game entities.
   const sprites = {
     ship: s => { if(gameState.player.invincibleTimer>0 && gameState.tick%10<5) return; ctx.fillStyle="#7cf3d6"; ctx.beginPath(); ctx.moveTo(s.x+s.w/2,s.y); ctx.lineTo(s.x+s.w,s.y+s.h); ctx.lineTo(s.x,s.y+s.h); ctx.closePath(); ctx.fill(); },
     normal: a => { ctx.fillStyle="#aaffaa"; ctx.beginPath(); ctx.moveTo(a.x+a.w/2,a.y); ctx.lineTo(a.x+a.w,a.y+a.h/2); ctx.lineTo(a.x,a.y+a.h/2); ctx.closePath(); ctx.fill(); ctx.fillRect(a.x+a.w/4, a.y+a.h/2, a.w/2, a.h/2); },
@@ -434,6 +705,7 @@ document.addEventListener('DOMContentLoaded', () => {
     blob: o => { ctx.fillStyle="cyan"; ctx.beginPath(); ctx.arc(o.x,o.y,o.size,0,7); ctx.fill();}
   };
 
+  // The main game update function, called every frame.
   function update() {
     if (!gameState.playing) return;
     const now = Date.now();
@@ -472,7 +744,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (Math.random() < 0.015) { const types = ['book','cash','question','donut','glass','blob']; chaos.push({ type: types[Math.floor(Math.random()*types.length)], x: Math.random()*W, y: -50, dy: 1+Math.random(), size: 10+Math.random()*10 }); }
       if (Math.random() < 0.001) effects.invert = 120;
       if (Math.random() < 0.001) effects.tilt = 120;
-      if (Math.random() < 0.0005) { audio.currentTime = Math.random() * audio.duration; }
+      if (Math.random() < 0.0005 && audio.duration > 0) { audio.currentTime = Math.random() * audio.duration; }
     }
     Object.keys(effects).forEach(e => { if (effects[e]>0) effects[e]--; });
     
@@ -507,6 +779,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (aliens.every(a => !a.alive)) setLevel(gameState.level + 1);
   }
 
+  // The main game draw function, called every frame.
   function draw() {
     if (!gameState || !gameState.playing) return;
     const { player, bullets, aliens, alienBullets, chaos, lemons, effects, message } = gameState;
@@ -529,8 +802,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (message.timer > 0) { ctx.font="bold 24px sans-serif"; ctx.fillStyle="rgba(255,255,255,0.7)"; ctx.textAlign="center"; ctx.fillText(message.text, W/2, H/2); ctx.textAlign="left"; }
   }
 
+  // Handles the end of the game, for both winning and losing.
   function endSpaceInvaders(didWin) {
     gameState.playing = false;
+    cancelAnimationFrame(animationFrameId);
     levelBadge.style.display = 'none';
     if (didWin) {
       winScreen.style.display = 'flex';
@@ -550,17 +825,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
   
-  function rect(a, b) { return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
-
+  // --- Game Input Handlers ---
   window.addEventListener('keydown', (e) => { if (gameState && gameState.playing) { e.preventDefault(); gameState.keys[e.key] = true; }});
   window.addEventListener('keyup', (e) => { if (gameState) gameState.keys[e.key] = false; });
 
+  // The main animation loop.
   function loop() {
-    if (!gameState || !gameState.playing) return;
+    if (!gameState.playing) return;
     update();
     draw();
-    requestAnimationFrame(loop);
+    animationFrameId = requestAnimationFrame(loop);
   }
+
+  /**
+   * ==================================================================================
+   * PART 4: UTILITY FUNCTIONS
+   * ==================================================================================
+   */
+  function rect(a, b) { return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
+
 });
 </script>
 </body>
