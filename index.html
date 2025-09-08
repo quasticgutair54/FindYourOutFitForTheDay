@@ -540,3 +540,74 @@ document.addEventListener('DOMContentLoaded', () => {
       if(hit){ bullets.splice(i, 1); continue; }
       for (const o of chaos) { if (rect(b,o)) { if (['book','donut','blob'].includes(o.type)) hit = true; if (o.type === 'question') { effects.shake=30; o.y=H+50; } } }
       if (hit) bullets.splice(i, 1);
+    }
+    for (let i = alienBullets.length - 1; i >= 0; i--) {
+      const b = alienBullets[i];
+      if (player.invincibleTimer === 0 && rect(b, player.ship)) { player.lives--; player.invincibleTimer = 120; alienBullets.splice(i, 1); if (player.lives <= 0) endSpaceInvaders(false); break; }
+    }
+    for (let i = chaos.length - 1; i >= 0; i--) {
+      const o = chaos[i];
+      if (rect(o, player.ship)) { if (o.type === 'cash') effects.cash = 120; if (o.type === 'glass') effects.invis = 180; chaos.splice(i, 1); }
+    }
+
+    if (aliens.every(a => !a.alive)) setLevel(gameState.level + 1);
+  }
+
+  function draw() {
+    if (!gameState || !gameState.playing) return;
+    const { player, bullets, aliens, alienBullets, chaos, lemons, effects, message } = gameState;
+    ctx.clearRect(0, 0, W, H); ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, H);
+    siCanvas.style.filter = effects.invert > 0 ? 'invert(1)' : 'none';
+    siCanvas.style.transform = effects.tilt > 0 ? `rotate(${Math.sin(gameState.tick*0.2)}deg)` : 'none';
+    siCanvas.style.animation = effects.shake > 0 ? 'shake 0.1s infinite' : 'none';
+
+    sprites.ship(player.ship);
+    bullets.forEach(b => { ctx.fillStyle = levelConfig[gameState.level].special==='bread-bullets' ? '#D2B48C' : '#7cf3d6'; ctx.fillRect(b.x, b.y, b.w, b.h); });
+    alienBullets.forEach(b => { ctx.fillStyle = "#ff6f61"; ctx.fillRect(b.x, b.y, b.w, b.h); });
+    lemons.forEach(l => { ctx.fillStyle = "yellow"; ctx.fillRect(l.x, l.y, l.w, l.h); });
+    chaos.forEach(o => sprites[o.type](o));
+    if (effects.invis === 0) aliens.forEach(a => { if (a.alive) sprites[a.type](a); });
+    if (effects.cash > 0) { ctx.fillStyle="#228B22"; ctx.font="bold 60px sans-serif"; ctx.fillText("$!#%", W/4, H/2); }
+    ctx.fillStyle="#fff"; ctx.font="18px monospace";
+    ctx.fillText(`LIVES: ${player.lives}`, 10, 25);
+    ctx.textAlign="right"; ctx.fillText(`LEVEL ${gameState.level+1}`, W-10, 25);
+    ctx.textAlign="left";
+    if (message.timer > 0) { ctx.font="bold 24px sans-serif"; ctx.fillStyle="rgba(255,255,255,0.7)"; ctx.textAlign="center"; ctx.fillText(message.text, W/2, H/2); ctx.textAlign="left"; }
+  }
+
+  function endSpaceInvaders(didWin) {
+    gameState.playing = false;
+    levelBadge.style.display = 'none';
+    if (didWin) {
+      winScreen.style.display = 'flex';
+      document.getElementById('glitch-msg').style.display = 'block';
+      const finalWinMsg = document.getElementById('final-win-message');
+      finalWinMsg.style.display = 'none';
+      setTimeout(() => {
+          document.getElementById('glitch-msg').style.display = 'none';
+          finalWinMsg.innerHTML = "Congratulations on finishing these beautifully coded games... You can stay here, explore the personality path, get your outfit, or you can leave everything behind... It's your choice.";
+          finalWinMsg.style.display = 'block';
+      }, 4000);
+      appState.gamesDone = true;
+      localStorage.setItem('gamesDone', 'true');
+      rightPanel.classList.remove('locked');
+    } else {
+      gameOverScreen.style.display = 'flex';
+    }
+  }
+  
+  function rect(a, b) { return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
+
+  window.addEventListener('keydown', (e) => { if (gameState && gameState.playing) { e.preventDefault(); gameState.keys[e.key] = true; }});
+  window.addEventListener('keyup', (e) => { if (gameState) gameState.keys[e.key] = false; });
+
+  function loop() {
+    if (!gameState || !gameState.playing) return;
+    update();
+    draw();
+    requestAnimationFrame(loop);
+  }
+});
+</script>
+</body>
+</html>
