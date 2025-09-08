@@ -1,5 +1,3 @@
-# Code Refactored
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -74,12 +72,14 @@
   }
   .left, .right {
     width: 100%; max-width: 700px;
+    min-height: 300px; /* Ensure minimum height */
   }
   .panel {
     width: 100%; background: var(--glass);
     backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.15);
     border-radius: 20px; padding: 16px;
     display: flex; flex-direction: column; align-items: center;
+    margin-bottom: 15px; /* Add spacing between panels */
   }
   .panel h2 {
     font-weight: 900; text-shadow: 0 2px 8px rgba(0,0,0,.4);
@@ -149,13 +149,57 @@
     .left, .right { height: 100%; max-height: 95vh; }
     .paths { grid-template-columns: repeat(3, 1fr); }
   }
+
+  /* Mobile optimization */
+  @media (max-width: 768px) {
+    .wrap {
+      padding: 10px;
+      gap: 10px;
+    }
+    
+    .panel {
+      padding: 12px;
+    }
+    
+    .memory-board {
+      grid-template-columns: repeat(3, 1fr);
+      max-width: 350px;
+    }
+    
+    .paths {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+  }
+
+  /* Very small screens */
+  @media (max-width: 480px) {
+    .memory-board {
+      grid-template-columns: repeat(2, 1fr);
+      max-width: 280px;
+    }
+    
+    .front-center {
+      font-size: 10px;
+    }
+    
+    .paths {
+      grid-template-columns: 1fr;
+    }
+  }
 </style>
 </head>
 <body>
 
-  <video id="bg-video" autoplay muted loop playsinline><source src="loop-bg.mp4" type="video/mp4"></video>
+  <video id="bg-video" autoplay muted loop playsinline>
+    <source src="https://assets.codepen.io/236284/loop-bg.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
   <div class="bg-overlay"></div>
-  <audio id="bg-music" loop><source src="running out of time.mp3" type="audio/mpeg"></audio>
+  <audio id="bg-music" loop>
+    <source src="https://assets.codepen.io/236284/running-out-of-time.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+  </audio>
 
   <div id="welcome-overlay" class="overlay">
     <div class="overlay-box">
@@ -184,7 +228,7 @@
                 <button id="tryAgainBtn">Try Again</button>
             </div>
             <div id="winScreen" class="game-message-overlay">
-                <div id="glitch-msg">You weren’t supposed to beat this… but here you are. NotTheBest, but still alive.</div>
+                <div id="glitch-msg">You weren't supposed to beat this…</div>
                 <div id="final-win-message" style="display:none; font-size: 1.1em; line-height: 1.5;"></div>
             </div>
         </div>
@@ -217,6 +261,7 @@
 document.addEventListener('DOMContentLoaded', () => {
 
   // --- SINGLE SOURCE OF TRUTH FOR PAGE STATE ---
+  // This object holds all the important flags that control the user's journey.
   const appState = {
     gamesDone: JSON.parse(localStorage.getItem('gamesDone')) || false,
     pathChosen: JSON.parse(localStorage.getItem('pathChosen')) || false,
@@ -225,6 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // --- ELEMENT REFERENCES ---
+  // Getting all necessary DOM elements once to avoid repeated queries.
   const audio = document.getElementById('bg-music');
   const rightPanel = document.getElementById('right-panel');
   const gameContainer = document.getElementById('game-container');
@@ -234,16 +280,19 @@ document.addEventListener('DOMContentLoaded', () => {
   let hasInteracted = false;
 
   // --- INITIAL PAGE SETUP ---
+  // Check if the welcome screen has been shown in this session.
   if (sessionStorage.getItem('welcomeShown')) {
     welcomeOverlay.style.display = 'none';
     appState.flowStarted = true;
   }
+  // Check if games were already completed in a previous session.
   if (appState.gamesDone) {
       rightPanel.classList.remove('locked');
   }
 
   // --- CORE EVENT LISTENERS (FLOW CONTROL) ---
   
+  // This is the main entry point for the user.
   startButton.addEventListener('click', () => {
     welcomeOverlay.style.display = 'none';
     sessionStorage.setItem('welcomeShown', 'true');
@@ -254,11 +303,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
   
+  // This listener enforces the "focus" rule.
   document.body.addEventListener('click', (e) => {
     const isInsideContent = gameContainer.contains(e.target) || rightPanel.contains(e.target);
+    // Only trigger if the flow has started, the user is clicking outside, and the games aren't done yet.
     if (appState.flowStarted && !isInsideContent && !appState.gamesDone) {
       appState.outsideClicks++;
       if (appState.outsideClicks > 5) {
+        // Penalty for not focusing: reload the entire page.
         location.reload();
         return;
       }
@@ -269,13 +321,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('close-outer-message').addEventListener('click', () => outerMessage.style.display = 'none');
   
+  // Fallback for starting media if the welcome screen was already dismissed.
   document.body.addEventListener('pointerdown', () => {
-    if (!hasInteracted && sessionStorage.getItem('welcomeShown')) { 
-        hasInteracted = true; 
-        setupAudio(); 
-    }
+    if (!hasInteracted && sessionStorage.getItem('welcomeShown')) { hasInteracted = true; setupAudio(); }
   });
 
+  // Handle clicks on the personality paths, checking if they are unlocked.
   document.querySelectorAll('.path').forEach(a => a.addEventListener('click', e => {
     if (!appState.gamesDone) {
         e.preventDefault(); // Stop navigation if locked.
@@ -288,7 +339,204 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('pathChosen', 'true');
     }
   }));
-});
-</script>
-</body>
-</html>
+
+  // The exit blocker, with your custom message.
+  window.onbeforeunload = () => {
+    if (!appState.pathChosen) {
+        return "Not so fast internet warrior, complete what you started";
+    }
+    return null; // Return null to allow exiting freely.
+  };
+
+  // --- HELPER FUNCTIONS ---
+  function setupAudio() {
+    audio.play().catch(() => {}); // Attempt to play.
+    setInterval(() => { if (!audio.paused) localStorage.setItem('music-time', audio.currentTime); }, 600);
+  }
+
+  /**
+   * ==================================================================================
+   * MEMORY GAME LOGIC
+   * ==================================================================================
+   */
+  const designNames = ["Notthebest OG", "Initial D", "Lorem Ipsum", "Your Toast", "Grapefruit x Lime", "Cake Was A Lie", "Berserk", "RANDOMODIUM"];
+  const memoryBoard = document.getElementById('memoryBoard');
+  const unoSymbols = ['🚫', '🔄', '+2', '+4', '🎨', '0', '1', '5'];
+  let deck = [...designNames, ...designNames].map((name, i) => ({ id: i, name, symbol: unoSymbols[i % unoSymbols.length] }));
+  shuffleArray(deck);
+  let flippedCards = [], matchedPairs = 0;
+
+  deck.forEach(cardData => {
+    const cardEl = document.createElement('div'); cardEl.className = 'card';
+    cardEl.innerHTML = `
+        <div class="card-inner">
+            <div class="face back">N</div>
+            <div class="face front" data-name="${cardData.name}">
+                <div class="front-corner top-left">${cardData.symbol}</div>
+                <div class="front-center">${cardData.name}</div>
+                <div class="front-corner bottom-right">${cardData.symbol}</div>
+            </div>
+        </div>`;
+    cardEl.addEventListener('click', () => handleCardFlip(cardEl, cardData.name));
+    memoryBoard.appendChild(cardEl);
+  });
+
+  function handleCardFlip(cardEl, name) {
+    if (flippedCards.length === 2 || cardEl.classList.contains('flip')) return;
+    cardEl.classList.add('flip');
+    flippedCards.push({ el: cardEl, name });
+    if (flippedCards.length === 2) {
+      const [first, second] = flippedCards;
+      if (first.name === second.name) {
+        matchedPairs++;
+        setTimeout(() => {
+          first.el.classList.add('matched');
+          second.el.classList.add('matched');
+          if (matchedPairs === designNames.length) startSpaceInvaders();
+        }, 400);
+        flippedCards = [];
+      } else {
+        setTimeout(() => { first.el.classList.remove('flip'); second.el.classList.remove('flip'); flippedCards = []; }, 1200);
+      }
+    }
+  }
+
+  function shuffleArray(arr) { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } }
+
+  /**
+   * ==================================================================================
+   * SPACE INVADERS - THE COMPLETE GAME
+   * This is a long and detailed section to ensure all features are working.
+   * ==================================================================================
+   */
+  const siCanvas = document.getElementById('siCanvas');
+  const levelBadge = document.getElementById('levelBadge');
+  const gameOverScreen = document.getElementById('gameOverScreen');
+  const winScreen = document.getElementById('winScreen');
+  const tryAgainBtn = document.getElementById('tryAgainBtn');
+  const levelConfig = [
+    { name: "Notthebest OG", rows: 2, speed: 1, fireRate: 0.005, alienType: 'normal' },
+    { name: "Initial D", rows: 2, speed: 1.5, fireRate: 0.007, alienType: 'zigzag' },
+    { name: "Lorem Ipsum", rows: 3, speed: 1.4, fireRate: 0.009, alienType: 'text' },
+    { name: "Your Toast", rows: 3, speed: 1.8, fireRate: 0.012, alienType: 'toaster', special: 'bread-bullets' },
+    { name: "Grapefruit x Lime", rows: 4, speed: 1.6, fireRate: 0.01, alienType: 'normal', special: 'lemons' },
+    { name: "Cake Was A Lie", rows: 4, speed: 2.2, fireRate: 0.015, alienType: 'cupcake' },
+    { name: "Berserk", rows: 5, speed: 2.8, fireRate: 0.025, alienType: 'aggressive' },
+    { name: "RANDOMODIUM", rows: 5, speed: 3.0, fireRate: 0.03, alienType: 'chaotic', special: 'chaos' }
+  ];
+  let ctx, W, H, gameState;
+
+  tryAgainBtn.addEventListener('click', startSpaceInvaders);
+
+  function startSpaceInvaders() {
+    memoryBoard.style.display = 'none';
+    gameOverScreen.style.display = 'none'; winScreen.style.display = 'none';
+    siCanvas.style.display = 'block'; levelBadge.style.display = 'block';
+    ctx = siCanvas.getContext('2d'); W = 560; H = 350;
+    siCanvas.width = W; siCanvas.height = H;
+    gameState = {
+      player: { ship: { x: W/2-14, y: H-35, w: 28, h: 20, speed: 5 }, lives: 3, invincibleTimer: 0, lastShotTime: 0 },
+      bullets: [], aliens: [], alienBullets: [], lemons: [], chaos: [],
+      alienDx: 1, tick: 0, keys: {}, playing: true, level: -1,
+      effects: { shake: 0, invis: 0, invert: 0, tilt: 0, cash: 0 },
+      message: { text: '', timer: 0 }
+    };
+    setLevel(0); loop();
+  }
+
+  function setLevel(idx) {
+    if (idx >= levelConfig.length) { endSpaceInvaders(true); return; }
+    gameState.level = idx;
+    const config = levelConfig[idx];
+    levelBadge.textContent = `Level ${idx + 1} — ${config.name}`;
+    gameState.aliens = [];
+    for (let r = 0; r < config.rows; r++) {
+      for (let c = 0; c < 11; c++) {
+        gameState.aliens.push({ x: 30+c*42, y: 40+r*30, w: 24, h: 18, alive: true, type: config.alienType, originalX: 30+c*42 });
+      }
+    }
+    gameState.alienDx = config.speed;
+    gameState.bullets = []; gameState.alienBullets = []; gameState.lemons = []; gameState.chaos = [];
+    if (config.special === 'lemons') {
+      for (let i=0; i<7; i++) gameState.lemons.push({ x: Math.random()*W, y: Math.random()*(H/2)+20, w: 12, h: 16 });
+    }
+  }
+  
+  // Detailed sprite drawing functions
+  const sprites = {
+    ship: s => { if(gameState.player.invincibleTimer>0 && gameState.tick%10<5) return; ctx.fillStyle="#7cf3d6"; ctx.beginPath(); ctx.moveTo(s.x+s.w/2,s.y); ctx.lineTo(s.x+s.w,s.y+s.h); ctx.lineTo(s.x,s.y+s.h); ctx.closePath(); ctx.fill(); },
+    normal: a => { ctx.fillStyle="#aaffaa"; ctx.beginPath(); ctx.moveTo(a.x+a.w/2,a.y); ctx.lineTo(a.x+a.w,a.y+a.h/2); ctx.lineTo(a.x,a.y+a.h/2); ctx.closePath(); ctx.fill(); ctx.fillRect(a.x+a.w/4, a.y+a.h/2, a.w/2, a.h/2); },
+    zigzag: a => { ctx.fillStyle="#7cf3d6"; ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(a.x+a.w,a.y+a.h/2); ctx.lineTo(a.x,a.y+a.h); ctx.closePath(); ctx.fill(); },
+    text: a => { ctx.font="14px monospace"; ctx.fillStyle="#fff"; ctx.fillText("ipsüm",a.x,a.y+14); },
+    toaster: a => { ctx.fillStyle="#b0b0b0"; ctx.fillRect(a.x,a.y,a.w,a.h); ctx.fillStyle="#444"; ctx.fillRect(a.x+a.w/2-3,a.y-2,6,4); ctx.fillStyle="#222"; ctx.fillRect(a.x+5,a.y+5,a.w-10,4);},
+    cupcake: a => { ctx.fillStyle="#634832"; ctx.fillRect(a.x,a.y+a.h/2,a.w,a.h/2); ctx.fillStyle="#e6a4b4"; ctx.beginPath(); ctx.arc(a.x+a.w/2,a.y+a.h/2,a.w/2,Math.PI,2*Math.PI); ctx.fill(); ctx.fillStyle="red"; ctx.beginPath(); ctx.arc(a.x+a.w/2,a.y+3,2,0,7); ctx.fill(); },
+    aggressive: a => { ctx.fillStyle="#ff6f61"; ctx.beginPath(); ctx.moveTo(a.x,a.y+a.h); ctx.lineTo(a.x+a.w/2,a.y); ctx.lineTo(a.x+a.w,a.y+a.h); ctx.lineTo(a.x+a.w*0.8,a.y+a.h*0.8); ctx.lineTo(a.x+a.w*0.2,a.y+a.h*0.8); ctx.closePath(); ctx.fill(); },
+    chaotic: a => { ctx.fillStyle=`hsl(${gameState.tick%360},100%,50%)`; ctx.fillRect(a.x,a.y,a.w,a.h);},
+    book: o => { ctx.fillStyle="#8B4513"; ctx.fillRect(o.x,o.y,30,40);},
+    cash: o => { ctx.fillStyle="#228B22"; ctx.fillRect(o.x,o.y,50,25);},
+    question: o => { ctx.font="30px bold"; ctx.fillStyle="yellow"; ctx.fillText("?",o.x,o.y+30);},
+    donut: o => { ctx.fillStyle="#FFB6C1"; ctx.beginPath(); ctx.arc(o.x,o.y,20,0,7); ctx.fill(); ctx.fillStyle="#000"; ctx.beginPath(); ctx.arc(o.x,o.y,10,0,7); ctx.fill();},
+    glass: o => { ctx.fillStyle="#000"; ctx.fillRect(o.x,o.y,40,15);},
+    blob: o => { ctx.fillStyle="cyan"; ctx.beginPath(); ctx.arc(o.x,o.y,o.size,0,7); ctx.fill();}
+  };
+
+  function update() {
+    if (!gameState.playing) return;
+    const now = Date.now();
+    gameState.tick++;
+    const { player, keys, aliens, alienBullets, bullets, chaos, lemons, effects, message } = gameState;
+    const config = levelConfig[gameState.level];
+    if (player.invincibleTimer > 0) player.invincibleTimer--;
+    if (keys['ArrowLeft']) player.ship.x = Math.max(0, player.ship.x - player.ship.speed);
+    if (keys['ArrowRight']) player.ship.x = Math.min(W - player.ship.w, player.ship.x + player.ship.speed);
+    if (keys[' '] && now - player.lastShotTime > 150) { // UNLIMITED BULLETS with cooldown
+        player.lastShotTime = now;
+        const spec = config.special;
+        bullets.push({ x: player.ship.x + player.ship.w/2 - (spec==='bread-bullets'?8:2), y: player.ship.y, w: spec==='bread-bullets'?16:4, h: spec==='bread-bullets'?16:10 });
+    }
+    
+    let wallHit = false;
+    aliens.forEach(a => {
+      if (!a.alive) return;
+      if (config.alienType === 'zigzag') a.x = a.originalX + Math.sin((gameState.tick + a.originalX) * 0.05) * 50;
+      else if (config.alienType === 'chaotic') a.x += (Math.random() - 0.5) * gameState.alienDx;
+      else a.x += gameState.alienDx;
+      if (a.x < 0 || a.x + a.w > W) wallHit = true;
+      if (a.y + a.h >= player.ship.y) { if(player.invincibleTimer === 0) { player.lives--; player.invincibleTimer = 120; if (player.lives <= 0) endSpaceInvaders(false); } a.alive = false; }
+    });
+    if (wallHit && config.alienType !== 'zigzag') { gameState.alienDx *= -1; aliens.forEach(a => a.y += 15); }
+    
+    if (Math.random() < config.fireRate) {
+      const active = aliens.filter(a => a.alive);
+      if (active.length > 0) {
+        const shooter = active[Math.floor(Math.random() * active.length)];
+        alienBullets.push({ x: shooter.x + shooter.w/2-2, y: shooter.y+shooter.h, w: 4, h: 10 });
+      }
+    }
+    
+    if (config.special === 'chaos') {
+      if (Math.random() < 0.015) { const types = ['book','cash','question','donut','glass','blob']; chaos.push({ type: types[Math.floor(Math.random()*types.length)], x: Math.random()*W, y: -50, dy: 1+Math.random(), size: 10+Math.random()*10 }); }
+      if (Math.random() < 0.001) effects.invert = 120;
+      if (Math.random() < 0.001) effects.tilt = 120;
+      if (Math.random() < 0.0005) { audio.currentTime = Math.random() * audio.duration; }
+    }
+    Object.keys(effects).forEach(e => { if (effects[e]>0) effects[e]--; });
+    
+    if (message.timer > 0) message.timer--; else message.text = '';
+    if (gameState.tick % 900 === 0 && aliens.length > 0) {
+        const msgs = ["what you doing", "complete it bro", "you dont have all day", "choose persistence over consistency"];
+        message.text = msgs[Math.floor(Math.random() * msgs.length)];
+        message.timer = 180;
+    }
+    
+    bullets.forEach(b => b.y -= 7); alienBullets.forEach(b => b.y += 4); [...chaos, ...lemons].forEach(o => o.y += (o.dy || 0.5));
+    chaos.forEach(o => { if(o.type==='blob') o.size += Math.sin(gameState.tick*0.1); });
+
+    for (let i = bullets.length - 1; i >= 0; i--) {
+      const b = bullets[i]; let hit = false;
+      for (const a of aliens) { if (a.alive && rect(b,a)) { a.alive = false; hit = true; break; }}
+      if(hit){ bullets.splice(i, 1); continue; }
+      for (const l of lemons) { if (rect(b,l)) { hit = true; break; }}
+      if(hit){ bullets.splice(i, 1); continue; }
+      for (const o of chaos) { if (rect(b,o)) { if (['book','donut','blob'].includes(o.type)) hit = true; if (o.type === 'question') { effects.shake=30; o.y=H+50; } } }
+      if (hit) bullets.splice(i, 1);
