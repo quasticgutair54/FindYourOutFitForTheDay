@@ -245,13 +245,13 @@
         
         .canvas-wrapper {
             width: 100%;
-            max-width: 500px;
+            max-width: 600px;
             position: relative;
         }
         
         #si-canvas {
             width: 100%;
-            height: 300px;
+            height: 400px;
             background: #000;
             border-radius: 10px;
             margin: 10px 0;
@@ -261,7 +261,7 @@
             display: flex;
             justify-content: space-between;
             width: 100%;
-            max-width: 500px;
+            max-width: 600px;
             margin-top: 10px;
         }
         
@@ -269,6 +269,8 @@
             font-weight: bold;
             color: var(--accent-2);
             font-size: 1rem;
+            text-shadow: 0 0 10px var(--accent-2);
+            animation: glow 2s infinite;
         }
         
         .lives-indicator {
@@ -413,6 +415,23 @@
             opacity: 0.3;
         }
         
+        /* Outside click messages */
+        .outside-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 25px;
+            border-radius: 10px;
+            color: var(--accent);
+            font-weight: bold;
+            text-shadow: 0 0 10px var(--accent);
+            animation: glow 2s infinite;
+            z-index: 99;
+            pointer-events: none;
+        }
+        
         /* ===== RESPONSIVE ADJUSTMENTS ===== */
         @media (max-width: 768px) {
             .container {
@@ -443,7 +462,7 @@
             }
             
             #si-canvas {
-                height: 250px;
+                height: 350px;
             }
             
             .level-indicator {
@@ -482,7 +501,7 @@
             }
             
             #si-canvas {
-                height: 200px;
+                height: 300px;
             }
             
             .paths-grid {
@@ -509,7 +528,7 @@
         
         @media (max-height: 700px) {
             #si-canvas {
-                height: 180px;
+                height: 280px;
             }
             
             .memory-board {
@@ -532,7 +551,7 @@
             }
             
             #si-canvas {
-                height: 180px;
+                height: 220px;
             }
         }
     </style>
@@ -767,14 +786,22 @@
             // Play audio with user gesture
             try {
                 bgMusic.volume = 0.7;
-                bgMusic.play().catch(e => {
-                    console.log("Audio play failed, will try again after user interaction:", e);
-                    // Set up a one-time click handler to start audio
-                    document.body.addEventListener('click', function startAudioOnClick() {
-                        bgMusic.play().catch(e => console.log("Audio play on click failed:", e));
-                        document.body.removeEventListener('click', startAudioOnClick);
-                    }, { once: true });
-                });
+                const playPromise = bgMusic.play();
+                
+                if (playPromise !== undefined) {
+                    playPromise
+                        .then(() => {
+                            console.log("Audio playback started");
+                        })
+                        .catch(error => {
+                            console.log("Audio play failed, will try again after user interaction:", error);
+                            // Set up a one-time click handler to start audio
+                            document.body.addEventListener('click', function startAudioOnClick() {
+                                bgMusic.play().catch(e => console.log("Audio play on click failed:", e));
+                                document.body.removeEventListener('click', startAudioOnClick);
+                            }, { once: true });
+                        });
+                }
             } catch (error) {
                 console.log("Audio error:", error);
             }
@@ -789,8 +816,37 @@
                 return;
             }
             
-            warningText.textContent = "explore inside the container not outside it because just a plain looping bg is there. focus bro";
-            outerClickMessage.style.display = 'flex';
+            // Show random outside click message
+            const messages = [
+                "Hey, wrong place to click!",
+                "Focus on the game!",
+                "Stop clicking outside!",
+                "The game is in the container!",
+                "Pay attention to the game!",
+                "Stop wandering around!"
+            ];
+            
+            const message = messages[Math.floor(Math.random() * messages.length)];
+            showOutsideMessage(message);
+        }
+        
+        function showOutsideMessage(text) {
+            // Remove any existing message
+            const existingMessage = document.querySelector('.outside-message');
+            if (existingMessage) {
+                existingMessage.remove();
+            }
+            
+            // Create and show new message
+            const messageElement = document.createElement('div');
+            messageElement.className = 'outside-message';
+            messageElement.textContent = text;
+            document.body.appendChild(messageElement);
+            
+            // Remove message after 2 seconds
+            setTimeout(() => {
+                messageElement.remove();
+            }, 2000);
         }
         
         function completeMemoryGame() {
@@ -949,37 +1005,38 @@
             cash: 0,
             invisible: 0
         };
+        let lastMessageTime = 0;
         
         const levelConfigs = [
             { 
                 name: "Notthebest OG", 
                 rows: 2, 
-                speed: 1, 
-                fireRate: 0.005, 
+                speed: 0.8, 
+                fireRate: 0.003, 
                 alienType: 'normal',
                 description: "Intro, simple enemies, chill"
             },
             { 
                 name: "Initial D", 
                 rows: 2, 
-                speed: 1.8, 
-                fireRate: 0.007, 
+                speed: 1.2, 
+                fireRate: 0.005, 
                 alienType: 'zigzag',
                 description: "Faster enemies, drift-style zigzag movement"
             },
             { 
                 name: "Lorem Ipsum", 
                 rows: 3, 
-                speed: 1.5, 
-                fireRate: 0.009, 
+                speed: 1.0, 
+                fireRate: 0.007, 
                 alienType: 'text',
                 description: "Enemies with random Latin-like text sprites"
             },
             { 
                 name: "Your Toast", 
                 rows: 3, 
-                speed: 1.8, 
-                fireRate: 0.012, 
+                speed: 1.3, 
+                fireRate: 0.009, 
                 alienType: 'toaster', 
                 special: 'bread-bullets',
                 description: "Shooting toaster-bread bullets"
@@ -987,8 +1044,8 @@
             { 
                 name: "Grapefruit x Lime", 
                 rows: 4, 
-                speed: 1.6, 
-                fireRate: 0.01, 
+                speed: 1.1, 
+                fireRate: 0.008, 
                 alienType: 'normal', 
                 special: 'lemons',
                 description: "Random lemons floating as blockers"
@@ -996,24 +1053,24 @@
             { 
                 name: "Cake Was A Lie", 
                 rows: 4, 
-                speed: 2.0, 
-                fireRate: 0.015, 
+                speed: 1.5, 
+                fireRate: 0.012, 
                 alienType: 'cupcake',
                 description: "Cupcake-shaped enemies with tricky movement"
             },
             { 
                 name: "Berserk", 
                 rows: 5, 
-                speed: 2.5, 
-                fireRate: 0.025, 
+                speed: 1.8, 
+                fireRate: 0.018, 
                 alienType: 'aggressive',
                 description: "Fast, aggressive, non-stop shooting"
             },
             { 
                 name: "RANDOMODIUM", 
                 rows: 5, 
-                speed: 3.0, 
-                fireRate: 0.03, 
+                speed: 2.2, 
+                fireRate: 0.025, 
                 alienType: 'chaotic', 
                 special: 'chaos',
                 description: "Final boss chaos level - what the hell is going on"
@@ -1051,10 +1108,10 @@
             // Initialize game state
             player = {
                 x: canvas.width / 2 - 15,
-                y: canvas.height - 40,
+                y: canvas.height - 50,
                 width: 30,
                 height: 20,
-                speed: 5
+                speed: 7
             };
             
             // Keyboard controls
@@ -1064,32 +1121,69 @@
             
             window.addEventListener('keyup', e => {
                 keys[e.key] = false;
-                
-                // Fire bullet on spacebar
+            });
+            
+            // Continuous firing when space is held down
+            document.addEventListener('keydown', e => {
                 if (e.key === ' ' && gameActive) {
                     fireBullet();
+                    // Set up continuous firing
+                    player.firing = setInterval(fireBullet, 150);
+                }
+            });
+            
+            document.addEventListener('keyup', e => {
+                if (e.key === ' ' && player.firing) {
+                    clearInterval(player.firing);
                 }
             });
             
             // Touch controls for mobile
             let touchStart = 0;
+            let touchId = null;
+            
             canvas.addEventListener('touchstart', e => {
-                touchStart = e.touches[0].clientX;
+                if (touchId !== null) return; // Ignore multi-touch
+                
+                touchId = e.changedTouches[0].identifier;
+                touchStart = e.changedTouches[0].clientX;
+                
                 // Fire on tap
                 fireBullet();
+                // Set up continuous firing on touch
+                player.firing = setInterval(fireBullet, 150);
             });
             
             canvas.addEventListener('touchmove', e => {
-                e.preventDefault();
-                const touchX = e.touches[0].clientX;
-                const diff = touchX - touchStart;
+                if (touchId === null) return;
                 
-                if (diff > 10) {
-                    player.x = Math.min(canvas.width - player.width, player.x + player.speed);
-                    touchStart = touchX;
-                } else if (diff < -10) {
-                    player.x = Math.max(0, player.x - player.speed);
-                    touchStart = touchX;
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    if (e.changedTouches[i].identifier === touchId) {
+                        const touchX = e.changedTouches[i].clientX;
+                        const diff = touchX - touchStart;
+                        
+                        if (diff > 10) {
+                            player.x = Math.min(canvas.width - player.width, player.x + player.speed);
+                            touchStart = touchX;
+                        } else if (diff < -10) {
+                            player.x = Math.max(0, player.x - player.speed);
+                            touchStart = touchX;
+                        }
+                        break;
+                    }
+                }
+            });
+            
+            canvas.addEventListener('touchend', e => {
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    if (e.changedTouches[i].identifier === touchId) {
+                        // Stop firing on touch end
+                        if (player.firing) {
+                            clearInterval(player.firing);
+                        }
+                        touchId = null;
+                        break;
+                    }
                 }
             });
             
@@ -1130,7 +1224,7 @@
                 for (let col = 0; col < aliensPerRow; col++) {
                     aliens.push({
                         x: col * (alienWidth + alienPadding) + 20,
-                        y: row * (alienHeight + alienPadding) + 30,
+                        y: row * (alienHeight + alienPadding) + 40, // Increased starting Y position
                         width: alienWidth,
                         height: alienHeight,
                         type: config.alienType,
@@ -1231,7 +1325,7 @@
             if (directionChange) {
                 levelConfigs[currentLevel].speed *= -1;
                 aliens.forEach(alien => {
-                    if (alien.alive) alien.y += 15;
+                    if (alien.alive) alien.y += 10; // Reduced downward movement
                 });
             }
             
@@ -1281,8 +1375,10 @@
             updateObstacles();
             
             // Show random messages every 5 seconds (300 frames at 60fps)
-            if (gameTick % 300 === 0) {
+            const now = Date.now();
+            if (now - lastMessageTime > 5000) {
                 showInGameMessage(messages[Math.floor(Math.random() * messages.length)]);
+                lastMessageTime = now;
             }
             
             // Continue the game loop
@@ -1316,9 +1412,9 @@
             
             if (alien.type === 'zigzag') {
                 alien.movePattern += 0.05;
-                alien.x = alien.originalX + Math.sin(alien.movePattern) * 40;
+                alien.x = alien.originalX + Math.sin(alien.movePattern) * 30; // Reduced amplitude
             } else if (alien.type === 'chaotic') {
-                alien.x += (Math.random() - 0.5) * config.speed;
+                alien.x += (Math.random() - 0.5) * config.speed * 0.5; // Reduced chaotic movement
             } else {
                 alien.x += config.speed;
             }
