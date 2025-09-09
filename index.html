@@ -588,9 +588,6 @@
             // Start background media
             bgVideo.play().catch(e => console.log("Video play failed:", e));
             bgMusic.play().catch(e => console.log("Audio play failed:", e));
-            
-            // Set up space invaders for later
-            initSpaceInvaders();
         }
         
         function handleOutsideClick() {
@@ -610,7 +607,7 @@
             gameState.memoryGameCompleted = true;
             memoryGame.style.display = 'none';
             spaceInvaders.style.display = 'flex';
-            startSpaceInvaders();
+            initSpaceInvaders();
         }
         
         function completeSpaceInvaders() {
@@ -634,6 +631,7 @@
         
         function gameOver() {
             gameOverOverlay.style.display = 'flex';
+            gameActive = false;
         }
         
         // ===== MEMORY GAME IMPLEMENTATION =====
@@ -752,6 +750,7 @@
         let lives = 3;
         let lastShotTime = 0;
         let gameTick = 0;
+        let keys = {};
         
         const levelConfigs = [
             { name: "Notthebest OG", rows: 2, speed: 1, fireRate: 0.005, alienType: 'normal' },
@@ -791,19 +790,25 @@
             };
             
             // Keyboard controls
-            const keys = {};
             window.addEventListener('keydown', e => {
                 keys[e.key] = true;
             });
             
             window.addEventListener('keyup', e => {
                 keys[e.key] = false;
+                
+                // Fire bullet on spacebar
+                if (e.key === ' ' && gameActive) {
+                    fireBullet();
+                }
             });
             
             // Touch controls for mobile
             let touchStart = 0;
             canvas.addEventListener('touchstart', e => {
                 touchStart = e.touches[0].clientX;
+                // Fire on tap
+                fireBullet();
             });
             
             canvas.addEventListener('touchmove', e => {
@@ -820,20 +825,12 @@
                 }
             });
             
-            canvas.addEventListener('touchend', e => {
-                // Fire on tap
-                fireBullet();
-            });
-            
-            // Fire with spacebar
-            window.addEventListener('keydown', e => {
-                if (e.key === ' ' && gameActive) {
-                    fireBullet();
-                }
-            });
-            
             // Start the first level
             startLevel(0);
+            
+            // Start the game loop
+            gameActive = true;
+            gameLoop();
         }
         
         function startLevel(levelIndex) {
@@ -864,7 +861,8 @@
                         width: alienWidth,
                         height: alienHeight,
                         type: config.alienType,
-                        originalX: col * (alienWidth + alienPadding) + 30
+                        originalX: col * (alienWidth + alienPadding) + 30,
+                        alive: true
                     });
                 }
             }
@@ -881,12 +879,6 @@
                     });
                 }
             }
-            
-            // Start the game loop if not already running
-            if (!gameActive) {
-                gameActive = true;
-                gameLoop();
-            }
         }
         
         function fireBullet() {
@@ -902,7 +894,8 @@
                 x: player.x + player.width / 2 - bulletSize.width / 2,
                 y: player.y,
                 width: bulletSize.width,
-                height: bulletSize.height
+                height: bulletSize.height,
+                active: true
             });
         }
         
@@ -914,6 +907,14 @@
             // Clear canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
+            // Handle player movement
+            if (keys['ArrowLeft'] || keys['a']) {
+                player.x = Math.max(0, player.x - player.speed);
+            }
+            if (keys['ArrowRight'] || keys['d']) {
+                player.x = Math.min(canvas.width - player.width, player.x + player.speed);
+            }
+            
             // Draw player
             ctx.fillStyle = '#7cf3d6';
             ctx.fillRect(player.x, player.y, player.width, player.height);
@@ -923,6 +924,10 @@
             let directionChange = false;
             
             aliens.forEach(alien => {
+                if (!alien.alive) return;
+                
+                allAliensDead = false;
+                
                 // Update position based on alien type
                 if (alien.type === 'zigzag') {
                     alien.x = alien.originalX + Math.sin((gameTick + alien.originalX) * 0.05) * 50;
@@ -940,6 +945,7 @@
                 // Check if reached bottom
                 if (alien.y + alien.height >= player.y) {
                     loseLife();
+                    alien.alive = false;
                 }
                 
                 // Draw alien based on type
@@ -950,15 +956,13 @@
                 } else {
                     ctx.fillRect(alien.x, alien.y, alien.width, alien.height);
                 }
-                
-                allAliensDead = false;
             });
             
             // Change direction if needed
             if (directionChange) {
                 levelConfigs[currentLevel].speed *= -1;
                 aliens.forEach(alien => {
-                    alien.y += 20;
+                    if (alien.alive) alien.y += 20;
                 });
             }
             
@@ -975,6 +979,11 @@
             
             // Update and draw bullets
             for (let i = bullets.length - 1; i >= 0; i--) {
+                if (!bullets[i].active) {
+                    bullets.splice(i, 1);
+                    continue;
+                }
+                
                 bullets[i].y -= 7;
                 
                 // Remove if out of bounds
@@ -989,6 +998,8 @@
                 
                 // Check for collision with aliens
                 for (let j = aliens.length - 1; j >= 0; j--) {
+                    if (!aliens[j].alive) continue;
+                    
                     if (
                         bullets[i] && 
                         bullets[i].x < aliens[j].x + aliens[j].width &&
@@ -996,7 +1007,8 @@
                         bullets[i].y < aliens[j].y + aliens[j].height &&
                         bullets[i].y + bullets[i].height > aliens[j].y
                     ) {
-                        aliens.splice(j, 1);
+                        aliens[j].alive = false;
+                        bullets[i].active = false;
                         bullets.splice(i, 1);
                         break;
                     }
@@ -1004,18 +1016,28 @@
             }
             
             // Random enemy firing
-            if (Math.random() < levelConfigs[currentLevel].fireRate && aliens.length > 0) {
-                const shooter = aliens[Math.floor(Math.random() * aliens.length)];
-                enemyBullets.push({
-                    x: shooter.x + shooter.width / 2 - 2,
-                    y: shooter.y + shooter.height,
-                    width: 4,
-                    height: 10
-                });
+            if (Math.random() < levelConfigs[currentLevel].fireRate) {
+                // Find alive aliens
+                const aliveAliens = aliens.filter(alien => alien.alive);
+                if (aliveAliens.length > 0) {
+                    const shooter = aliveAliens[Math.floor(Math.random() * aliveAliens.length)];
+                    enemyBullets.push({
+                        x: shooter.x + shooter.width / 2 - 2,
+                        y: shooter.y + shooter.height,
+                        width: 4,
+                        height: 10,
+                        active: true
+                    });
+                }
             }
             
             // Update and draw enemy bullets
             for (let i = enemyBullets.length - 1; i >= 0; i--) {
+                if (!enemyBullets[i].active) {
+                    enemyBullets.splice(i, 1);
+                    continue;
+                }
+                
                 enemyBullets[i].y += 5;
                 
                 // Remove if out of bounds
@@ -1036,6 +1058,7 @@
                     enemyBullets[i].y + enemyBullets[i].height > player.y
                 ) {
                     loseLife();
+                    enemyBullets[i].active = false;
                     enemyBullets.splice(i, 1);
                 }
             }
@@ -1064,7 +1087,6 @@
             
             if (lives <= 0) {
                 gameOver();
-                gameActive = false;
             }
         }
         
@@ -1079,6 +1101,8 @@
             lives = 3;
             updateLivesDisplay();
             startLevel(0);
+            gameActive = true;
+            gameLoop();
         }
         
         // Initialize lives display
