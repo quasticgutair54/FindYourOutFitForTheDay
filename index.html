@@ -1111,36 +1111,36 @@
                 y: canvas.height - 50,
                 width: 30,
                 height: 20,
-                speed: 7
+                speed: 7,
+                firing: false
             };
             
             // Keyboard controls
             window.addEventListener('keydown', e => {
                 keys[e.key] = true;
+                
+                // Start continuous firing when space is pressed
+                if (e.key === ' ' && gameActive && !player.firing) {
+                    player.firing = true;
+                    fireBullet(); // Fire immediately
+                    player.fireInterval = setInterval(fireBullet, 150); // Continue firing
+                }
             });
             
             window.addEventListener('keyup', e => {
                 keys[e.key] = false;
-            });
-            
-            // Continuous firing when space is held down
-            document.addEventListener('keydown', e => {
-                if (e.key === ' ' && gameActive) {
-                    fireBullet();
-                    // Set up continuous firing
-                    player.firing = setInterval(fireBullet, 150);
-                }
-            });
-            
-            document.addEventListener('keyup', e => {
+                
+                // Stop continuous firing when space is released
                 if (e.key === ' ' && player.firing) {
-                    clearInterval(player.firing);
+                    player.firing = false;
+                    clearInterval(player.fireInterval);
                 }
             });
             
             // Touch controls for mobile
             let touchStart = 0;
             let touchId = null;
+            let isFiring = false;
             
             canvas.addEventListener('touchstart', e => {
                 if (touchId !== null) return; // Ignore multi-touch
@@ -1148,10 +1148,10 @@
                 touchId = e.changedTouches[0].identifier;
                 touchStart = e.changedTouches[0].clientX;
                 
-                // Fire on tap
+                // Start firing on touch
+                isFiring = true;
                 fireBullet();
-                // Set up continuous firing on touch
-                player.firing = setInterval(fireBullet, 150);
+                player.fireInterval = setInterval(fireBullet, 150);
             });
             
             canvas.addEventListener('touchmove', e => {
@@ -1178,9 +1178,8 @@
                 for (let i = 0; i < e.changedTouches.length; i++) {
                     if (e.changedTouches[i].identifier === touchId) {
                         // Stop firing on touch end
-                        if (player.firing) {
-                            clearInterval(player.firing);
-                        }
+                        isFiring = false;
+                        clearInterval(player.fireInterval);
                         touchId = null;
                         break;
                     }
@@ -1224,7 +1223,7 @@
                 for (let col = 0; col < aliensPerRow; col++) {
                     aliens.push({
                         x: col * (alienWidth + alienPadding) + 20,
-                        y: row * (alienHeight + alienPadding) + 40, // Increased starting Y position
+                        y: row * (alienHeight + alienPadding) + 40,
                         width: alienWidth,
                         height: alienHeight,
                         type: config.alienType,
@@ -1254,22 +1253,22 @@
         
         function fireBullet() {
             const now = Date.now();
-            if (now - lastShotTime < 150) return; // Cooldown period
-            
-            lastShotTime = now;
-            
-            const config = levelConfigs[currentLevel];
-            const bulletSize = config.special === 'bread-bullets' ? { width: 8, height: 16 } : { width: 4, height: 10 };
-            const bulletColor = config.special === 'bread-bullets' ? '#a0522d' : '#7cf3d6';
-            
-            bullets.push({
-                x: player.x + player.width / 2 - bulletSize.width / 2,
-                y: player.y,
-                width: bulletSize.width,
-                height: bulletSize.height,
-                active: true,
-                color: bulletColor
-            });
+            if (now - lastShotTime > 150) { // Rapid fire with cooldown
+                const config = levelConfigs[currentLevel];
+                const bulletSize = config.special === 'bread-bullets' ? { width: 8, height: 16 } : { width: 4, height: 10 };
+                const bulletColor = config.special === 'bread-bullets' ? '#a0522d' : '#7cf3d6';
+                
+                bullets.push({
+                    x: player.x + player.width / 2 - bulletSize.width / 2,
+                    y: player.y,
+                    width: bulletSize.width,
+                    height: bulletSize.height,
+                    active: true,
+                    color: bulletColor
+                });
+                
+                lastShotTime = now;
+            }
         }
         
         function gameLoop() {
@@ -1325,7 +1324,7 @@
             if (directionChange) {
                 levelConfigs[currentLevel].speed *= -1;
                 aliens.forEach(alien => {
-                    if (alien.alive) alien.y += 10; // Reduced downward movement
+                    if (alien.alive) alien.y += 10;
                 });
             }
             
@@ -1343,8 +1342,8 @@
             // Update and draw bullets
             updateBullets();
             
-            // Random enemy firing
-            if (Math.random() < levelConfigs[currentLevel].fireRate) {
+            // Random enemy firing (reduced rate for mobile)
+            if (Math.random() < levelConfigs[currentLevel].fireRate * 0.8) {
                 // Find alive aliens
                 const aliveAliens = aliens.filter(alien => alien.alive);
                 if (aliveAliens.length > 0) {
@@ -1374,7 +1373,7 @@
             // Update and draw obstacles (lemons)
             updateObstacles();
             
-            // Show random messages every 5 seconds (300 frames at 60fps)
+            // Show random messages every 5 seconds
             const now = Date.now();
             if (now - lastMessageTime > 5000) {
                 showInGameMessage(messages[Math.floor(Math.random() * messages.length)]);
@@ -1389,7 +1388,7 @@
             ctx.fillStyle = '#7cf3d6';
             // Draw spaceship body
             ctx.beginPath();
-            ctx.moveTo(player.x + player.width/2, player.y);
+            ctx.moveTo(player.x + player.width / 2, player.y);
             ctx.lineTo(player.x + player.width, player.y + player.height);
             ctx.lineTo(player.x, player.y + player.height);
             ctx.closePath();
@@ -1398,7 +1397,7 @@
             // Draw cockpit
             ctx.fillStyle = '#ffffff';
             ctx.beginPath();
-            ctx.arc(player.x + player.width/2, player.y + player.height/2, 4, 0, Math.PI * 2);
+            ctx.arc(player.x + player.width / 2, player.y + player.height / 2, 4, 0, Math.PI * 2);
             ctx.fill();
             
             // Draw fins
@@ -1412,9 +1411,9 @@
             
             if (alien.type === 'zigzag') {
                 alien.movePattern += 0.05;
-                alien.x = alien.originalX + Math.sin(alien.movePattern) * 30; // Reduced amplitude
+                alien.x = alien.originalX + Math.sin(alien.movePattern) * 30;
             } else if (alien.type === 'chaotic') {
-                alien.x += (Math.random() - 0.5) * config.speed * 0.5; // Reduced chaotic movement
+                alien.x += (Math.random() - 0.5) * config.speed * 0.5;
             } else {
                 alien.x += config.speed;
             }
@@ -1435,25 +1434,25 @@
                 ctx.fillStyle = '#b0b0b0';
                 ctx.fillRect(alien.x, alien.y, alien.width, alien.height);
                 ctx.fillStyle = '#444';
-                ctx.fillRect(alien.x + alien.width/2 - 3, alien.y - 2, 6, 4);
+                ctx.fillRect(alien.x + alien.width / 2 - 3, alien.y - 2, 6, 4);
                 ctx.fillStyle = '#222';
                 ctx.fillRect(alien.x + 5, alien.y + 5, alien.width - 10, 4);
             } else if (alien.type === 'cupcake') {
                 ctx.fillStyle = '#634832';
-                ctx.fillRect(alien.x, alien.y + alien.height/2, alien.width, alien.height/2);
+                ctx.fillRect(alien.x, alien.y + alien.height / 2, alien.width, alien.height / 2);
                 ctx.fillStyle = '#e6a4b4';
                 ctx.beginPath();
-                ctx.arc(alien.x + alien.width/2, alien.y + alien.height/2, alien.width/2, Math.PI, Math.PI * 2);
+                ctx.arc(alien.x + alien.width / 2, alien.y + alien.height / 2, alien.width / 2, Math.PI, Math.PI * 2);
                 ctx.fill();
                 ctx.fillStyle = 'red';
                 ctx.beginPath();
-                ctx.arc(alien.x + alien.width/2, alien.y + 3, 2, 0, Math.PI * 2);
+                ctx.arc(alien.x + alien.width / 2, alien.y + 3, 2, 0, Math.PI * 2);
                 ctx.fill();
             } else if (alien.type === 'aggressive') {
                 ctx.fillStyle = '#ff0000';
                 ctx.beginPath();
                 ctx.moveTo(alien.x, alien.y + alien.height);
-                ctx.lineTo(alien.x + alien.width/2, alien.y);
+                ctx.lineTo(alien.x + alien.width / 2, alien.y);
                 ctx.lineTo(alien.x + alien.width, alien.y + alien.height);
                 ctx.lineTo(alien.x + alien.width * 0.8, alien.y + alien.height * 0.8);
                 ctx.lineTo(alien.x + alien.width * 0.2, alien.y + alien.height * 0.8);
@@ -1466,12 +1465,12 @@
                 // Normal alien
                 ctx.fillStyle = '#aaffaa';
                 ctx.beginPath();
-                ctx.moveTo(alien.x + alien.width/2, alien.y);
-                ctx.lineTo(alien.x + alien.width, alien.y + alien.height/2);
-                ctx.lineTo(alien.x, alien.y + alien.height/2);
+                ctx.moveTo(alien.x + alien.width / 2, alien.y);
+                ctx.lineTo(alien.x + alien.width, alien.y + alien.height / 2);
+                ctx.lineTo(alien.x, alien.y + alien.height / 2);
                 ctx.closePath();
                 ctx.fill();
-                ctx.fillRect(alien.x + alien.width/4, alien.y + alien.height/2, alien.width/2, alien.height/2);
+                ctx.fillRect(alien.x + alien.width / 4, alien.y + alien.height / 2, alien.width / 2, alien.height / 2);
             }
             
             ctx.globalAlpha = 1;
@@ -1586,7 +1585,7 @@
                 // Draw obstacle (lemon)
                 ctx.fillStyle = 'yellow';
                 ctx.beginPath();
-                ctx.arc(obstacles[i].x + obstacles[i].width/2, obstacles[i].y + obstacles[i].height/2, obstacles[i].width/2, 0, Math.PI * 2);
+                ctx.arc(obstacles[i].x + obstacles[i].width / 2, obstacles[i].y + obstacles[i].height / 2, obstacles[i].width / 2, 0, Math.PI * 2);
                 ctx.fill();
                 
                 // Move obstacle slowly
@@ -1655,10 +1654,10 @@
         function handleChaosObjectHit(obj) {
             switch (obj.effect) {
                 case 'shake':
-                    chaosEffects.shake = 60; // 1 second at 60fps
+                    chaosEffects.shake = 60;
                     break;
                 case 'question':
-                    chaosEffects.shake = 120; // 2 seconds at 60fps
+                    chaosEffects.shake = 120;
                     break;
             }
         }
@@ -1666,10 +1665,10 @@
         function handleChaosObjectCollision(obj) {
             switch (obj.effect) {
                 case 'distract':
-                    chaosEffects.cash = 120; // 2 seconds at 60fps
+                    chaosEffects.cash = 120;
                     break;
                 case 'invisible':
-                    chaosEffects.invisible = 180; // 3 seconds at 60fps
+                    chaosEffects.invisible = 180;
                     break;
             }
         }
