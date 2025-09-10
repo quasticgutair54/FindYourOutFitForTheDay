@@ -1253,8 +1253,8 @@
                 }
             }
             
-            // Show level start message
-            showInGameMessage(`Level ${levelIndex + 1}: ${config.name} - ${config.description}`);
+            // Show level start message (without enemy type labels)
+showInGameMessage(`Level ${levelIndex + 1}: ${config.name}`);
         }
         
         function fireBullet() {
@@ -1333,21 +1333,23 @@
                     if (alien.alive) alien.y += 10;
                 });
             }
-            
-            // Check for level completion
-            if (allAliensDead) {
-                if (currentLevel < levelConfigs.length - 1) {
-                    // FIX: Properly advance to the next level
-                    setTimeout(() => startLevel(currentLevel + 1), 1000);
-                    gameActive = false;
-                    return;
-                } else {
-                    completeSpaceInvaders();
-                    gameActive = false;
-                    return;
-                }
-            }
-            
+// Check for level completion
+if (allAliensDead) {
+    if (currentLevel < levelConfigs.length - 1) {
+        setTimeout(() => {
+            startLevel(currentLevel + 1);
+            gameActive = true;   // resume the game
+            gameLoop();          // restart the loop
+        }, 1000);
+        gameActive = false;
+        return;
+    } else {
+        completeSpaceInvaders();
+        gameActive = false;
+        return;
+    }
+}
+
             // Update and draw bullets
             updateBullets();
             
