@@ -1484,8 +1484,7 @@ else if (alien.type === 'grapefruit') {
     ctx.beginPath();
     ctx.arc(alien.x + alien.width / 2, alien.y + 3, 2, 0, Math.PI * 2);
     ctx.fill();
-}
-            } else if (alien.type === 'armor') {
+} else if (alien.type === 'armor') {
     ctx.fillStyle = '#555555'; // gray armor
     ctx.fillRect(alien.x, alien.y, alien.width, alien.height); // body
     ctx.fillStyle = '#999999'; // helmet highlight
