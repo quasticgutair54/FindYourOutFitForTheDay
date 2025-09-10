@@ -989,108 +989,107 @@
         }
         
         // ===== SPACE INVADERS IMPLEMENTATION =====
-        let canvas, ctx;
-        let player, aliens, bullets, enemyBullets, obstacles, chaosObjects;
-        let gameActive = false;
-        let currentLevel = 0;
-        let lives = 3;
-        let lastShotTime = 0;
-        let gameTick = 0;
-        let keys = {};
-        let messageTimer = 0;
-        let chaosEffects = {
-            invert: 0,
-            tilt: 0,
-            shake: 0,
-            cash: 0,
-            invisible: 0
-        };
-        let lastMessageTime = 0;
-        
-        const levelConfigs = [
-            { 
-                name: "Level 1: Notthebest OG", 
-                rows: 2, 
-                speed: 0.8, 
-                fireRate: 0.003, 
-                alienType: 'normal',
-                description: "Intro, simple enemies, chill"
-            },
-                {
-    name: "Level 2: Initial D",
-    rows: 3,
-    alienType: "driftcar",
-    description: "Mini cars drifting in zig-zag motion",
-    speed: 1.5 // slower base speed so they don’t rush down instantly
-            },
-            {
-    name: "Level 3: Lorem Ipsum",
-    rows: 3,
-    speed: 1.2, // slightly faster than Level 2
-    fireRate: 0.009, // a bit more aggressive
-    alienType: "latinText", // <- updated type
-    description: "Enemies spawn with weird random Latin-like text sprites"
-            },
-            {
-    name: "Level 4: Your Toast",
-    rows: 3,
-    speed: 1.4,  // slightly harder than Level 3
-    fireRate: 0.012,  // enemies shoot a bit more often
-    alienType: "toaster",
-    special: "bread-Bullets",
-    description: "Toaster enemies that you fight using big toasted bread bullets"
-            },
-            { 
-    name: "Level 5: Grapefruit x Lime", 
-    rows: 3, 
-    speed: 0.9, 
-    fireRate: 0.006, 
-    alienType: 'grapefruit', 
-    special: 'lime-bullets', 
-    description: "Enemies shaped like half grapefruits; bullets are lime dots; floating grapefruits block bullets"
-},
-           { 
-    name: "Level 6: Cake Was A Lie", 
-    rows: 3, 
-    speed: 1.2, 
-    fireRate: 0.008, 
-    alienType: 'cupcake', 
-    special: 'frosting-laser',  // your player shoots frosting lasers
-    description: "Cupcake-shaped enemies. Hitting floating cupcakes converts your bullets back to normal."
-},
+let canvas, ctx;
+let player, aliens, bullets, enemyBullets, obstacles, chaosObjects;
+let gameActive = false;
+let currentLevel = 0;
+let lives = 3;
+let lastShotTime = 0;
+let gameTick = 0;
+let keys = {};
+let messageTimer = 0;
+let chaosEffects = {
+    invert: 0,
+    tilt: 0,
+    shake: 0,
+    cash: 0,
+    invisible: 0
+};
+let lastMessageTime = 0;
 
-          { 
-    name: "Level 7: Berserk", 
-    rows: 4, 
-    speed: 2.0,        // faster movement
-    fireRate: 0.02,    // very aggressive shooting
-    alienType: 'armor', // custom draw function for armor shape
-    special: 'sword-bullets',
-    description: "Fast, aggressive, non-stop shooting enemies"
-},
+const levelConfigs = [
+    { 
+        name: "Level 1: Notthebest OG", 
+        rows: 2, 
+        speed: 0.8, 
+        fireRate: 0.003, 
+        alienType: 'normal',
+        description: "Intro, simple enemies, chill"
+    },
+    {
+        name: "Level 2: Initial D",
+        rows: 3,
+        alienType: "driftcar",
+        description: "Mini cars drifting in zig-zag motion",
+        speed: 1.5 // slower base speed so they don’t rush down instantly
+    },
+    {
+        name: "Level 3: Lorem Ipsum",
+        rows: 3,
+        speed: 1.2, // slightly faster than Level 2
+        fireRate: 0.009, // a bit more aggressive
+        alienType: "latinText", // <- updated type
+        description: "Enemies spawn with weird random Latin-like text sprites"
+    },
+    {
+        name: "Level 4: Your Toast",
+        rows: 3,
+        speed: 1.4,  // slightly harder than Level 3
+        fireRate: 0.012,  // enemies shoot a bit more often
+        alienType: "toaster",
+        special: "bread-Bullets",
+        description: "Toaster enemies that you fight using big toasted bread bullets"
+    },
+    { 
+        name: "Level 5: Grapefruit x Lime", 
+        rows: 3, 
+        speed: 0.9, 
+        fireRate: 0.006, 
+        alienType: 'grapefruit', 
+        special: 'lime-bullets', 
+        description: "Enemies shaped like half grapefruits; bullets are lime dots; floating grapefruits block bullets"
+    },
+    { 
+        name: "Level 6: Cake Was A Lie", 
+        rows: 3, 
+        speed: 1.2, 
+        fireRate: 0.008, 
+        alienType: 'cupcake', 
+        special: 'frosting-laser',  // your player shoots frosting lasers
+        description: "Cupcake-shaped enemies. Hitting floating cupcakes converts your bullets back to normal."
+    },
+    { 
+        name: "Level 7: Berserk", 
+        rows: 4, 
+        speed: 2.0,        // faster movement
+        fireRate: 0.02,    // very aggressive shooting
+        alienType: 'armor', // custom draw function for armor shape
+        special: 'sword-bullets',
+        description: "Fast, aggressive, non-stop shooting enemies"
+    },
+    {
+        name: "Level 8: RANDOMODIUM",
+        rows: 5,
+        speed: 2.5,           // fast, unpredictable movement
+        fireRate: 0.03,       // frequent shooting
+        alienType: 'chaotic', // move randomly
+        special: 'chaos-bullets',
+        description: "Final chaos boss level with floating chaos objects"
+    }
+];
 
-           {
-    name: "Level 8: RANDOMODIUM",
-    rows: 5,
-    speed: 2.5,           // fast, unpredictable movement
-    fireRate: 0.03,       // frequent shooting
-    alienType: 'chaotic', // move randomly
-    special: 'chaos-bullets',
-    description: "Final chaos boss level with floating chaos objects"
-           }
-            ];
-        const messages = [
-            "what you doing", 
-            "complete it bro", 
-            "choose persistence over consistency",
-            "focus!",
-            "don't give up",
-            "almost there",
-            "keep going",
-            "you got this"
-        ];
+const messages = [
+    "what you doing", 
+    "complete it bro", 
+    "choose persistence over consistency",
+    "focus!",
+    "don't give up",
+    "almost there",
+    "keep going",
+    "you got this"
+];
 
-        const chaosItems = [
+const chaosItems = [
     { type: 'book', emoji: '📕', effect: 'block' },           // blocks bullets
     { type: 'cash', emoji: '💵', effect: 'hide' },           // hides part of screen
     { type: 'question', emoji: '❓', effect: 'shake' },       // violent shake
@@ -1099,327 +1098,317 @@
     { type: 'blob', emoji: '🫧', effect: 'grow' }            // grows/shrinks randomly
 ];
 
-        function initSpaceInvaders() {
-            canvas = document.getElementById('si-canvas');
-            ctx = canvas.getContext('2d');
-            
-            // Set canvas size properly for mobile
-            canvas.width = canvas.offsetWidth;
-            canvas.height = canvas.offsetHeight;
-            
-            // Initialize game state
-            player = {
-                x: canvas.width / 2 - 15,
-                y: canvas.height - 50,
-                width: 30,
-                height: 20,
-                speed: 7,
-                firing: false
-            };
-            
-            // Keyboard controls
-            window.addEventListener('keydown', e => {
-                keys[e.key] = true;
-                
-                // Start continuous firing when space is pressed
-                if (e.key === ' ' && gameActive && !player.firing) {
-                    player.firing = true;
-                    fireBullet(); // Fire immediately
-                    player.fireInterval = setInterval(fireBullet, 150); // Continue firing
-                }
-            });
-            
-            window.addEventListener('keyup', e => {
-                keys[e.key] = false;
-                
-                // Stop continuous firing when space is released
-                if (e.key === ' ' && player.firing) {
-                    player.firing = false;
-                    clearInterval(player.fireInterval);
-                }
-            });
-            
-            // Touch controls for mobile
-            let touchStart = 0;
-            let touchId = null;
-            let isFiring = false;
-            
-            canvas.addEventListener('touchstart', e => {
-                if (touchId !== null) return; // Ignore multi-touch
-                
-                touchId = e.changedTouches[0].identifier;
-                touchStart = e.changedTouches[0].clientX;
-                
-                // Start firing on touch
-                isFiring = true;
-                fireBullet();
-                player.fireInterval = setInterval(fireBullet, 150);
-            });
-            
-            canvas.addEventListener('touchmove', e => {
-                if (touchId === null) return;
-                
-                for (let i = 0; i < e.changedTouches.length; i++) {
-                    if (e.changedTouches[i].identifier === touchId) {
-                        const touchX = e.changedTouches[i].clientX;
-                        const diff = touchX - touchStart;
-                        
-                        if (diff > 10) {
-                            player.x = Math.min(canvas.width - player.width, player.x + player.speed);
-                            touchStart = touchX;
-                        } else if (diff < -10) {
-                            player.x = Math.max(0, player.x - player.speed);
-                            touchStart = touchX;
-                        }
-                        break;
-                    }
-                }
-            });
-            
-            canvas.addEventListener('touchend', e => {
-                for (let i = 0; i < e.changedTouches.length; i++) {
-                    if (e.changedTouches[i].identifier === touchId) {
-                        // Stop firing on touch end
-                        isFiring = false;
-                        clearInterval(player.fireInterval);
-                        touchId = null;
-                        break;
-                    }
-                }
-            });
-            
-            // Start the first level
-            startLevel(0);
-            
-            // Start the game loop
-            gameActive = true;
-            gameLoop();
-        }
-        
-        function startLevel(levelIndex) {
-            // FIX: Ensure levelIndex is within bounds
-            if (levelIndex >= levelConfigs.length) {
-                completeSpaceInvaders();
-                return;
-            }
-            
-            currentLevel = levelIndex;
-            const config = levelConfigs[levelIndex];
-            
-            // Update UI
-            levelNumber.textContent = levelIndex + 1;
-            levelName.textContent = config.name;
-            
-            // Initialize game objects
-            aliens = [];
-            bullets = [];
-            enemyBullets = [];
-            obstacles = [];
-            chaosObjects = [];
-            chaosEffects = { invert: 0, tilt: 0, shake: 0, cash: 0, invisible: 0 };
-            
-            // Reset canvas styles
-            canvas.className = '';
-            
-            // Create aliens based on level config
-            const alienWidth = 24;
-            const alienHeight = 18;
-            const alienPadding = 10;
-            const aliensPerRow = Math.min(8, Math.floor((canvas.width - 40) / (alienWidth + alienPadding)));
-            
-            for (let row = 0; row < config.rows; row++) {
-                for (let col = 0; col < aliensPerRow; col++) {
-                    aliens.push({
-                        x: col * (alienWidth + alienPadding) + 20,
-                        y: row * (alienHeight + alienPadding) + 40,
-                        width: alienWidth,
-                        height: alienHeight,
-                        type: config.alienType,
-                        originalX: col * (alienWidth + alienPadding) + 20,
-                        alive: true,
-                        movePattern: config.alienType === 'zigzag' ? Math.random() * Math.PI * 2 : 0
-                    });
-                }
-            }
-            
-            // Add special elements based on level
-            if (config.special === 'lemons') {
-                for (let i = 0; i < 3; i++) {
-                    obstacles.push({
-                        x: Math.random() * (canvas.width - 20),
-                        y: Math.random() * (canvas.height / 2),
-                        width: 15,
-                        height: 15,
-                        type: 'lemon'
-                    });
-                }
-            }
-            
-            // Show level start message (without enemy type labels)
-showInGameMessage(`Level ${levelIndex + 1}: ${config.name}`);
-        }
-        
-        function fireBullet() {
-            const now = Date.now();
-            if (now - lastShotTime > 150) { // Rapid fire with cooldown
-                const config = levelConfigs[currentLevel];
-                const bulletSize = config.special === 'bread-bullets' ? { width: 8, height: 16 } : { width: 4, height: 10 };
-                const bulletColor = config.special === 'bread-bullets' ? '#a0522d' : '#7cf3d6';
-                
-                bullets.push({
-                    x: player.x + player.width / 2 - bulletSize.width / 2,
-                    y: player.y,
-                    width: bulletSize.width,
-                    height: bulletSize.height,
-                    active: true,
-                    color: bulletColor
-                });
-                
-                lastShotTime = now;
-            }
-        }
-        
-        function gameLoop() {
-            if (!gameActive) return;
-            
-            gameTick++;
-            
-            // Clear canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Handle chaos effects
-            updateChaosEffects();
-            
-            // Handle player movement
-            if (keys['ArrowLeft'] || keys['a']) {
-                player.x = Math.max(0, player.x - player.speed);
-            }
-            if (keys['ArrowRight'] || keys['d']) {
-                player.x = Math.min(canvas.width - player.width, player.x + player.speed);
-            }
-            
-            // Draw player (proper spaceship design)
-            drawPlayer();
-            
-            // Update and draw aliens
-            let allAliensDead = true;
-            let directionChange = false;
-            
-            aliens.forEach(alien => {
-                if (!alien.alive) return;
-                
-                allAliensDead = false;
-                
-                // Update position based on alien type
-                updateAlienPosition(alien);
-                
-                // Check for wall collision
-                if (alien.x <= 0 || alien.x + alien.width >= canvas.width) {
-                    directionChange = true;
-                }
-                
-                // Check if reached bottom
-                if (alien.y + alien.height >= player.y) {
-                    loseLife();
-                    alien.alive = false;
-                }
-                
-                // Draw alien based on type
-                drawAlien(alien);
-            });
-            
-            // Change direction if needed
-            if (directionChange) {
-                levelConfigs[currentLevel].speed *= -1;
-                aliens.forEach(alien => {
-                    if (alien.alive) alien.y += 10;
-                });
-            }
-// Check for level completion
-if (allAliensDead) {
-    if (currentLevel < levelConfigs.length - 1) {
-        setTimeout(() => {
-            startLevel(currentLevel + 1);
-            gameActive = true;   // resume the game
-            gameLoop();          // restart the loop
-        }, 1000);
-        gameActive = false;
-        return;
-    } else {
-        completeSpaceInvaders();
-        gameActive = false;
-        return;
+function initSpaceInvaders() {
+    canvas = document.getElementById('si-canvas');
+    ctx = canvas.getContext('2d');
+    
+    // Set canvas size properly for mobile
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+    
+    // Initialize game state
+    player = {
+        x: canvas.width / 2 - 15,
+        y: canvas.height - 50,
+        width: 30,
+        height: 20,
+        speed: 7,
+        firing: false
+    };
+    
+    // Keyboard controls
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    
+    // Touch controls for mobile
+    setupTouchControls();
+    
+    // Start the first level
+    startLevel(0);
+    
+    // Start the game loop
+    gameActive = true;
+    gameLoop();
+}
+
+function handleKeyDown(e) {
+    keys[e.key] = true;
+    
+    // Start continuous firing when space is pressed
+    if (e.key === ' ' && gameActive && !player.firing) {
+        player.firing = true;
+        fireBullet(); // Fire immediately
+        player.fireInterval = setInterval(fireBullet, 150); // Continue firing
     }
 }
 
-            // Update and draw bullets
-            updateBullets();
-            
-            // Random enemy firing (reduced rate for mobile)
-            if (Math.random() < levelConfigs[currentLevel].fireRate * 0.8) {
-                // Find alive aliens
-                const aliveAliens = aliens.filter(alien => alien.alive);
-                if (aliveAliens.length > 0) {
-                    const shooter = aliveAliens[Math.floor(Math.random() * aliveAliens.length)];
-                    enemyBullets.push({
-                        x: shooter.x + shooter.width / 2 - 2,
-                        y: shooter.y + shooter.height,
-                        width: 4,
-                        height: 10,
-                        active: true,
-                        color: '#ff6f61'
-                    });
+function handleKeyUp(e) {
+    keys[e.key] = false;
+    
+    // Stop continuous firing when space is released
+    if (e.key === ' ' && player.firing) {
+        player.firing = false;
+        clearInterval(player.fireInterval);
+    }
+}
+
+function setupTouchControls() {
+    let touchStart = 0;
+    let touchId = null;
+    
+    canvas.addEventListener('touchstart', e => {
+        if (touchId !== null) return; // Ignore multi-touch
+        
+        touchId = e.changedTouches[0].identifier;
+        touchStart = e.changedTouches[0].clientX;
+        
+        // Start firing on touch
+        player.firing = true;
+        fireBullet();
+        player.fireInterval = setInterval(fireBullet, 150);
+    });
+    
+    canvas.addEventListener('touchmove', e => {
+        if (touchId === null) return;
+        
+        for (let i = 0; i < e.changedTouches.length; i++) {
+            if (e.changedTouches[i].identifier === touchId) {
+                const touchX = e.changedTouches[i].clientX;
+                const diff = touchX - touchStart;
+                
+                if (diff > 10) {
+                    player.x = Math.min(canvas.width - player.width, player.x + player.speed);
+                    touchStart = touchX;
+                } else if (diff < -10) {
+                    player.x = Math.max(0, player.x - player.speed);
+                    touchStart = touchX;
                 }
+                break;
             }
-            
-            // Update and draw enemy bullets
-            updateEnemyBullets();
-            
-            // Handle chaos objects for level 8
-            if (currentLevel === 7 && gameTick % 60 === 0) {
-                spawnChaosObject();
+        }
+    });
+    
+    canvas.addEventListener('touchend', e => {
+        for (let i = 0; i < e.changedTouches.length; i++) {
+            if (e.changedTouches[i].identifier === touchId) {
+                // Stop firing on touch end
+                player.firing = false;
+                clearInterval(player.fireInterval);
+                touchId = null;
+                break;
             }
-            
-            // Update and draw chaos objects
-            updateChaosObjects();
-            
-            // Update and draw obstacles (lemons)
-            updateObstacles();
-            
-            // Show random messages every 5 seconds
-            const now = Date.now();
-            if (now - lastMessageTime > 5000) {
-                showInGameMessage(messages[Math.floor(Math.random() * messages.length)]);
-                lastMessageTime = now;
-            }
-            
-            // Continue the game loop
-            requestAnimationFrame(gameLoop);
+        }
+    });
+}
+
+function startLevel(levelIndex) {
+    // Ensure levelIndex is within bounds
+    if (levelIndex >= levelConfigs.length) {
+        completeSpaceInvaders();
+        return;
+    }
+    
+    currentLevel = levelIndex;
+    const config = levelConfigs[levelIndex];
+    
+    // Update UI
+    levelNumber.textContent = levelIndex + 1;
+    levelName.textContent = config.name;
+    
+    // Initialize game objects
+    aliens = [];
+    bullets = [];
+    enemyBullets = [];
+    obstacles = [];
+    chaosObjects = [];
+    chaosEffects = { invert: 0, tilt: 0, shake: 0, cash: 0, invisible: 0 };
+    
+    // Reset canvas styles
+    canvas.className = '';
+    
+    // Create aliens based on level config
+    const alienWidth = 24;
+    const alienHeight = 18;
+    const alienPadding = 10;
+    const aliensPerRow = Math.min(8, Math.floor((canvas.width - 40) / (alienWidth + alienPadding)));
+    
+    for (let row = 0; row < config.rows; row++) {
+        for (let col = 0; col < aliensPerRow; col++) {
+            aliens.push({
+                x: col * (alienWidth + alienPadding) + 20,
+                y: row * (alienHeight + alienPadding) + 40,
+                width: alienWidth,
+                height: alienHeight,
+                type: config.alienType,
+                originalX: col * (alienWidth + alienPadding) + 20,
+                alive: true,
+                movePattern: config.alienType === 'zigzag' ? Math.random() * Math.PI * 2 : 0
+            });
+        }
+    }
+    
+    // Show level start message
+    showInGameMessage(`Level ${levelIndex + 1}: ${config.name}`);
+}
+
+function fireBullet() {
+    const now = Date.now();
+    if (now - lastShotTime > 150) { // Rapid fire with cooldown
+        const config = levelConfigs[currentLevel];
+        const bulletSize = config.special === 'bread-bullets' ? { width: 8, height: 16 } : { width: 4, height: 10 };
+        const bulletColor = config.special === 'bread-bullets' ? '#a0522d' : '#7cf3d6';
+        
+        bullets.push({
+            x: player.x + player.width / 2 - bulletSize.width / 2,
+            y: player.y,
+            width: bulletSize.width,
+            height: bulletSize.height,
+            active: true,
+            color: bulletColor
+        });
+        
+        lastShotTime = now;
+    }
+}
+
+function gameLoop() {
+    if (!gameActive) return;
+    
+    gameTick++;
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Handle player movement
+    if (keys['ArrowLeft'] || keys['a']) {
+        player.x = Math.max(0, player.x - player.speed);
+    }
+    if (keys['ArrowRight'] || keys['d']) {
+        player.x = Math.min(canvas.width - player.width, player.x + player.speed);
+    }
+    
+    // Draw player
+    drawPlayer();
+    
+    // Update and draw aliens
+    let allAliensDead = true;
+    let directionChange = false;
+    
+    aliens.forEach(alien => {
+        if (!alien.alive) return;
+        
+        allAliensDead = false;
+        
+        // Update position based on alien type
+        updateAlienPosition(alien);
+        
+        // Check for wall collision
+        if (alien.x <= 0 || alien.x + alien.width >= canvas.width) {
+            directionChange = true;
         }
         
-        function drawPlayer() {
-            ctx.fillStyle = '#7cf3d6';
-            // Draw spaceship body
-            ctx.beginPath();
-            ctx.moveTo(player.x + player.width / 2, player.y);
-            ctx.lineTo(player.x + player.width, player.y + player.height);
-            ctx.lineTo(player.x, player.y + player.height);
-            ctx.closePath();
-            ctx.fill();
-            
-            // Draw cockpit
-            ctx.fillStyle = '#ffffff';
-            ctx.beginPath();
-            ctx.arc(player.x + player.width / 2, player.y + player.height / 2, 4, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Draw fins
-            ctx.fillStyle = '#ff6f61';
-            ctx.fillRect(player.x, player.y + player.height - 5, 5, 5);
-            ctx.fillRect(player.x + player.width - 5, player.y + player.height - 5, 5, 5);
+        // Check if reached bottom
+        if (alien.y + alien.height >= player.y) {
+            loseLife();
+            alien.alive = false;
         }
         
-        function updateAlienPosition(alien) {
+        // Draw alien based on type
+        drawAlien(alien);
+    });
+    
+    // Change direction if needed
+    if (directionChange) {
+        levelConfigs[currentLevel].speed *= -1;
+        aliens.forEach(alien => {
+            if (alien.alive) alien.y += 10;
+        });
+    }
+
+    // Check for level completion
+    if (allAliensDead) {
+        if (currentLevel < levelConfigs.length - 1) {
+            setTimeout(() => {
+                startLevel(currentLevel + 1);
+                gameActive = true;   // resume the game
+                gameLoop();          // restart the loop
+            }, 1000);
+            gameActive = false;
+            return;
+        } else {
+            completeSpaceInvaders();
+            gameActive = false;
+            return;
+        }
+    }
+
+    // Update and draw bullets
+    updateBullets();
+    
+    // Random enemy firing
+    if (Math.random() < levelConfigs[currentLevel].fireRate * 0.8) {
+        const aliveAliens = aliens.filter(alien => alien.alive);
+        if (aliveAliens.length > 0) {
+            const shooter = aliveAliens[Math.floor(Math.random() * aliveAliens.length)];
+            enemyBullets.push({
+                x: shooter.x + shooter.width / 2 - 2,
+                y: shooter.y + shooter.height,
+                width: 4,
+                height: 10,
+                active: true,
+                color: '#ff6f61'
+            });
+        }
+    }
+    
+    // Update and draw enemy bullets
+    updateEnemyBullets();
+    
+    // Handle chaos objects for level 8
+    if (currentLevel === 7 && gameTick % 60 === 0) {
+        spawnChaosObject();
+    }
+    
+    // Update and draw chaos objects
+    updateChaosObjects();
+    
+    // Update and draw obstacles
+    updateObstacles();
+    
+    // Show random messages every 5 seconds
+    const now = Date.now();
+    if (now - lastMessageTime > 5000) {
+        showInGameMessage(messages[Math.floor(Math.random() * messages.length)]);
+        lastMessageTime = now;
+    }
+    
+    // Continue the game loop
+    requestAnimationFrame(gameLoop);
+}
+
+function drawPlayer() {
+    ctx.fillStyle = '#7cf3d6';
+    // Draw spaceship body
+    ctx.beginPath();
+    ctx.moveTo(player.x + player.width / 2, player.y);
+    ctx.lineTo(player.x + player.width, player.y + player.height);
+    ctx.lineTo(player.x, player.y + player.height);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Draw cockpit
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(player.x + player.width / 2, player.y + player.height / 2, 4, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Draw fins
+    ctx.fillStyle = '#ff6f61';
+    ctx.fillRect(player.x, player.y + player.height - 5, 5, 5);
+    ctx.fillRect(player.x + player.width - 5, player.y + player.height - 5, 5, 5);
+}
+
+function updateAlienPosition(alien) {
     const config = levelConfigs[currentLevel];
 
     if (alien.type === 'zigzag') {
