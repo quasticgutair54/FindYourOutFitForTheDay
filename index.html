@@ -1420,29 +1420,52 @@ if (allAliensDead) {
         }
         
         function updateAlienPosition(alien) {
-            const config = levelConfigs[currentLevel];
-            
-            if (alien.type === 'zigzag') {
-    // Drift-style zigzag motion for Level 2
-    alien.movePattern += 0.05; 
-    alien.x = alien.originalX + Math.sin(alien.movePattern) * 40; // wider zig-zag
-    alien.y += 0.3; // slow descent instead of dropping too fast
+    const config = levelConfigs[currentLevel];
+
+    if (alien.type === 'zigzag') {
+        // Drift-style zigzag motion for Level 2
+        alien.movePattern += 0.05; 
+        alien.x = alien.originalX + Math.sin(alien.movePattern) * 40; // wider zig-zag
+        alien.y += 0.3; // slow descent instead of dropping too fast
+    } else {
+        // Default straight descent
+        alien.y += config.speed || 0.5;
+    }
 }
-        
-        function drawAlien(alien) {
-            const config = levelConfigs[currentLevel];
-            
-            if (chaosEffects.invisible > 0) {
-                ctx.globalAlpha = 0.3;
-            }
-            
-            else if (alien.type === "latinText") {
-  ctx.fillStyle = "purple";
-  ctx.font = "bold 20px serif";
-  const latinChars = ["Æ","Ω","Ʃ","Ð","Ø","Ǝ","Ψ","Λ"];
-  const char = latinChars[alien.spriteIndex % latinChars.length];
-  ctx.fillText(char, alien.x, alien.y);
+
+function drawAlien(alien) {
+    const config = levelConfigs[currentLevel];
+
+    if (chaosEffects.invisible > 0) {
+        ctx.globalAlpha = 0.3;
+    } else {
+        ctx.globalAlpha = 1;
+    }
+
+    // Latin text alien
+    if (alien.type === "latinText") {
+        ctx.fillStyle = "purple";
+        ctx.font = "bold 20px serif";
+        const latinChars = ["Æ","Ω","Ʃ","Ð","Ø","Ǝ","Ψ","Λ"];
+        const char = latinChars[alien.spriteIndex % latinChars.length];
+        ctx.fillText(char, alien.x, alien.y);
+    }
+    // Zigzag alien
+    else if (alien.type === 'zigzag') {
+        // Car-like drifting alien
+        ctx.fillStyle = '#ff3333';
+        ctx.fillRect(alien.x, alien.y, alien.width, alien.height); // car body
+
+        ctx.fillStyle = '#000';
+        ctx.fillRect(alien.x, alien.y + alien.height - 4, 6, 4); // left wheel
+        ctx.fillRect(alien.x + alien.width - 6, alien.y + alien.height - 4, 6, 4); // right wheel
+
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(alien.x + alien.width / 4, alien.y + 2, alien.width / 2, 6); // windshield
+    }
+    // Add other alien types here, e.g., 'toaster', 'grapefruit', etc.
 }
+
             else if (alien.type === "toaster") {
     ctx.fillStyle = "sienna";
     ctx.fillRect(alien.x, alien.y, alien.width, alien.height); // base toaster body
@@ -1656,8 +1679,6 @@ else if (alien.type === 'grapefruit') {
             }
         }
     }
-    
-    function updateObstacles() {
         function updateObstacles() {
     for (let i = obstacles.length - 1; i >= 0; i--) {
         if (currentLevel === 4) { // Level 5 is index 4 (0-based)
