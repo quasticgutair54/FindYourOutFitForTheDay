@@ -1577,7 +1577,7 @@ else if (alien.type === 'grapefruit') {
             ctx.strokeStyle = "#999";
             ctx.lineWidth = 1;
             ctx.strokeRect(bullets[i].x + bullets[i].width / 2 - 1, bullets[i].y, 2, bullets[i].height * 3);
-        
+        }
         // Collision with aliens
         for (let j = aliens.length - 1; j >= 0; j--) {
             if (!aliens[j].alive) continue;
