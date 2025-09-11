@@ -1155,7 +1155,7 @@ function handleKeyUp(e) {
 function setupTouchControls() {
     let touchStart = 0;
     let touchId = null;
-    
+
     canvas.addEventListener('touchstart', e => {
         if (touchId !== null) return; // Ignore multi-touch
         
@@ -1163,9 +1163,11 @@ function setupTouchControls() {
         touchStart = e.changedTouches[0].clientX;
         
         // Start firing on touch
-        player.firing = true;
-        fireBullet();
-        player.fireInterval = setInterval(fireBullet, 150);
+        if (!player.firing) {
+            player.firing = true;
+            fireBullet();
+            player.fireInterval = setInterval(fireBullet, 150);
+        }
     });
     
     canvas.addEventListener('touchmove', e => {
@@ -1187,6 +1189,22 @@ function setupTouchControls() {
             }
         }
     });
+    
+    canvas.addEventListener('touchend', e => {
+        for (let i = 0; i < e.changedTouches.length; i++) {
+            if (e.changedTouches[i].identifier === touchId) {
+                // Stop firing on touch end
+                if (player.firing) {
+                    player.firing = false;
+                    clearInterval(player.fireInterval);
+                }
+                touchId = null;
+                break;
+            }
+        }
+    });
+}
+
     
     canvas.addEventListener('touchend', e => {
         for (let i = 0; i < e.changedTouches.length; i++) {
@@ -1252,25 +1270,19 @@ function startLevel(levelIndex) {
 }
 
 function fireBullet() {
-    const now = Date.now();
-    if (now - lastShotTime > 150) { // Rapid fire with cooldown
-        const config = levelConfigs[currentLevel];
-        const bulletSize = config.special === 'bread-bullets' ? { width: 8, height: 16 } : { width: 4, height: 10 };
-        const bulletColor = config.special === 'bread-bullets' ? '#a0522d' : '#7cf3d6';
-        
-        bullets.push({
-            x: player.x + player.width / 2 - bulletSize.width / 2,
-            y: player.y,
-            width: bulletSize.width,
-            height: bulletSize.height,
-            active: true,
-            color: bulletColor
-        });
-        
-        lastShotTime = now;
-    }
-}
+    const config = levelConfigs[currentLevel];
+    const bulletSize = config.special === 'bread-bullets' ? { width: 8, height: 16 } : { width: 4, height: 10 };
+    const bulletColor = config.special === 'bread-bullets' ? '#a0522d' : '#7cf3d6';
 
+    bullets.push({
+        x: player.x + player.width / 2 - bulletSize.width / 2,
+        y: player.y,
+        width: bulletSize.width,
+        height: bulletSize.height,
+        active: true,
+        color: bulletColor
+    });
+}
 function gameLoop() {
     if (!gameActive) return;
     
@@ -1418,10 +1430,13 @@ function updateAlienPosition(alien) {
         alien.y += 0.3; // slow descent instead of dropping too fast
     } else {
         // Default straight descent
-        alien.y += config.speed || 0.5;
+        if (currentLevel === 0) {
+            alien.y += (config.speed || 0.5) * 0.2; // Slow down vertical speed for Level 1
+        } else {
+            alien.y += config.speed || 0.5;
+        }
     }
 }
-
 function drawAlien(alien) {
     const config = levelConfigs[currentLevel];
 
