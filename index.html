@@ -1,578 +1,3081 @@
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NotTheBest Space Invaders</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        :root {
-            --accent: #ff6f61;
-            --accent-2: #7cf3d6;
-            --glass: rgba(20, 20, 30, 0.8);
-            --glass-strong: rgba(0, 0, 0, 0.9);
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #000;
-            color: #fff;
-            overflow: hidden;
-            height: 100vh;
-            width: 100vw;
-            position: fixed;
-        }
-        
-        #bg-video {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            z-index: -2;
-        }
-        
-        .bg-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to bottom, var(--glass-strong), rgba(0, 0, 0, 0.45));
-            z-index: -1;
-        }
-        
-        .container {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            width: 100vw;
-            padding: 10px;
-            gap: 10px;
-            overflow: auto;
-        }
-        
-        .game-panel {
-            flex: 3;
-            background: var(--glass);
-            border-radius: 15px;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            overflow: auto;
-            min-height: 0;
-        }
-        
-        .space-invaders-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-            height: 100%;
-        }
-        
-        .canvas-wrapper {
-            width: 100%;
-            max-width: 600px;
-            position: relative;
-        }
-        
-        #si-canvas {
-            width: 100%;
-            height: 400px;
-            background: #000;
-            border-radius: 10px;
-            margin: 10px 0;
-            border: 2px solid var(--accent-2);
-        }
-        
-        .game-ui {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            max-width: 600px;
-            margin-top: 10px;
-        }
-        
-        .level-indicator {
-            font-weight: bold;
-            color: var(--accent-2);
-            font-size: 1rem;
-            text-shadow: 0 0 10px var(--accent-2);
-        }
-        
-        .lives-indicator {
-            display: flex;
-            gap: 5px;
-        }
-        
-        .life {
-            width: 20px;
-            height: 20px;
-            background: var(--accent);
-            border-radius: 50%;
-        }
-        
-        .in-game-message {
-            position: absolute;
-            bottom: 20px;
-            left: 0;
-            right: 0;
-            text-align: center;
-            font-size: 1.2rem;
-            color: var(--accent-2);
-            opacity: 0;
-            transition: opacity 0.5s;
-            pointer-events: none;
-            text-shadow: 0 0 10px var(--accent-2);
-        }
-        
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
-            backdrop-filter: blur(5px);
-        }
-        
-        .modal {
-            background: rgba(30, 30, 40, 0.95);
-            border-radius: 20px;
-            padding: 25px;
-            width: 90%;
-            max-width: 400px;
-            text-align: center;
-            border: 1px solid rgba(124, 243, 214, 0.3);
-            box-shadow: 0 0 30px rgba(124, 243, 214, 0.2);
-        }
-        
-        .modal h2 {
-            color: var(--accent-2);
-            margin-bottom: 15px;
-            font-size: 1.8rem;
-        }
-        
-        .modal p {
-            margin-bottom: 20px;
-            line-height: 1.5;
-            font-size: 1.1rem;
-        }
-        
-        .btn {
-            background: var(--accent);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 10px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 1.1rem;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        
-        .btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 15px rgba(255, 111, 97, 0.5);
-        }
-        
-        /* Chaos effects for Level 8 */
-        .chaos-invert {
-            filter: invert(1);
-        }
-        
-        .chaos-tilt {
-            transform: rotate(5deg);
-        }
-        
-        .chaos-shake {
-            animation: chaos-shake 0.1s infinite;
-        }
-        
-        @keyframes chaos-shake {
-            0% { transform: translate(1px, 1px); }
-            10% { transform: translate(-1px, -2px); }
-            20% { transform: translate(-2px, 0px); }
-            30% { transform: translate(2px, 2px); }
-            40% { transform: translate(1px, -1px); }
-            50% { transform: translate(-1px, 2px); }
-            60% { transform: translate(-2px, 1px); }
-            70% { transform: translate(2px, 1px); }
-            80% { transform: translate(-1px, -1px); }
-            90% { transform: translate(1px, 2px); }
-            100% { transform: translate(0, 0); }
-        }
-        
-        .cash-effect {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 100, 0, 0.3);
-            pointer-events: none;
-            z-index: 10;
-        }
-        
-        .invisible-aliens {
-            opacity: 0.3;
-        }
-        
-        .glitch-text {
-            animation: glitch 1s infinite;
-            color: var(--accent-2);
-            text-shadow: 2px 2px var(--accent), -2px -2px #00ff00;
-        }
-        
-        @keyframes glitch {
-            0% { transform: translate(0); }
-            20% { transform: translate(-3px, 3px); }
-            40% { transform: translate(-3px, -3px); }
-            60% { transform: translate(3px, 3px); }
-            80% { transform: translate(3px, -3px); }
-            100% { transform: translate(0); }
-        }
-        
-        @media (max-width: 768px) {
-            #si-canvas {
-                height: 350px;
-            }
-            
-            .level-indicator {
-                font-size: 0.9rem;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            #si-canvas {
-                height: 300px;
-            }
-            
-            .modal {
-                padding: 20px 15px;
-            }
-            
-            .modal h2 {
-                font-size: 1.5rem;
-            }
-            
-            .modal p {
-                font-size: 1rem;
-            }
-            
-            .btn {
-                padding: 10px 20px;
-                font-size: 1rem;
-            }
-        }
-    </style>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>NotTheBest Space Invaders</title>
+
+    <style>
+
+        * {
+
+            margin: 0;
+
+            padding: 0;
+
+            box-sizing: border-box;
+
+        }
+
+        
+
+        :root {
+
+            --accent: #ff6f61;
+
+            --accent-2: #7cf3d6;
+
+            --glass: rgba(20, 20, 30, 0.8);
+
+            --glass-strong: rgba(0, 0, 0, 0.9);
+
+        }
+
+        
+
+        body {
+
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+            background-color: #000;
+
+            color: #fff;
+
+            overflow: hidden;
+
+            height: 100vh;
+
+            width: 100vw;
+
+            position: fixed;
+
+        }
+
+        
+
+        #bg-video {
+
+            position: fixed;
+
+            top: 0;
+
+            left: 0;
+
+            width: 100%;
+
+            height: 100%;
+
+            object-fit: cover;
+
+            z-index: -2;
+
+        }
+
+        
+
+        .bg-overlay {
+
+            position: fixed;
+
+            top: 0;
+
+            left: 0;
+
+            width: 100%;
+
+            height: 100%;
+
+            background: linear-gradient(to bottom, var(--glass-strong), rgba(0, 0, 0, 0.45));
+
+            z-index: -1;
+
+        }
+
+        
+
+        .container {
+
+            display: flex;
+
+            flex-direction: column;
+
+            height: 100vh;
+
+            width: 100vw;
+
+            padding: 10px;
+
+            gap: 10px;
+
+            overflow: auto;
+
+        }
+
+        
+
+        .game-panel {
+
+            flex: 3;
+
+            background: var(--glass);
+
+            border-radius: 15px;
+
+            padding: 15px;
+
+            display: flex;
+
+            flex-direction: column;
+
+            backdrop-filter: blur(10px);
+
+            border: 1px solid rgba(255, 255, 255, 0.1);
+
+            overflow: auto;
+
+            min-height: 0;
+
+        }
+
+        
+
+        .space-invaders-container {
+
+            display: flex;
+
+            flex-direction: column;
+
+            align-items: center;
+
+            width: 100%;
+
+            height: 100%;
+
+        }
+
+        
+
+        .canvas-wrapper {
+
+            width: 100%;
+
+            max-width: 600px;
+
+            position: relative;
+
+        }
+
+        
+
+        #si-canvas {
+
+            width: 100%;
+
+            height: 400px;
+
+            background: #000;
+
+            border-radius: 10px;
+
+            margin: 10px 0;
+
+            border: 2px solid var(--accent-2);
+
+        }
+
+        
+
+        .game-ui {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            width: 100%;
+
+            max-width: 600px;
+
+            margin-top: 10px;
+
+        }
+
+        
+
+        .level-indicator {
+
+            font-weight: bold;
+
+            color: var(--accent-2);
+
+            font-size: 1rem;
+
+            text-shadow: 0 0 10px var(--accent-2);
+
+        }
+
+        
+
+        .lives-indicator {
+
+            display: flex;
+
+            gap: 5px;
+
+        }
+
+        
+
+        .life {
+
+            width: 20px;
+
+            height: 20px;
+
+            background: var(--accent);
+
+            border-radius: 50%;
+
+        }
+
+        
+
+        .in-game-message {
+
+            position: absolute;
+
+            bottom: 20px;
+
+            left: 0;
+
+            right: 0;
+
+            text-align: center;
+
+            font-size: 1.2rem;
+
+            color: var(--accent-2);
+
+            opacity: 0;
+
+            transition: opacity 0.5s;
+
+            pointer-events: none;
+
+            text-shadow: 0 0 10px var(--accent-2);
+
+        }
+
+        
+
+        .overlay {
+
+            position: fixed;
+
+            top: 0;
+
+            left: 0;
+
+            width: 100%;
+
+            height: 100%;
+
+            background: rgba(0, 0, 0, 0.85);
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            z-index: 100;
+
+            backdrop-filter: blur(5px);
+
+        }
+
+        
+
+        .modal {
+
+            background: rgba(30, 30, 40, 0.95);
+
+            border-radius: 20px;
+
+            padding: 25px;
+
+            width: 90%;
+
+            max-width: 400px;
+
+            text-align: center;
+
+            border: 1px solid rgba(124, 243, 214, 0.3);
+
+            box-shadow: 0 0 30px rgba(124, 243, 214, 0.2);
+
+        }
+
+        
+
+        .modal h2 {
+
+            color: var(--accent-2);
+
+            margin-bottom: 15px;
+
+            font-size: 1.8rem;
+
+        }
+
+        
+
+        .modal p {
+
+            margin-bottom: 20px;
+
+            line-height: 1.5;
+
+            font-size: 1.1rem;
+
+        }
+
+        
+
+        .btn {
+
+            background: var(--accent);
+
+            color: white;
+
+            border: none;
+
+            padding: 12px 25px;
+
+            border-radius: 10px;
+
+            font-weight: bold;
+
+            cursor: pointer;
+
+            font-size: 1.1rem;
+
+            transition: transform 0.2s, box-shadow 0.2s;
+
+        }
+
+        
+
+        .btn:hover {
+
+            transform: scale(1.05);
+
+            box-shadow: 0 0 15px rgba(255, 111, 97, 0.5);
+
+        }
+
+        
+
+        /* Chaos effects for Level 8 */
+
+        .chaos-invert {
+
+            filter: invert(1);
+
+        }
+
+        
+
+        .chaos-tilt {
+
+            transform: rotate(5deg);
+
+        }
+
+        
+
+        .chaos-shake {
+
+            animation: chaos-shake 0.1s infinite;
+
+        }
+
+        
+
+        @keyframes chaos-shake {
+
+            0% { transform: translate(1px, 1px); }
+
+            10% { transform: translate(-1px, -2px); }
+
+            20% { transform: translate(-2px, 0px); }
+
+            30% { transform: translate(2px, 2px); }
+
+            40% { transform: translate(1px, -1px); }
+
+            50% { transform: translate(-1px, 2px); }
+
+            60% { transform: translate(-2px, 1px); }
+
+            70% { transform: translate(2px, 1px); }
+
+            80% { transform: translate(-1px, -1px); }
+
+            90% { transform: translate(1px, 2px); }
+
+            100% { transform: translate(0, 0); }
+
+        }
+
+        
+
+        .cash-effect {
+
+            position: absolute;
+
+            top: 0;
+
+            left: 0;
+
+            width: 100%;
+
+            height: 100%;
+
+            background: rgba(0, 100, 0, 0.3);
+
+            pointer-events: none;
+
+            z-index: 10;
+
+        }
+
+        
+
+        .invisible-aliens {
+
+            opacity: 0.3;
+
+        }
+
+        
+
+        .glitch-text {
+
+            animation: glitch 1s infinite;
+
+            color: var(--accent-2);
+
+            text-shadow: 2px 2px var(--accent), -2px -2px #00ff00;
+
+        }
+
+        
+
+        @keyframes glitch {
+
+            0% { transform: translate(0); }
+
+            20% { transform: translate(-3px, 3px); }
+
+            40% { transform: translate(-3px, -3px); }
+
+            60% { transform: translate(3px, 3px); }
+
+            80% { transform: translate(3px, -3px); }
+
+            100% { transform: translate(0); }
+
+        }
+
+        
+
+        @media (max-width: 768px) {
+
+            #si-canvas {
+
+                height: 350px;
+
+            }
+
+            
+
+            .level-indicator {
+
+                font-size: 0.9rem;
+
+            }
+
+        }
+
+        
+
+        @media (max-width: 480px) {
+
+            #si-canvas {
+
+                height: 300px;
+
+            }
+
+            
+
+            .modal {
+
+                padding: 20px 15px;
+
+            }
+
+            
+
+            .modal h2 {
+
+                font-size: 1.5rem;
+
+            }
+
+            
+
+            .modal p {
+
+                font-size: 1rem;
+
+            }
+
+            
+
+            .btn {
+
+                padding: 10px 20px;
+
+                font-size: 1rem;
+
+            }
+
+        }
+
+    </style>
+
 </head>
+
 <body>
-    <!-- Background Elements -->
-    <video id="bg-video" loop muted playsinline autoplay>
-        <source src="https://assets.codepen.io/236284/loop-bg.mp4" type="video/mp4">
-    </video>
-    <div class="bg-overlay"></div>
-    <audio id="bg-music" loop autoplay>
-        <source src="https://assets.codepen.io/236284/running-out-of-time.mp3" type="audio/mpeg">
-    </audio>
 
-    <!-- Welcome Modal -->
-    <div id="welcome-overlay" class="overlay">
-        <div class="modal">
-            <h2>Hey, hi, hello!</h2>
-            <p>How are you doing? So basically you can start exploring now.</p>
-            <button id="start-btn" class="btn">Begin Exploring</button>
-        </div>
-    </div>
+    <!-- Background Elements -->
 
-    <!-- Game Over Modal -->
-    <div id="game-over-overlay" class="overlay" style="display: none;">
-        <div class="modal">
-            <h2>GAME OVER</h2>
-            <p>You've run out of lives. Try again from the beginning.</p>
-            <button id="try-again-btn" class="btn">Try Again</button>
-        </div>
-    </div>
+    <video id="bg-video" loop muted playsinline autoplay>
 
-    <!-- Win Modal -->
-    <div id="win-overlay" class="overlay" style="display: none;">
-        <div class="modal">
-            <h2 class="glitch-text" id="glitch-message">You weren't supposed to beat this...</h2>
-            <p id="win-message" style="display: none;">Congratulations on playing these beautifully coded games in this beautifully coded website. Thank you for staying till here. One suggestion: if you want to stay and visit the personality path and find your outfit, do it. If you don't want, then just leave… it's your option.</p>
-        </div>
-    </div>
+        <source src="https://assets.codepen.io/236284/loop-bg.mp4" type="video/mp4">
 
-    <!-- Main Content -->
-    <div class="container">
-        <!-- Game Panel -->
-        <div class="game-panel" id="game-container">
-            <div class="space-invaders-container" id="space-invaders">
-                <h2>Space Invaders</h2>
-                <div class="canvas-wrapper">
-                    <canvas id="si-canvas"></canvas>
-                    <div class="in-game-message" id="in-game-message"></div>
-                </div>
-                <div class="game-ui">
-                    <div class="level-indicator">Level: <span id="level-number">1</span> - <span id="level-name">Notthebest OG</span></div>
-                    <div class="lives-indicator">
-                        <div class="life"></div>
-                        <div class="life"></div>
-                        <div class="life"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    </video>
 
-    <script>
-        // ===== GAME STATE MANAGEMENT =====
-        const gameState = {
-            initialized: false,
-            spaceInvadersCompleted: false
-        };
+    <div class="bg-overlay"></div>
 
-        // ===== ELEMENT REFERENCES =====
-        const welcomeOverlay = document.getElementById('welcome-overlay');
-        const startBtn = document.getElementById('start-btn');
-        const gameOverOverlay = document.getElementById('game-over-overlay');
-        const tryAgainBtn = document.getElementById('try-again-btn');
-        const winOverlay = document.getElementById('win-overlay');
-        const glitchMessage = document.getElementById('glitch-message');
-        const winMessage = document.getElementById('win-message');
-        const bgVideo = document.getElementById('bg-video');
-        const bgMusic = document.getElementById('bg-music');
-        const inGameMessage = document.getElementById('in-game-message');
-        const levelNumber = document.getElementById('level-number');
-        const levelName = document.getElementById('level-name');
-        const canvas = document.getElementById('si-canvas');
-        const ctx = canvas.getContext('2d');
+    <audio id="bg-music" loop autoplay>
 
-        // ===== SPACE INVADERS IMPLEMENTATION =====
-        let player, aliens, bullets, enemyBullets, obstacles, chaosObjects, butterPellets, shields, chocolates;
-        let gameActive = false;
-        let currentLevel = 0;
-        let lives = 3;
-        let gameTick = 0;
-        let keys = {};
-        let chaosEffects = {
-            invert: 0,
-            tilt: 0,
-            shake: 0,
-            cash: 0,
-            invisible: 0
-        };
-        let lastMessageTime = 0;
-        let levelButterHits = 0;
-        let playerInvisible = false;
-        let invisibleTimer = 0;
-        let lastBulletType = 'normal';
+        <source src="https://assets.codepen.io/236284/running-out-of-time.mp3" type="audio/mpeg">
 
-        const levelConfigs = [
-            {
-                name: "Notthebest OG",
-                rows: 2,
-                cols: 7,
-                speed: 0.5,
-                fireRate: 0.003,
-                alienType: 'normal',
-                alienWidth: 24,
-                alienHeight: 18,
-                description: "Intro, simple enemies, chill",
-                movement: "straight"
-            },
-            {
-                name: "Initial D",
-                rows: 2,
-                cols: 7,
-                speed: 1.0,
-                fireRate: 0.005,
-                alienType: "car",
-                alienWidth: 24,
-                alienHeight: 14,
-                description: "Mini cars drifting in zig-zag motion",
-                movement: "zigzag"
-            },
-            {
-                name: "Lorem Ipsum",
-                rows: 3,
-                cols: 7,
-                speed: 0.8,
-                fireRate: 0.007,
-                alienType: "latin",
-                alienWidth: 24,
-                alienHeight: 18,
-                description: "Enemies spawn with weird random Latin-like text sprites",
-                movement: "straight"
-            },
-            {
-                name: "Your Toast",
-                rows: 3,
-                cols: 7,
-                speed: 0.7,
-                fireRate: 0.009,
-                alienType: "toaster",
-                alienWidth: 24,
-                alienHeight: 20,
-                special: "bread-bullets",
-                description: "Toaster enemies, bread bullets, butter pellet blockers",
-                movement: "straight",
-                butterSpawnRate: 0.01
-            },
-            {
-                name: "Grapefruit x Lime",
-                rows: 3,
-                cols: 7,
-                speed: 0.9,
-                fireRate: 0.01,
-                alienType: "grapefruit",
-                alienWidth: 22,
-                alienHeight: 22,
-                special: "lime-bullets",
-                description: "Grapefruit enemies, lime bullets, lemon blockers",
-                movement: "straight",
-                obstacleSpawnRate: 0.005
-            },
-            {
-                name: "Cake Was A Lie",
-                rows: 3,
-                cols: 7,
-                speed: 1.0,
-                fireRate: 0.012,
-                alienType: "cupcake",
-                alienWidth: 24,
-                alienHeight: 24,
-                special: "frosting-laser",
-                description: "Cupcake enemies, frosting lasers, chocolate converters",
-                movement: "straight",
-                chocolateSpawnRate: 0.003
-            },
-            {
-                name: "Berserk",
-                rows: 4,
-                cols: 7,
-                speed: 1.5,
-                fireRate: 0.02,
-                alienType: "armor",
-                alienWidth: 22,
-                alienHeight: 22,
-                special: "sword-bullets",
-                description: "Armor enemies, sword bullets, shield blockers",
-                movement: "straight",
-                shieldSpawnRate: 0.004
-            },
-            {
-                name: "RANDOMODIUM",
-                rows: 5,
-                cols: 7,
-                speed: 1.8,
-                fireRate: 0.03,
-                alienType: "chaos",
-                alienWidth: 24,
-                alienHeight: 18,
-                special: "chaos-bullets",
-                description: "Final chaos boss level with floating chaos objects",
-                movement: "chaotic",
-                chaosSpawnRate: 0.02
-            }
-        ];
+    </audio>
 
-        const latinChars = ["Lorem", "Ipsum", "Dolor", "Sit", "Amet", "Conset", "Etur"];
-        const messages = [
-            "what you doing",
-            "complete it bro",
-            "choose persistence over consistency",
-            "focus!",
-            "don't give up",
-            "almost there",
-            "keep going",
-            "you got this"
-        ];
 
-        const chaosItems = [
-            { type: 'book', emoji: '📕', effect: 'block' },
-            { type: 'cash', emoji: '💵', effect: 'hide' },
-            { type: 'question', emoji: '❓', effect: 'shake' },
-            { type: 'donut', emoji: '🍩', effect: 'shield' },
-            { type: 'glasses', emoji: '🕶️', effect: 'invisible' },
-            { type: 'blob', emoji: '🫧', effect: 'grow' }
-        ];
 
-        // ===== INITIALIZATION =====
-        document.addEventListener('DOMContentLoaded', () => {
-            // Set up event listeners
-            startBtn.addEventListener('click', startExperience);
-            
-            tryAgainBtn.addEventListener('click', () => {
-                gameOverOverlay.style.display = 'none';
-                resetSpaceInvaders();
-            });
+    <!-- Welcome Modal -->
 
-            // Fix for iOS video playback
-            bgVideo.setAttribute('playsinline', '');
-            bgVideo.setAttribute('muted', '');
-            bgVideo.muted = true;
-            
-            // Set canvas size
-            canvas.width = canvas.offsetWidth;
-            canvas.height = canvas.offsetHeight;
+    <div id="welcome-overlay" class="overlay">
 
-            // Mobile touch controls
-            canvas.addEventListener('touchstart', handleTouchStart);
-            canvas.addEventListener('touchmove', handleTouchMove);
-        });
+        <div class="modal">
 
-        function startExperience() {
-            welcomeOverlay.style.display = 'none';
-            gameState.initialized = true;
-            gameActive = true;
-            // Start game logic here
-        }
+            <h2>Hey, hi, hello!</h2>
 
-        function handleTouchStart(event) {
-            const touch = event.touches[0];
-            // Handle touch start logic (e.g., firing bullets)
-        }
+            <p>How are you doing? So basically you can start exploring now.</p>
 
-        function handleTouchMove(event) {
-            const touch = event.touches[0];
-            // Handle touch move logic (e.g., moving the player)
-        }
+            <button id="start-btn" class="btn">Begin Exploring</button>
 
-        function updateAlienPosition(alien) {
-            const config = levelConfigs[currentLevel];
-            
-            switch(config.movement) {
-                case "zigzag":
-                    // Zigzag movement for Level 2
-                    alien.movePattern += 0.05;
-                    alien.x = alien.originalX + Math.sin(alien.movePattern) * 30;
-                    alien.y += config.speed * 0.5;
-                    break;
-                    
-                case "chaotic":
-                    // Implement chaotic movement logic here
-                    break;
+        </div>
 
-                default:
-                    alien.y += config.speed;
-                    break;
-            }
-        }
-    </script>
+    </div>
+
+
+
+    <!-- Game Over Modal -->
+
+    <div id="game-over-overlay" class="overlay" style="display: none;">
+
+        <div class="modal">
+
+            <h2>GAME OVER</h2>
+
+            <p>You've run out of lives. Try again from the beginning.</p>
+
+            <button id="try-again-btn" class="btn">Try Again</button>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- Win Modal -->
+
+    <div id="win-overlay" class="overlay" style="display: none;">
+
+        <div class="modal">
+
+            <h2 class="glitch-text" id="glitch-message">You weren't supposed to beat this...</h2>
+
+            <p id="win-message" style="display: none;">Congratulations on playing these beautifully coded games in this beautifully coded website. Thank you for staying till here. One suggestion: if you want to stay and visit the personality path and find your outfit, do it. If you don't want, then just leave… it's your option.</p>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- Main Content -->
+
+    <div class="container">
+
+        <!-- Game Panel -->
+
+        <div class="game-panel" id="game-container">
+
+            <div class="space-invaders-container" id="space-invaders">
+
+                <h2>Space Invaders</h2>
+
+                <div class="canvas-wrapper">
+
+                    <canvas id="si-canvas"></canvas>
+
+                    <div class="in-game-message" id="in-game-message"></div>
+
+                </div>
+
+                <div class="game-ui">
+
+                    <div class="level-indicator">Level: <span id="level-number">1</span> - <span id="level-name">Notthebest OG</span></div>
+
+                    <div class="lives-indicator">
+
+                        <div class="life"></div>
+
+                        <div class="life"></div>
+
+                        <div class="life"></div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <script>
+
+        // ===== GAME STATE MANAGEMENT =====
+
+        const gameState = {
+
+            initialized: false,
+
+            spaceInvadersCompleted: false
+
+        };
+
+
+
+        // ===== ELEMENT REFERENCES =====
+
+        const welcomeOverlay = document.getElementById('welcome-overlay');
+
+        const startBtn = document.getElementById('start-btn');
+
+        const gameOverOverlay = document.getElementById('game-over-overlay');
+
+        const tryAgainBtn = document.getElementById('try-again-btn');
+
+        const winOverlay = document.getElementById('win-overlay');
+
+        const glitchMessage = document.getElementById('glitch-message');
+
+        const winMessage = document.getElementById('win-message');
+
+        const bgVideo = document.getElementById('bg-video');
+
+        const bgMusic = document.getElementById('bg-music');
+
+        const inGameMessage = document.getElementById('in-game-message');
+
+        const levelNumber = document.getElementById('level-number');
+
+        const levelName = document.getElementById('level-name');
+
+        const canvas = document.getElementById('si-canvas');
+
+        const ctx = canvas.getContext('2d');
+
+
+
+        // ===== SPACE INVADERS IMPLEMENTATION =====
+
+        let player, aliens, bullets, enemyBullets, obstacles, chaosObjects, butterPellets, shields, chocolates;
+
+        let gameActive = false;
+
+        let currentLevel = 0;
+
+        let lives = 3;
+
+        let gameTick = 0;
+
+        let keys = {};
+
+        let chaosEffects = {
+
+            invert: 0,
+
+            tilt: 0,
+
+            shake: 0,
+
+            cash: 0,
+
+            invisible: 0
+
+        };
+
+        let lastMessageTime = 0;
+
+        let levelButterHits = 0;
+
+        let playerInvisible = false;
+
+        let invisibleTimer = 0;
+
+        let lastBulletType = 'normal';
+
+
+
+        const levelConfigs = [
+
+            {
+
+                name: "Notthebest OG",
+
+                rows: 2,
+
+                cols: 7,
+
+                speed: 0.5,
+
+                fireRate: 0.003,
+
+                alienType: 'normal',
+
+                alienWidth: 24,
+
+                alienHeight: 18,
+
+                description: "Intro, simple enemies, chill",
+
+                movement: "straight"
+
+            },
+
+            {
+
+                name: "Initial D",
+
+                rows: 2,
+
+                cols: 7,
+
+                speed: 1.0,
+
+                fireRate: 0.005,
+
+                alienType: "car",
+
+                alienWidth: 24,
+
+                alienHeight: 14,
+
+                description: "Mini cars drifting in zig-zag motion",
+
+                movement: "zigzag"
+
+            },
+
+            {
+
+                name: "Lorem Ipsum",
+
+                rows: 3,
+
+                cols: 7,
+
+                speed: 0.8,
+
+                fireRate: 0.007,
+
+                alienType: "latin",
+
+                alienWidth: 24,
+
+                alienHeight: 18,
+
+                description: "Enemies spawn with weird random Latin-like text sprites",
+
+                movement: "straight"
+
+            },
+
+            {
+
+                name: "Your Toast",
+
+                rows: 3,
+
+                cols: 7,
+
+                speed: 0.7,
+
+                fireRate: 0.009,
+
+                alienType: "toaster",
+
+                alienWidth: 24,
+
+                alienHeight: 20,
+
+                special: "bread-bullets",
+
+                description: "Toaster enemies, bread bullets, butter pellet blockers",
+
+                movement: "straight",
+
+                butterSpawnRate: 0.01
+
+            },
+
+            {
+
+                name: "Grapefruit x Lime",
+
+                rows: 3,
+
+                cols: 7,
+
+                speed: 0.9,
+
+                fireRate: 0.01,
+
+                alienType: "grapefruit",
+
+                alienWidth: 22,
+
+                alienHeight: 22,
+
+                special: "lime-bullets",
+
+                description: "Grapefruit enemies, lime bullets, lemon blockers",
+
+                movement: "straight",
+
+                obstacleSpawnRate: 0.005
+
+            },
+
+            {
+
+                name: "Cake Was A Lie",
+
+                rows: 3,
+
+                cols: 7,
+
+                speed: 1.0,
+
+                fireRate: 0.012,
+
+                alienType: "cupcake",
+
+                alienWidth: 24,
+
+                alienHeight: 24,
+
+                special: "frosting-laser",
+
+                description: "Cupcake enemies, frosting lasers, chocolate converters",
+
+                movement: "straight",
+
+                chocolateSpawnRate: 0.003
+
+            },
+
+            {
+
+                name: "Berserk",
+
+                rows: 4,
+
+                cols: 7,
+
+                speed: 1.5,
+
+                fireRate: 0.02,
+
+                alienType: "armor",
+
+                alienWidth: 22,
+
+                alienHeight: 22,
+
+                special: "sword-bullets",
+
+                description: "Armor enemies, sword bullets, shield blockers",
+
+                movement: "straight",
+
+                shieldSpawnRate: 0.004
+
+            },
+
+            {
+
+                name: "RANDOMODIUM",
+
+                rows: 5,
+
+                cols: 7,
+
+                speed: 1.8,
+
+                fireRate: 0.03,
+
+                alienType: "chaos",
+
+                alienWidth: 24,
+
+                alienHeight: 18,
+
+                special: "chaos-bullets",
+
+                description: "Final chaos boss level with floating chaos objects",
+
+                movement: "chaotic",
+
+                chaosSpawnRate: 0.02
+
+            }
+
+        ];
+
+
+
+        const latinChars = ["Lorem", "Ipsum", "Dolor", "Sit", "Amet", "Conset", "Etur"];
+
+        const messages = [
+
+            "what you doing",
+
+            "complete it bro",
+
+            "choose persistence over consistency",
+
+            "focus!",
+
+            "don't give up",
+
+            "almost there",
+
+            "keep going",
+
+            "you got this"
+
+        ];
+
+
+
+        const chaosItems = [
+
+            { type: 'book', emoji: '📕', effect: 'block' },
+
+            { type: 'cash', emoji: '💵', effect: 'hide' },
+
+            { type: 'question', emoji: '❓', effect: 'shake' },
+
+            { type: 'donut', emoji: '🍩', effect: 'shield' },
+
+            { type: 'glasses', emoji: '🕶️', effect: 'invisible' },
+
+            { type: 'blob', emoji: '🫧', effect: 'grow' }
+
+        ];
+
+
+
+        // ===== INITIALIZATION =====
+
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // Set up event listeners
+
+            startBtn.addEventListener('click', startExperience);
+
+            
+
+            tryAgainBtn.addEventListener('click', () => {
+
+                gameOverOverlay.style.display = 'none';
+
+                resetSpaceInvaders();
+
+            });
+
+
+
+            // Fix for iOS video playback
+
+            bgVideo.setAttribute('playsinline', '');
+
+            bgVideo.setAttribute('muted', '');
+
+            bgVideo.muted = true;
+
+            
+
+            // Set canvas size
+
+            canvas.width = canvas.offsetWidth;
+
+            canvas.height = canvas.offsetHeight;
+
+        });
+
+
+
+        function startExperience() {
+
+            welcomeOverlay.style.display = 'none';
+
+            gameState.initialized = true;
+
+            
+
+            // Start background media
+
+            playBackgroundMedia();
+
+            
+
+            // Initialize the game
+
+            initSpaceInvaders();
+
+        }
+
+
+
+        function playBackgroundMedia() {
+
+            // Set video to loop and mute it for autoplay
+
+            bgVideo.loop = true;
+
+            bgVideo.muted = true;
+
+
+
+            // Play video with promise-based approach
+
+            const playVideoPromise = bgVideo.play();
+
+
+
+            if (playVideoPromise !== undefined) {
+
+                playVideoPromise.catch(error => {
+
+                    console.log("Video play failed:", error);
+
+                });
+
+            }
+
+
+
+            // Play audio with user gesture
+
+            try {
+
+                bgMusic.volume = 0.7;
+
+                const playPromise = bgMusic.play();
+
+
+
+                if (playPromise !== undefined) {
+
+                    playPromise.catch(error => {
+
+                        console.log("Audio play failed:", error);
+
+                    });
+
+                }
+
+            } catch (error) {
+
+                console.log("Audio error:", error);
+
+            }
+
+        }
+
+
+
+        function initSpaceInvaders() {
+
+            // Initialize game state
+
+            player = {
+
+                x: canvas.width / 2 - 15,
+
+                y: canvas.height - 50,
+
+                width: 30,
+
+                height: 20,
+
+                speed: 7,
+
+                firing: false
+
+            };
+
+
+
+            // Keyboard controls
+
+            window.addEventListener('keydown', handleKeyDown);
+
+            window.addEventListener('keyup', handleKeyUp);
+
+
+
+            // Start the first level
+
+            startLevel(0);
+
+
+
+            // Start the game loop
+
+            gameActive = true;
+
+            requestAnimationFrame(gameLoop);
+
+        }
+
+
+
+        function handleKeyDown(e) {
+
+            keys[e.key] = true;
+
+
+
+            // Start continuous firing when space is pressed
+
+            if (e.key === ' ' && gameActive && !player.firing) {
+
+                player.firing = true;
+
+                fireBullet();
+
+                player.fireInterval = setInterval(fireBullet, 150);
+
+            }
+
+        }
+
+
+
+        function handleKeyUp(e) {
+
+            keys[e.key] = false;
+
+
+
+            // Stop continuous firing when space is released
+
+            if (e.key === ' ' && player.firing) {
+
+                player.firing = false;
+
+                clearInterval(player.fireInterval);
+
+            }
+
+        }
+
+
+
+        function startLevel(levelIndex) {
+
+            if (levelIndex >= levelConfigs.length) {
+
+                completeSpaceInvaders();
+
+                return;
+
+            }
+
+
+
+            currentLevel = levelIndex;
+
+            const config = levelConfigs[levelIndex];
+
+
+
+            // Update UI
+
+            levelNumber.textContent = levelIndex + 1;
+
+            levelName.textContent = config.name;
+
+
+
+            // Initialize game objects
+
+            aliens = [];
+
+            bullets = [];
+
+            enemyBullets = [];
+
+            obstacles = [];
+
+            chaosObjects = [];
+
+            butterPellets = [];
+
+            shields = [];
+
+            chocolates = [];
+
+            chaosEffects = { invert: 0, tilt: 0, shake: 0, cash: 0, invisible: 0 };
+
+            levelButterHits = 0;
+
+            playerInvisible = false;
+
+
+
+            // Reset canvas styles
+
+            canvas.className = '';
+
+
+
+            // Create aliens based on level config - CENTERED
+
+            const alienWidth = config.alienWidth;
+
+            const alienHeight = config.alienHeight;
+
+            const alienPadding = 10;
+
+            const totalWidth = config.cols * (alienWidth + alienPadding) - alienPadding;
+
+            const startX = (canvas.width - totalWidth) / 2;
+
+
+
+            for (let row = 0; row < config.rows; row++) {
+
+                for (let col = 0; col < config.cols; col++) {
+
+                    aliens.push({
+
+                        x: startX + col * (alienWidth + alienPadding),
+
+                        y: row * (alienHeight + alienPadding) + 40,
+
+                        width: alienWidth,
+
+                        height: alienHeight,
+
+                        type: config.alienType,
+
+                        originalX: startX + col * (alienWidth + alienPadding),
+
+                        alive: true,
+
+                        movePattern: config.movement === 'zigzag' ? Math.random() * Math.PI * 2 : 0
+
+                    });
+
+                }
+
+            }
+
+
+
+            // Show level start message
+
+            showInGameMessage(`Level ${levelIndex + 1}: ${config.name}`);
+
+        }
+
+
+
+        function fireBullet() {
+
+            const config = levelConfigs[currentLevel];
+
+            let bulletProps;
+
+            
+
+            switch(config.special) {
+
+                case "bread-bullets":
+
+                    bulletProps = { width: 20, height: 10, color: '#a0522d' };
+
+                    lastBulletType = 'bread';
+
+                    break;
+
+                case "lime-bullets":
+
+                    bulletProps = { width: 6, height: 6, color: 'limegreen' };
+
+                    lastBulletType = 'lime';
+
+                    break;
+
+                case "frosting-laser":
+
+                    bulletProps = { width: 8, height: 20, color: '#ff69b4' };
+
+                    lastBulletType = 'frosting';
+
+                    break;
+
+                case "sword-bullets":
+
+                    bulletProps = { width: 4, height: 25, color: '#c0c0c0' };
+
+                    lastBulletType = 'sword';
+
+                    break;
+
+                case "chaos-bullets":
+
+                    bulletProps = { width: 6, height: 15, color: `hsl(${Math.random() * 360}, 100%, 50%)` };
+
+                    lastBulletType = 'chaos';
+
+                    break;
+
+                default:
+
+                    bulletProps = { width: 4, height: 10, color: '#7cf3d6' };
+
+                    lastBulletType = 'normal';
+
+            }
+
+            
+
+            bullets.push({
+
+                x: player.x + player.width / 2 - bulletProps.width / 2,
+
+                y: player.y,
+
+                width: bulletProps.width,
+
+                height: bulletProps.height,
+
+                active: true,
+
+                color: bulletProps.color,
+
+                type: lastBulletType
+
+            });
+
+        }
+
+
+
+        function gameLoop() {
+
+            if (!gameActive) return;
+
+
+
+            gameTick++;
+
+
+
+            // Clear canvas
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+
+
+            // Handle player movement
+
+            if (keys['ArrowLeft'] || keys['a']) {
+
+                player.x = Math.max(0, player.x - player.speed);
+
+            }
+
+            if (keys['ArrowRight'] || keys['d']) {
+
+                player.x = Math.min(canvas.width - player.width, player.x + player.speed);
+
+            }
+
+
+
+            // Draw player (with invisibility effect if active)
+
+            ctx.globalAlpha = playerInvisible ? 0.3 : 1;
+
+            drawPlayer();
+
+            ctx.globalAlpha = 1;
+
+
+
+            // Update invisibility timer
+
+            if (playerInvisible) {
+
+                invisibleTimer--;
+
+                if (invisibleTimer <= 0) {
+
+                    playerInvisible = false;
+
+                }
+
+            }
+
+
+
+            // Update and draw aliens
+
+            let allAliensDead = true;
+
+            let directionChange = false;
+
+
+
+            aliens.forEach(alien => {
+
+                if (!alien.alive) return;
+
+
+
+                allAliensDead = false;
+
+
+
+                // Update position based on alien movement type
+
+                updateAlienPosition(alien);
+
+
+
+                // Check for wall collision
+
+                if (alien.x <= 0 || alien.x + alien.width >= canvas.width) {
+
+                    directionChange = true;
+
+                }
+
+
+
+                // Check if reached bottom
+
+                if (alien.y + alien.height >= player.y && !playerInvisible) {
+
+                    loseLife();
+
+                    return;
+
+                }
+
+
+
+                // Draw alien based on type
+
+                drawAlien(alien);
+
+            });
+
+
+
+            // Change direction if needed
+
+            if (directionChange) {
+
+                levelConfigs[currentLevel].speed *= -1;
+
+                aliens.forEach(alien => {
+
+                    if (alien.alive) alien.y += 10;
+
+                });
+
+            }
+
+
+
+            // Check for level completion
+
+            if (allAliensDead) {
+
+                if (currentLevel < levelConfigs.length - 1) {
+
+                    setTimeout(() => {
+
+                        startLevel(currentLevel + 1);
+
+                        gameActive = true;
+
+                        requestAnimationFrame(gameLoop);
+
+                    }, 1500);
+
+                    gameActive = false;
+
+                    return;
+
+                } else {
+
+                    completeSpaceInvaders();
+
+                    gameActive = false;
+
+                    return;
+
+                }
+
+            }
+
+
+
+            // Update and draw bullets
+
+            updateBullets();
+
+
+
+            // Random enemy firing
+
+            const config = levelConfigs[currentLevel];
+
+            if (Math.random() < config.fireRate) {
+
+                const aliveAliens = aliens.filter(alien => alien.alive);
+
+                if (aliveAliens.length > 0) {
+
+                    const shooter = aliveAliens[Math.floor(Math.random() * aliveAliens.length)];
+
+                    enemyBullets.push({
+
+                        x: shooter.x + shooter.width / 2 - 2,
+
+                        y: shooter.y + shooter.height,
+
+                        width: 4,
+
+                        height: 10,
+
+                        active: true,
+
+                        color: '#ff6f61'
+
+                    });
+
+                }
+
+            }
+
+
+
+            // Update and draw enemy bullets
+
+            updateEnemyBullets();
+
+
+
+            // Spawn level-specific objects
+
+            spawnLevelObjects();
+
+
+
+            // Update and draw obstacles
+
+            updateObstacles();
+
+
+
+            // Update and draw butter pellets (Level 4)
+
+            updateButterPellets();
+
+
+
+            // Update and draw shields (Level 7)
+
+            updateShields();
+
+
+
+            // Update and draw chocolates (Level 6)
+
+            updateChocolates();
+
+
+
+            // Update chaos objects (Level 8)
+
+            updateChaosObjects();
+
+
+
+            // Update chaos effects
+
+            updateChaosEffects();
+
+
+
+            // Show random messages
+
+            if (gameTick % 300 === 0) {
+
+                showInGameMessage(messages[Math.floor(Math.random() * messages.length)]);
+
+            }
+
+
+
+            // Continue the game loop
+
+            requestAnimationFrame(gameLoop);
+
+        }
+
+
+
+        function drawPlayer() {
+
+            ctx.fillStyle = '#7cf3d6';
+
+            // Draw spaceship body
+
+            ctx.beginPath();
+
+            ctx.moveTo(player.x + player.width / 2, player.y);
+
+            ctx.lineTo(player.x + player.width, player.y + player.height);
+
+            ctx.lineTo(player.x, player.y + player.height);
+
+            ctx.closePath();
+
+            ctx.fill();
+
+
+
+            // Draw cockpit
+
+            ctx.fillStyle = '#ffffff';
+
+            ctx.beginPath();
+
+            ctx.arc(player.x + player.width / 2, player.y + player.height / 2, 4, 0, Math.PI * 2);
+
+            ctx.fill();
+
+
+
+            // Draw fins
+
+            ctx.fillStyle = '#ff6f61';
+
+            ctx.fillRect(player.x, player.y + player.height - 5, 5, 5);
+
+            ctx.fillRect(player.x + player.width - 5, player.y + player.height - 5, 5, 5);
+
+        }
+
+
+
+        function updateAlienPosition(alien) {
+
+            const config = levelConfigs[currentLevel];
+
+            
+
+            switch(config.movement) {
+
+                case "zigzag":
+
+                    // Zigzag movement for Level 2
+
+                    alien.movePattern += 0.05;
+
+                    alien.x = alien.originalX + Math.sin(alien.movePattern) * 30;
+
+                    alien.y += config.speed * 0.5;
+
+                    break;
+
+                    
+
+                case "chaotic":
+
+                    // Random movement for chaotic aliens (Level 8)
+
+                    alien.x += (Math.random() - 0.5) * 3;
+
+                    alien.y += config.speed * (0.8 + Math.random() * 0.4);
+
+                    break;
+
+                    
+
+                default:
+
+                    // Straight descent for other levels
+
+                    alien.y += config.speed;
+
+            }
+
+        }
+
+
+
+        function drawAlien(alien) {
+
+            // Handle invisibility effect
+
+            ctx.globalAlpha = (chaosEffects.invisible > 0) ? 0.3 : 1;
+
+
+
+            ctx.fillStyle = '#aaffaa'; // Default color
+
+            
+
+            // Apply different styles based on alien type
+
+            switch(alien.type) {
+
+                case "car":
+
+                    ctx.fillStyle = '#ff3333';
+
+                    ctx.fillRect(alien.x, alien.y, alien.width, alien.height);
+
+                    // Wheels
+
+                    ctx.fillStyle = '#000';
+
+                    ctx.fillRect(alien.x + 3, alien.y + alien.height - 3, 4, 3);
+
+                    ctx.fillRect(alien.x + alien.width - 7, alien.y + alien.height - 3, 4, 3);
+
+                    // Windshield
+
+                    ctx.fillStyle = '#fff';
+
+                    ctx.fillRect(alien.x + 6, alien.y + 3, alien.width - 12, 4);
+
+                    break;
+
+                    
+
+                case "latin":
+
+                    ctx.fillStyle = 'purple';
+
+                    ctx.fillRect(alien.x, alien.y, alien.width, alien.height);
+
+                    ctx.fillStyle = 'white';
+
+                    ctx.font = '10px Arial';
+
+                    ctx.fillText(latinChars[Math.floor(Math.random() * latinChars.length)], 
+
+                                alien.x + 2, alien.y + alien.height/2 + 3);
+
+                    break;
+
+                    
+
+                case "toaster":
+
+                    ctx.fillStyle = '#8b4513';
+
+                    ctx.fillRect(alien.x, alien.y, alien.width, alien.height);
+
+                    // Slot
+
+                    ctx.fillStyle = '#333';
+
+                    ctx.fillRect(alien.x + 5, alien.y + 7, alien.width - 10, 5);
+
+                    // Bread
+
+                    ctx.fillStyle = '#deb887';
+
+                    ctx.fillRect(alien.x + 7, alien.y - 5, alien.width - 14, 5);
+
+                    break;
+
+                    
+
+                case "grapefruit":
+
+                    ctx.fillStyle = '#ff69b4';
+
+                    ctx.beginPath();
+
+                    ctx.arc(alien.x + alien.width/2, alien.y + alien.height/2, alien.width/2, 0, Math.PI * 2);
+
+                    ctx.fill();
+
+                    // Sections
+
+                    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+
+                    ctx.beginPath();
+
+                    ctx.moveTo(alien.x + alien.width/2, alien.y);
+
+                    ctx.lineTo(alien.x + alien.width/2, alien.y + alien.height);
+
+                    ctx.stroke();
+
+                    ctx.beginPath();
+
+                    ctx.moveTo(alien.x, alien.y + alien.height/2);
+
+                    ctx.lineTo(alien.x + alien.width, alien.y + alien.height/2);
+
+                    ctx.stroke();
+
+                    break;
+
+                    
+
+                case "cupcake":
+
+                    // Bottom
+
+                    ctx.fillStyle = '#634832';
+
+                    ctx.fillRect(alien.x, alien.y + alien.height/2, alien.width, alien.height/2);
+
+                    // Frosting
+
+                    ctx.fillStyle = '#e6a4b4';
+
+                    ctx.beginPath();
+
+                    ctx.arc(alien.x + alien.width/2, alien.y + alien.height/2, alien.width/2, Math.PI, 0, false);
+
+                    ctx.fill();
+
+                    // Cherry
+
+                    ctx.fillStyle = 'red';
+
+                    ctx.beginPath();
+
+                    ctx.arc(alien.x + alien.width/2, alien.y + alien.height/4, 3, 0, Math.PI * 2);
+
+                    ctx.fill();
+
+                    break;
+
+                    
+
+                case "armor":
+
+                    ctx.fillStyle = '#555';
+
+                    ctx.fillRect(alien.x, alien.y, alien.width, alien.height);
+
+                    // Helmet
+
+                    ctx.fillStyle = '#999';
+
+                    ctx.beginPath();
+
+                    ctx.arc(alien.x + alien.width/2, alien.y + alien.height/2, alien.width/3, 0, Math.PI * 2);
+
+                    ctx.fill();
+
+                    break;
+
+                    
+
+                case "chaos":
+
+                    ctx.fillStyle = `hsl(${gameTick % 360}, 100%, 50%)`;
+
+                    ctx.fillRect(alien.x, alien.y, alien.width, alien.height);
+
+                    break;
+
+                    
+
+                default:
+
+                    // Default alien (Level 1)
+
+                    ctx.beginPath();
+
+                    ctx.moveTo(alien.x + alien.width/2, alien.y);
+
+                    ctx.lineTo(alien.x + alien.width, alien.y + alien.height/2);
+
+                    ctx.lineTo(alien.x, alien.y + alien.height/2);
+
+                    ctx.closePath();
+
+                    ctx.fill();
+
+                    ctx.fillRect(alien.x + alien.width/4, alien.y + alien.height/2, alien.width/2, alien.height/2);
+
+            }
+
+            
+
+            ctx.globalAlpha = 1; // Reset alpha
+
+        }
+
+
+
+        function updateBullets() {
+
+            for (let i = bullets.length - 1; i >= 0; i--) {
+
+                if (!bullets[i].active) {
+
+                    bullets.splice(i, 1);
+
+                    continue;
+
+                }
+
+
+
+                // Move bullet
+
+                bullets[i].y -= 7;
+
+
+
+                // Remove if out of bounds
+
+                if (bullets[i].y < 0) {
+
+                    bullets.splice(i, 1);
+
+                    continue;
+
+                }
+
+
+
+                // Draw bullets based on type
+
+                switch(bullets[i].type) {
+
+                    case "bread":
+
+                        ctx.fillStyle = "#a0522d";
+
+                        ctx.fillRect(bullets[i].x, bullets[i].y, bullets[i].width, bullets[i].height);
+
+                        ctx.strokeStyle = "#8b4513";
+
+                        ctx.strokeRect(bullets[i].x, bullets[i].y, bullets[i].width, bullets[i].height);
+
+                        break;
+
+                    case "lime":
+
+                        ctx.fillStyle = "limegreen";
+
+                        ctx.beginPath();
+
+                        ctx.arc(bullets[i].x + bullets[i].width/2, bullets[i].y + bullets[i].height/2, bullets[i].width/2, 0, Math.PI * 2);
+
+                        ctx.fill();
+
+                        break;
+
+                    case "frosting":
+
+                        ctx.fillStyle = "#ff69b4";
+
+                        ctx.fillRect(bullets[i].x, bullets[i].y, bullets[i].width, bullets[i].height);
+
+                        // Add shine effect
+
+                        ctx.fillStyle = "rgba(255,255,255,0.5)";
+
+                        ctx.fillRect(bullets[i].x + 2, bullets[i].y + 2, 2, bullets[i].height - 4);
+
+                        break;
+
+                    case "sword":
+
+                        ctx.fillStyle = "#c0c0c0";
+
+                        ctx.fillRect(bullets[i].x, bullets[i].y, bullets[i].width, bullets[i].height);
+
+                        // Add hilt
+
+                        ctx.fillStyle = "#8b4513";
+
+                        ctx.fillRect(bullets[i].x - 2, bullets[i].y + bullets[i].height - 5, bullets[i].width + 4, 3);
+
+                        break;
+
+                    case "chaos":
+
+                        ctx.fillStyle = bullets[i].color;
+
+                        ctx.fillRect(bullets[i].x, bullets[i].y, bullets[i].width, bullets[i].height);
+
+                        break;
+
+                    default:
+
+                        ctx.fillStyle = "#7cf3d6";
+
+                        ctx.fillRect(bullets[i].x, bullets[i].y, bullets[i].width, bullets[i].height);
+
+                }
+
+
+
+                // Collision with aliens
+
+                for (let j = aliens.length - 1; j >= 0; j--) {
+
+                    if (!aliens[j].alive) continue;
+
+                    
+
+                    if (
+
+                        bullets[i].x < aliens[j].x + aliens[j].width &&
+
+                        bullets[i].x + bullets[i].width > aliens[j].x &&
+
+                        bullets[i].y < aliens[j].y + aliens[j].height &&
+
+                        bullets[i].y + bullets[i].height > aliens[j].y
+
+                    ) {
+
+                        aliens[j].alive = false;
+
+                        bullets[i].active = false;
+
+                        bullets.splice(i, 1);
+
+                        break;
+
+                    }
+
+                }
+
+                
+
+                if (!bullets[i]) continue;
+
+
+
+                // Collision with obstacles (lemons)
+
+                for (let j = obstacles.length - 1; j >= 0; j--) {
+
+                    if (
+
+                        bullets[i].x < obstacles[j].x + obstacles[j].width &&
+
+                        bullets[i].x + bullets[i].width > obstacles[j].x &&
+
+                        bullets[i].y < obstacles[j].y + obstacles[j].height &&
+
+                        bullets[i].y + bullets[i].height > obstacles[j].y
+
+                    ) {
+
+                        bullets[i].active = false;
+
+                        bullets.splice(i, 1);
+
+                        break;
+
+                    }
+
+                }
+
+                
+
+                if (!bullets[i]) continue;
+
+
+
+                // Collision with butter pellets (Level 4)
+
+                for (let j = butterPellets.length - 1; j >= 0; j--) {
+
+                    if (
+
+                        bullets[i].x < butterPellets[j].x + butterPellets[j].size &&
+
+                        bullets[i].x + bullets[i].width > butterPellets[j].x &&
+
+                        bullets[i].y < butterPellets[j].y + butterPellets[j].size &&
+
+                        bullets[i].y + bullets[i].height > butterPellets[j].y
+
+                    ) {
+
+                        bullets[i].active = false;
+
+                        levelButterHits++;
+
+                        butterPellets.splice(j, 1);
+
+                        bullets.splice(i, 1);
+
+                        
+
+                        // Check if level needs to restart (4+ butter hits)
+
+                        if (levelButterHits >= 4 && currentLevel === 3) {
+
+                            showInGameMessage("Too much butter! Restarting level...");
+
+                            setTimeout(() => {
+
+                                startLevel(3); // Restart level 4
+
+                            }, 2000);
+
+                        }
+
+                        break;
+
+                    }
+
+                }
+
+                
+
+                if (!bullets[i]) continue;
+
+
+
+                // Collision with shields (Level 7)
+
+                for (let j = shields.length - 1; j >= 0; j--) {
+
+                    if (
+
+                        bullets[i].x < shields[j].x + shields[j].size &&
+
+                        bullets[i].x + bullets[i].width > shields[j].x &&
+
+                        bullets[i].y < shields[j].y + shields[j].size &&
+
+                        bullets[i].y + bullets[i].height > shields[j].y
+
+                    ) {
+
+                        bullets[i].active = false;
+
+                        shields.splice(j, 1);
+
+                        bullets.splice(i, 1);
+
+                        
+
+                        // Make player invisible for 5 seconds
+
+                        playerInvisible = true;
+
+                        invisibleTimer = 300; // 5 seconds at 60fps
+
+                        showInGameMessage("Invisibility activated!");
+
+                        break;
+
+                    }
+
+                }
+
+                
+
+                if (!bullets[i]) continue;
+
+
+
+                // Collision with chocolates (Level 6)
+
+                for (let j = chocolates.length - 1; j >= 0; j--) {
+
+                    if (
+
+                        bullets[i].x < chocolates[j].x + chocolates[j].size &&
+
+                        bullets[i].x + bullets[i].width > chocolates[j].x &&
+
+                        bullets[i].y < chocolates[j].y + chocolates[j].size &&
+
+                        bullets[i].y + bullets[i].height > chocolates[j].y
+
+                    ) {
+
+                        chocolates.splice(j, 1);
+
+                        bullets.splice(i, 1);
+
+                        
+
+                        // Revert to normal bullets
+
+                        levelConfigs[currentLevel].special = null;
+
+                        showInGameMessage("Back to normal bullets!");
+
+                        break;
+
+                    }
+
+                }
+
+                
+
+                if (!bullets[i]) continue;
+
+
+
+                // Collision with chaos objects (Level 8)
+
+                for (let j = chaosObjects.length - 1; j >= 0; j--) {
+
+                    if (
+
+                        bullets[i].x < chaosObjects[j].x + chaosObjects[j].size &&
+
+                        bullets[i].x + bullets[i].width > chaosObjects[j].x &&
+
+                        bullets[i].y < chaosObjects[j].y + chaosObjects[j].size &&
+
+                        bullets[i].y + bullets[i].height > chaosObjects[j].y
+
+                    ) {
+
+                        if (['book', 'blob'].includes(chaosObjects[j].type)) {
+
+                            bullets[i].active = false; // bullets blocked
+
+                        }
+
+                        handleChaosObjectHit(chaosObjects[j]);
+
+                        chaosObjects.splice(j, 1);
+
+                        bullets.splice(i, 1);
+
+                        break;
+
+                    }
+
+                }
+
+            }
+
+        }
+
+
+
+        function updateEnemyBullets() {
+
+            for (let i = enemyBullets.length - 1; i >= 0; i--) {
+
+                if (!enemyBullets[i].active) {
+
+                    enemyBullets.splice(i, 1);
+
+                    continue;
+
+                }
+
+
+
+                enemyBullets[i].y += 5;
+
+
+
+                // Remove if out of bounds
+
+                if (enemyBullets[i].y > canvas.height) {
+
+                    enemyBullets.splice(i, 1);
+
+                    continue;
+
+                }
+
+
+
+                // Draw enemy bullet
+
+                ctx.fillStyle = enemyBullets[i].color;
+
+                ctx.fillRect(enemyBullets[i].x, enemyBullets[i].y, enemyBullets[i].width, enemyBullets[i].height);
+
+
+
+                // Check for collision with player
+
+                if (
+
+                    enemyBullets[i].x < player.x + player.width &&
+
+                    enemyBullets[i].x + enemyBullets[i].width > player.x &&
+
+                    enemyBullets[i].y < player.y + player.height &&
+
+                    enemyBullets[i].y + enemyBullets[i].height > player.y &&
+
+                    !playerInvisible
+
+                ) {
+
+                    loseLife();
+
+                    enemyBullets[i].active = false;
+
+                    enemyBullets.splice(i, 1);
+
+                }
+
+            }
+
+        }
+
+
+
+        function spawnLevelObjects() {
+
+            const config = levelConfigs[currentLevel];
+
+            
+
+            // Level 4: Butter pellets
+
+            if (currentLevel === 3 && Math.random() < config.butterSpawnRate) {
+
+                butterPellets.push({
+
+                    x: Math.random() * (canvas.width - 20),
+
+                    y: 0,
+
+                    size: 15,
+
+                    speed: 2
+
+                });
+
+            }
+
+            
+
+            // Level 5: Lemon obstacles
+
+            if (currentLevel === 4 && Math.random() < config.obstacleSpawnRate) {
+
+                obstacles.push({
+
+                    x: Math.random() * (canvas.width - 20),
+
+                    y: 0,
+
+                    width: 20,
+
+                    height: 20,
+
+                    type: 'lemon'
+
+                });
+
+            }
+
+            
+
+            // Level 6: Chocolate converters
+
+            if (currentLevel === 5 && Math.random() < config.chocolateSpawnRate) {
+
+                chocolates.push({
+
+                    x: Math.random() * (canvas.width - 20),
+
+                    y: 0,
+
+                    size: 15,
+
+                    speed: 1.5
+
+                });
+
+            }
+
+            
+
+            // Level 7: Shields
+
+            if (currentLevel === 6 && Math.random() < config.shieldSpawnRate) {
+
+                shields.push({
+
+                    x: Math.random() * (canvas.width - 30),
+
+                    y: 0,
+
+                    size: 30,
+
+                    speed: 1
+
+                });
+
+            }
+
+            
+
+            // Level 8: Chaos objects
+
+            if (currentLevel === 7 && Math.random() < config.chaosSpawnRate) {
+
+                const item = chaosItems[Math.floor(Math.random() * chaosItems.length)];
+
+                chaosObjects.push({
+
+                    type: item.type,
+
+                    emoji: item.emoji,
+
+                    effect: item.effect,
+
+                    x: Math.random() * (canvas.width - 30),
+
+                    y: -30,
+
+                    size: 20,
+
+                    speed: 1 + Math.random() * 3,
+
+                    growth: item.effect === 'grow' ? 0.5 : 0
+
+                });
+
+            }
+
+        }
+
+
+
+        function updateButterPellets() {
+
+            for (let i = butterPellets.length - 1; i >= 0; i--) {
+
+                const butter = butterPellets[i];
+
+                
+
+                // Move
+
+                butter.y += butter.speed;
+
+                
+
+                // Draw
+
+                ctx.fillStyle = '#ffff00';
+
+                ctx.beginPath();
+
+                ctx.arc(butter.x + butter.size/2, butter.y + butter.size/2, butter.size/2, 0, Math.PI * 2);
+
+                ctx.fill();
+
+                ctx.strokeStyle = '#ffcc00';
+
+                ctx.lineWidth = 2;
+
+                ctx.stroke();
+
+                
+
+                // Remove offscreen
+
+                if (butter.y > canvas.height) butterPellets.splice(i, 1);
+
+            }
+
+        }
+
+
+
+        function updateShields() {
+
+            for (let i = shields.length - 1; i >= 0; i--) {
+
+                const shield = shields[i];
+
+                
+
+                // Move
+
+                shield.y += shield.speed;
+
+                
+
+                // Draw
+
+                ctx.fillStyle = 'rgba(0, 100, 255, 0.3)';
+
+                ctx.beginPath();
+
+                ctx.arc(shield.x + shield.size/2, shield.y + shield.size/2, shield.size/2, 0, Math.PI * 2);
+
+                ctx.fill();
+
+                ctx.strokeStyle = '#00aaff';
+
+                ctx.lineWidth = 2;
+
+                ctx.stroke();
+
+                
+
+                // Remove offscreen
+
+                if (shield.y > canvas.height) shields.splice(i, 1);
+
+            }
+
+        }
+
+
+
+        function updateChocolates() {
+
+            for (let i = chocolates.length - 1; i >= 0; i--) {
+
+                const chocolate = chocolates[i];
+
+                
+
+                // Move
+
+                chocolate.y += chocolate.speed;
+
+                
+
+                // Draw
+
+                ctx.fillStyle = '#4a2c2a';
+
+                ctx.fillRect(chocolate.x, chocolate.y, chocolate.size, chocolate.size);
+
+                ctx.fillStyle = '#7b3f00';
+
+                ctx.fillRect(chocolate.x + 2, chocolate.y + 2, chocolate.size - 4, chocolate.size - 4);
+
+                
+
+                // Remove offscreen
+
+                if (chocolate.y > canvas.height) chocolates.splice(i, 1);
+
+            }
+
+        }
+
+
+
+        function updateObstacles() {
+
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+
+                const obs = obstacles[i];
+
+                
+
+                // Move
+
+                obs.y += 1;
+
+                
+
+                // Draw based on type
+
+                if (obs.type === 'lemon') {
+
+                    ctx.fillStyle = 'yellow';
+
+                    ctx.beginPath();
+
+                    ctx.arc(obs.x + obs.width/2, obs.y + obs.height/2, obs.width/2, 0, Math.PI * 2);
+
+                    ctx.fill();
+
+                    ctx.strokeStyle = '#cccc00';
+
+                    ctx.lineWidth = 2;
+
+                    ctx.stroke();
+
+                }
+
+                
+
+                // Remove offscreen
+
+                if (obs.y > canvas.height) obstacles.splice(i, 1);
+
+            }
+
+        }
+
+
+
+        function updateChaosObjects() {
+
+            for (let i = chaosObjects.length - 1; i >= 0; i--) {
+
+                const obj = chaosObjects[i];
+
+                
+
+                // Move
+
+                obj.y += obj.speed;
+
+                
+
+                // Grow/shrink effect
+
+                if (obj.effect === 'grow') {
+
+                    obj.size += obj.growth;
+
+                    if (obj.size > 50 || obj.size < 10) obj.growth *= -1;
+
+                }
+
+                
+
+                // Draw
+
+                ctx.font = `${obj.size}px Arial`;
+
+                ctx.fillText(obj.emoji, obj.x, obj.y);
+
+                
+
+                // Collision with player
+
+                if (
+
+                    obj.x < player.x + player.width &&
+
+                    obj.x + obj.size > player.x &&
+
+                    obj.y < player.y + player.height &&
+
+                    obj.y + obj.size > player.y
+
+                ) {
+
+                    handleChaosObjectCollision(obj);
+
+                    chaosObjects.splice(i, 1);
+
+                }
+
+                
+
+                // Remove offscreen
+
+                if (obj.y > canvas.height) chaosObjects.splice(i, 1);
+
+            }
+
+        }
+
+
+
+        function handleChaosObjectHit(obj) {
+
+            switch (obj.effect) {
+
+                case 'shake':
+
+                    chaosEffects.shake = 60;
+
+                    break;
+
+                case 'question':
+
+                    chaosEffects.shake = 120;
+
+                    break;
+
+            }
+
+        }
+
+
+
+        function handleChaosObjectCollision(obj) {
+
+            switch (obj.effect) {
+
+                case 'block':
+
+                    // Book: blocks bullets, handled in updateBullets collision
+
+                    break;
+
+                case 'hide':
+
+                    chaosEffects.cash = 120; // hide screen overlay
+
+                    break;
+
+                case 'shake':
+
+                    chaosEffects.shake = 120;
+
+                    break;
+
+                case 'invisible':
+
+                    chaosEffects.invisible = 180;
+
+                    break;
+
+                case 'shield':
+
+                    // Donut: maybe make enemies temporarily invincible or bouncing bullets
+
+                    break;
+
+                case 'grow':
+
+                    // Blob handled in updateChaosObjects
+
+                    break;
+
+            }
+
+        }
+
+
+
+        function updateChaosEffects() {
+
+            // Apply chaos effects
+
+            let canvasClasses = [];
+
+            
+
+            // Invert screen effect
+
+            if (chaosEffects.invert > 0) {
+
+                canvasClasses.push('chaos-invert');
+
+                chaosEffects.invert--;
+
+            }
+
+            
+
+            // Tilt screen effect
+
+            if (chaosEffects.tilt > 0) {
+
+                canvasClasses.push('chaos-tilt');
+
+                chaosEffects.tilt--;
+
+            }
+
+            
+
+            // Screen shake effect
+
+            if (chaosEffects.shake > 0) {
+
+                canvasClasses.push('chaos-shake');
+
+                chaosEffects.shake--;
+
+            }
+
+            
+
+            // Cash overlay effect
+
+            if (chaosEffects.cash > 0) {
+
+                let cashOverlay = document.getElementById('cash-effect');
+
+                if (!cashOverlay) {
+
+                    cashOverlay = document.createElement('div');
+
+                    cashOverlay.id = 'cash-effect';
+
+                    cashOverlay.className = 'cash-effect';
+
+                    document.body.appendChild(cashOverlay);
+
+                }
+
+                chaosEffects.cash--;
+
+                if (chaosEffects.cash <= 0) {
+
+                    cashOverlay.remove();
+
+                }
+
+            }
+
+            
+
+            // Invisible enemies effect
+
+            if (chaosEffects.invisible > 0) {
+
+                canvasClasses.push('invisible-aliens');
+
+                chaosEffects.invisible--;
+
+            }
+
+            
+
+            // Random effects for Level 8 (RANDOMODIUM)
+
+            if (currentLevel === 7) {
+
+                if (Math.random() < 0.01) { // random invert
+
+                    chaosEffects.invert = 60;
+
+                }
+
+                if (Math.random() < 0.01) { // random tilt
+
+                    chaosEffects.tilt = 60;
+
+                }
+
+                if (Math.random() < 0.01) { // random shake
+
+                    chaosEffects.shake = 60;
+
+                }
+
+                if (Math.random() < 0.002) { // music glitch
+
+                    bgMusic.playbackRate = 0.5;
+
+                    setTimeout(() => { bgMusic.playbackRate = 1; }, 500);
+
+                }
+
+            }
+
+            
+
+            // Apply CSS classes to canvas
+
+            canvas.className = canvasClasses.join(' ');
+
+        }
+
+
+
+        function showInGameMessage(text) {
+
+            inGameMessage.textContent = text;
+
+            inGameMessage.style.opacity = '1';
+
+
+
+            setTimeout(() => {
+
+                inGameMessage.style.opacity = '0';
+
+            }, 4000);
+
+        }
+
+
+
+        function loseLife() {
+
+            lives--;
+
+            updateLivesDisplay();
+
+
+
+            if (lives <= 0) {
+
+                gameOver();
+
+            } else {
+
+                // Brief invulnerability period
+
+                gameActive = false;
+
+                setTimeout(() => {
+
+                    gameActive = true;
+
+                    requestAnimationFrame(gameLoop);
+
+                }, 1000);
+
+            }
+
+        }
+
+
+
+        function updateLivesDisplay() {
+
+            const lifeElements = document.querySelectorAll('.life');
+
+            for (let i = 0; i < 3; i++) {
+
+                lifeElements[i].style.visibility = i < lives ? 'visible' : 'hidden';
+
+            }
+
+        }
+
+
+
+        function gameOver() {
+
+            gameOverOverlay.style.display = 'flex';
+
+            gameActive = false;
+
+        }
+
+
+
+        function completeSpaceInvaders() {
+
+            gameState.spaceInvadersCompleted = true;
+
+
+
+            // Show glitch message first
+
+            winOverlay.style.display = 'flex';
+
+
+
+            // After delay, show the full win message
+
+            setTimeout(() => {
+
+                glitchMessage.style.display = 'none';
+
+                winMessage.style.display = 'block';
+
+            }, 3000);
+
+        }
+
+
+
+        function resetSpaceInvaders() {
+
+            lives = 3;
+
+            updateLivesDisplay();
+
+            startLevel(0);
+
+            gameActive = true;
+
+            requestAnimationFrame(gameLoop);
+
+        }
+
+
+
+        // Initialize lives display
+
+        updateLivesDisplay();
+
+    </script>
+
 </body>
-</html>
 
+</html>
