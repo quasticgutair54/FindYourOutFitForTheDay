@@ -1,1755 +1,1903 @@
 <!DOCTYPE html>
-<html lang=\"en\">
+<html lang="en">
 <head>
-    <meta charset=\"UTF-8\">
-    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
-    <title>NotTheBest Experience</title>
-    <style>
-        /* ===== RESET & BASE STYLES ===== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        :root {
-            --accent: #ff6f61;
-            --accent-2: #7cf3d6;
-            --glass: rgba(20, 20, 30, 0.8);
-            --glass-strong: rgba(0, 0, 0, 0.9);
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #000;
-            color: #fff;
-            overflow: hidden;
-            height: 100vh;
-            width: 100vw;
-            position: fixed;
-        }
-        
-        /* ===== BACKGROUND ELEMENTS ===== */
-        #bg-video {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            z-index: -2;
-        }
-        
-        .bg-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to bottom, var(--glass-strong), rgba(0, 0, 0, 0.45));
-            z-index: -1;
-        }
-        
-        /* ===== MAIN LAYOUT ===== */
-        .container {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            width: 100vw;
-            padding: 10px;
-            gap: 10px;
-            overflow: auto;
-        }
-        
-        .game-panel {
-            flex: 3;
-            background: var(--glass);
-            border-radius: 15px;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            overflow: auto;
-            min-height: 0;
-        }
-        
-        .paths-panel {
-            flex: 2;
-            background: var(--glass);
-            border-radius: 15px;
-            padding: 15px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            flex-direction: column;
-            min-height: 0;
-            transition: filter 0.3s ease, opacity 0.3s ease;
-        }
-        
-        .paths-panel.locked {
-            filter: blur(8px);
-            pointer-events: none;
-            opacity: 0.5;
-        }
-        
-        /* ===== MODALS & OVERLAYS ===== */
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
-            backdrop-filter: blur(5px);
-        }
-        
-        .modal {
-            background: rgba(30, 30, 40, 0.95);
-            border-radius: 20px;
-            padding: 25px;
-            width: 90%;
-            max-width: 400px;
-            text-align: center;
-            border: 1px solid rgba(124, 243, 214, 0.3);
-            box-shadow: 0 0 30px rgba(124, 243, 214, 0.2);
-        }
-        
-        .modal h2 {
-            color: var(--accent-2);
-            margin-bottom: 15px;
-            font-size: 1.8rem;
-        }
-        
-        .modal p {
-            margin-bottom: 20px;
-            line-height: 1.5;
-            font-size: 1.1rem;
-        }
-        
-        .btn {
-            background: var(--accent);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 10px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 1.1rem;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        
-        .btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 15px rgba(255, 111, 97, 0.5);
-        }
-        
-        #outer-click-message {
-            display: none;
-        }
-        
-        /* ===== MEMORY GAME STYLES ===== */
-        .memory-game-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-        }
-        
-        .memory-board {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-            width: 100%;
-            max-width: 400px;
-            margin: 20px auto;
-        }
-        
-        .card {
-            aspect-ratio: 1/1;
-            perspective: 1000px;
-            cursor: pointer;
-        }
-        
-        .card-inner {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            transition: transform 0.6s;
-            transform-style: preserve-3d;
-        }
-        
-        .card.flip .card-inner {
-            transform: rotateY(180deg);
-        }
-        
-        .card.matched {
-            opacity: 0.6;
-            pointer-events: none;
-        }
-        
-        .card.matched .card-inner {
-            transform: rotateY(180deg);
-        }
-        
-        .card-face {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            backface-visibility: hidden;
-            border-radius: 10px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-        }
-        
-        .card-back {
-            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
-            font-size: 2.5rem;
-            font-weight: 900;
-            color: rgba(255, 255, 255, 0.9);
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-        }
-        
-        .card-front {
-            background: radial-gradient(circle, #4a4a4a, #1a1a1a);
-            transform: rotateY(180deg);
-            padding: 10px;
-            flex-direction: column;
-            justify-content: space-between;
-            border: 2px solid var(--accent-2);
-        }
-        
-        .card-symbol {
-            font-size: 1.2rem;
-            align-self: flex-start;
-            color: var(--accent);
-        }
-        
-        .card-symbol.bottom {
-            align-self: flex-end;
-            transform: rotate(180deg);
-        }
-        
-        .card-name {
-            font-size: 0.65rem;
-            font-weight: bold;
-            text-align: center;
-            color: var(--accent-2);
-            background: rgba(0, 0, 0, 0.6);
-            padding: 4px;
-            border-radius: 4px;
-        }
-        
-        /* ===== SPACE INVADERS STYLES ===== */
-        .space-invaders-container {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-            height: 100%;
-        }
-        
-        .canvas-wrapper {
-            width: 100%;
-            max-width: 600px;
-            position: relative;
-        }
-        
-        #si-canvas {
-            width: 100%;
-            height: 400px;
-            background: linear-gradient(to bottom, #000428, #004e92);
-            border-radius: 10px;
-            margin: 10px 0;
-            border: 2px solid var(--accent-2);
-        }
-        
-        .game-ui {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            max-width: 600px;
-            margin-top: 10px;
-            background: rgba(0, 0, 0, 0.6);
-            padding: 10px;
-            border-radius: 8px;
-        }
-        
-        .level-indicator {
-            font-weight: bold;
-            color: var(--accent-2);
-            font-size: 1rem;
-            text-shadow: 0 0 10px var(--accent-2);
-        }
-        
-        .lives-indicator {
-            display: flex;
-            gap: 5px;
-        }
-        
-        .life {
-            width: 20px;
-            height: 20px;
-            background: var(--accent);
-            border-radius: 50%;
-            box-shadow: 0 0 10px var(--accent);
-        }
-        
-        .in-game-message {
-            position: absolute;
-            bottom: 20px;
-            left: 0;
-            right: 0;
-            text-align: center;
-            font-size: 1.2rem;
-            color: var(--accent-2);
-            opacity: 0;
-            transition: opacity 0.5s;
-            pointer-events: none;
-            text-shadow: 0 0 10px var(--accent-2);
-        }
-        
-        /* ===== PERSONALITY PATHS STYLES ===== */
-        .paths-title {
-            text-align: center;
-            margin-bottom: 15px;
-            color: var(--accent-2);
-            font-size: 1.4rem;
-        }
-        
-        .lock-message {
-            text-align: center;
-            color: var(--accent);
-            font-weight: bold;
-            margin-top: 20px;
-        }
-        
-        .paths-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-top: 10px;
-        }
-        
-        .path-item {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 15px 10px;
-            text-align: center;
-            text-decoration: none;
-            color: white;
-            transition: transform 0.2s, background 0.2s;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .path-item:hover {
-            transform: translateY(-3px);
-            background: rgba(124, 243, 214, 0.2);
-        }
-        
-        .path-emoji {
-            font-size: 2rem;
-            filter: drop-shadow(0 0 5px rgba(0,0,0,0.5));
-        }
-        
-        .path-label {
-            font-weight: bold;
-            font-size: 0.9rem;
-        }
-        
-        /* ===== WIN/GLITCH EFFECTS ===== */
-        .glitch-text {
-            animation: glitch 1s infinite;
-            color: var(--accent);
-            text-shadow: 2px 2px var(--accent-2), -2px -2px #00ff00;
-        }
-        
-        @keyframes glitch {
-            0% { transform: translate(0); }
-            20% { transform: translate(-3px, 3px); }
-            40% { transform: translate(-3px, -3px); }
-            60% { transform: translate(3px, 3px); }
-            80% { transform: translate(3px, -3px); }
-            100% { transform: translate(0); }
-        }
-        
-        /* Chaos effects for Level 8 */
-        .chaos-invert {
-            filter: invert(1);
-        }
-        
-        .chaos-tilt {
-            transform: rotate(5deg);
-        }
-        
-        .chaos-shake {
-            animation: chaos-shake 0.1s infinite;
-        }
-        
-        @keyframes chaos-shake {
-            0% { transform: translate(1px, 1px); }
-            10% { transform: translate(-1px, -2px); }
-            20% { transform: translate(-2px, 0px); }
-            30% { transform: translate(2px, 2px); }
-            40% { transform: translate(1px, -1px); }
-            50% { transform: translate(-1px, 2px); }
-            60% { transform: translate(-2px, 1px); }
-            70% { transform: translate(2px, 1px); }
-            80% { transform: translate(-1px, -1px); }
-            90% { transform: translate(1px, 2px); }
-            100% { transform: translate(0, 0); }
-        }
-        
-        .cash-effect {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 50%;
-            background: rgba(0, 100, 0, 0.8);
-            pointer-events: none;
-            z-index: 50;
-        }
-        
-        .invisible-aliens {
-            opacity: 0.3;
-        }
-        
-        /* Outside click messages */
-        .outside-message {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(255, 0, 0, 0.9);
-            padding: 15px 25px;
-            border-radius: 10px;
-            color: white;
-            font-weight: bold;
-            text-shadow: 0 0 10px rgba(255, 0, 0, 0.8);
-            border: 2px solid #ff0000;
-            z-index: 99;
-            pointer-events: none;
-            animation: shake-warning 0.5s ease-in-out;
-        }
-        
-        @keyframes shake-warning {
-            0%, 100% { transform: translate(-50%, -50%); }
-            25% { transform: translate(-52%, -48%); }
-            75% { transform: translate(-48%, -52%); }
-        }
-        
-        /* ===== RESPONSIVE ADJUSTMENTS ===== */
-        @media (max-width: 768px) {
-            .container {
-                padding: 8px;
-                gap: 8px;
-            }
-            
-            .game-panel, .paths-panel {
-                padding: 12px;
-                border-radius: 12px;
-            }
-            
-            .memory-board {
-                grid-template-columns: repeat(4, 1fr);
-                gap: 6px;
-                max-width: 320px;
-            }
-            
-            .card-name {
-                font-size: 0.55rem;
-            }
-            
-            .card-symbol {
-                font-size: 1rem;
-            }
-            
-            .card-back {
-                font-size: 2rem;
-            }
-            
-            #si-canvas {
-                height: 350px;
-            }
-            
-            .level-indicator {
-                font-size: 0.9rem;
-            }
-            
-            .paths-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 8px;
-            }
-            
-            .path-item {
-                padding: 12px 8px;
-            }
-            
-            .path-emoji {
-                font-size: 1.7rem;
-            }
-            
-            .path-label {
-                font-size: 0.8rem;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .memory-board {
-                grid-template-columns: repeat(4, 1fr);
-                max-width: 280px;
-            }
-            
-            .card-name {
-                font-size: 0.45rem;
-            }
-            
-            .card-symbol {
-                font-size: 0.9rem;
-            }
-            
-            #si-canvas {
-                height: 300px;
-            }
-            
-            .paths-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .modal {
-                padding: 20px 15px;
-            }
-            
-            .modal h2 {
-                font-size: 1.5rem;
-            }
-            
-            .modal p {
-                font-size: 1rem;
-            }
-            
-            .btn {
-                padding: 10px 20px;
-                font-size: 1rem;
-            }
-        }
-        
-        @media (max-height: 700px) {
-            #si-canvas {
-                height: 280px;
-            }
-            
-            .memory-board {
-                gap: 4px;
-            }
-            
-            .card-name {
-                font-size: 0.5rem;
-            }
-        }
-        
-        /* Orientation-specific styles */
-        @media (max-width: 768px) and (orientation: landscape) {
-            .container {
-                flex-direction: row;
-            }
-            
-            .game-panel {
-                overflow-y: auto;
-            }
-            
-            #si-canvas {
-                height: 220px;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NotTheBest Experience</title>
+<style>
+/* ===== RESET & BASE STYLES ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --accent: #ff6f61;
+  --accent-2: #7cf3d6;
+  --glass: rgba(20, 20, 30, 0.8);
+  --glass-strong: rgba(0, 0, 0, 0.9);
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #000;
+  color: #fff;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+  position: fixed;
+}
+
+/* ===== BACKGROUND ELEMENTS ===== */
+#bg-video {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -2;
+}
+
+.bg-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, var(--glass-strong), rgba(0, 0, 0, 0.45));
+  z-index: -1;
+}
+
+/* ===== MAIN LAYOUT ===== */
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  padding: 10px;
+  gap: 10px;
+  overflow: auto;
+}
+
+.game-panel {
+  flex: 3;
+  background: var(--glass);
+  border-radius: 15px;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: auto;
+  min-height: 0;
+}
+
+.paths-panel {
+  flex: 2;
+  background: var(--glass);
+  border-radius: 15px;
+  padding: 15px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.paths-panel.locked {
+  filter: blur(5px);
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+/* ===== MODALS & OVERLAYS ===== */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  backdrop-filter: blur(5px);
+}
+
+.modal {
+  background: rgba(30, 30, 40, 0.95);
+  border-radius: 20px;
+  padding: 25px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  border: 1px solid rgba(124, 243, 214, 0.3);
+  box-shadow: 0 0 30px rgba(124, 243, 214, 0.2);
+}
+
+.modal h2 {
+  color: var(--accent-2);
+  margin-bottom: 15px;
+  font-size: 1.8rem;
+}
+
+.modal p {
+  margin-bottom: 20px;
+  line-height: 1.5;
+  font-size: 1.1rem;
+}
+
+.btn {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(255, 111, 97, 0.5);
+}
+
+#outer-click-message {
+  display: none;
+}
+
+/* ===== MEMORY GAME STYLES ===== */
+.memory-game-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.memory-board {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.card {
+  aspect-ratio: 1/1;
+  perspective: 1000px;
+  cursor: pointer;
+}
+
+.card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+}
+
+.card.flip .card-inner {
+  transform: rotateY(180deg);
+}
+
+.card.matched {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.card-face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.card-back {
+  background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.card-front {
+  background: radial-gradient(circle, #4a4a4a, #1a1a1a);
+  transform: rotateY(180deg);
+  padding: 10px;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.card-symbol {
+  font-size: 1.5rem;
+  align-self: flex-start;
+}
+
+.card-symbol.bottom {
+  align-self: flex-end;
+  transform: rotate(180deg);
+}
+
+.card-name {
+  font-size: 0.7rem;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* ===== SPACE INVADERS STYLES ===== */
+.space-invaders-container {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.canvas-wrapper {
+  width: 100%;
+  max-width: 600px;
+  position: relative;
+}
+
+#si-canvas {
+  width: 100%;
+  height: 400px;
+  background: #000;
+  border-radius: 10px;
+  margin: 10px 0;
+}
+
+.game-ui {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 600px;
+  margin-top: 10px;
+}
+
+.level-indicator {
+  font-weight: bold;
+  color: var(--accent-2);
+  font-size: 1rem;
+  text-shadow: 0 0 10px var(--accent-2);
+  animation: glow 2s infinite;
+}
+
+.lives-indicator {
+  display: flex;
+  gap: 5px;
+}
+
+.life {
+  width: 20px;
+  height: 20px;
+  background: var(--accent);
+  border-radius: 50%;
+}
+
+.in-game-message {
+  position: absolute;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 1.2rem;
+  color: var(--accent-2);
+  opacity: 0;
+  transition: opacity 0.5s;
+  pointer-events: none;
+  text-shadow: 0 0 10px var(--accent-2);
+  animation: glow 2s infinite;
+}
+
+@keyframes glow {
+  0% { text-shadow: 0 0 5px var(--accent-2); }
+  50% { text-shadow: 0 0 20px var(--accent-2), 0 0 30px var(--accent-2); }
+  100% { text-shadow: 0 0 5px var(--accent-2); }
+}
+
+/* ===== PERSONALITY PATHS STYLES ===== */
+.paths-title {
+  text-align: center;
+  margin-bottom: 15px;
+  color: var(--accent-2);
+  font-size: 1.4rem;
+}
+
+.lock-message {
+  text-align: center;
+  color: var(--accent);
+  font-weight: bold;
+  margin-top: 20px;
+}
+
+.paths-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.path-item {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 15px 10px;
+  text-align: center;
+  text-decoration: none;
+  color: white;
+  transition: transform 0.2s, background 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.path-item:hover {
+  transform: translateY(-3px);
+  background: rgba(124, 243, 214, 0.2);
+}
+
+.path-emoji {
+  font-size: 2rem;
+  filter: drop-shadow(0 0 5px rgba(0,0,0,0.5));
+}
+
+.path-label {
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+/* ===== WIN/GLITCH EFFECTS ===== */
+.glitch-text {
+  animation: glitch 1s infinite;
+  color: var(--accent-2);
+  text-shadow: 2px 2px var(--accent), -2px -2px #00ff00;
+}
+
+@keyframes glitch {
+  0% { transform: translate(0); }
+  20% { transform: translate(-3px, 3px); }
+  40% { transform: translate(-3px, -3px); }
+  60% { transform: translate(3px, 3px); }
+  80% { transform: translate(3px, -3px); }
+  100% { transform: translate(0); }
+}
+
+/* Chaos effects for Level 8 */
+.chaos-invert {
+  filter: invert(1);
+}
+
+.chaos-tilt {
+  transform: rotate(5deg);
+}
+
+.chaos-shake {
+  animation: chaos-shake 0.1s infinite;
+}
+
+@keyframes chaos-shake {
+  0% { transform: translate(1px, 1px); }
+  10% { transform: translate(-1px, -2px); }
+  20% { transform: translate(-2px, 0px); }
+  30% { transform: translate(2px, 2px); }
+  40% { transform: translate(1px, -1px); }
+  50% { transform: translate(-1px, 2px); }
+  60% { transform: translate(-2px, 1px); }
+  70% { transform: translate(2px, 1px); }
+  80% { transform: translate(-1px, -1px); }
+  90% { transform: translate(1px, 2px); }
+  100% { transform: translate(0, 0); }
+}
+
+.cash-effect {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 100, 0, 0.3);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.invisible-aliens {
+  opacity: 0.3;
+}
+
+/* Outside click messages */
+.outside-message {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.8);
+  padding: 15px 25px;
+  border-radius: 10px;
+  color: var(--accent);
+  font-weight: bold;
+  text-shadow: 0 0 10px var(--accent);
+  animation: glow 2s infinite;
+  z-index: 99;
+  pointer-events: none;
+}
+
+/* ===== RESPONSIVE ADJUSTMENTS ===== */
+@media (max-width: 768px) {
+  .container {
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .game-panel, .paths-panel {
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  .memory-board {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+
+  .card-name {
+    font-size: 0.6rem;
+  }
+
+  .card-symbol {
+    font-size: 1.2rem;
+  }
+
+  .card-back {
+    font-size: 2rem;
+  }
+
+  #si-canvas {
+    height: 350px;
+  }
+
+  .level-indicator {
+    font-size: 0.9rem;
+  }
+
+  .paths-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .path-item {
+    padding: 12px 8px;
+  }
+
+  .path-emoji {
+    font-size: 1.7rem;
+  }
+
+  .path-label {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .memory-board {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .card-name {
+    font-size: 0.5rem;
+  }
+
+  .card-symbol {
+    font-size: 1rem;
+  }
+
+  #si-canvas {
+    height: 300px;
+  }
+
+  .paths-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal {
+    padding: 20px 15px;
+  }
+
+  .modal h2 {
+    font-size: 1.5rem;
+  }
+
+  .modal p {
+    font-size: 1rem;
+  }
+
+  .btn {
+    padding: 10px 20px;
+    font-size: 1rem;
+  }
+}
+
+@media (max-height: 700px) {
+  #si-canvas {
+    height: 280px;
+  }
+
+  .memory-board {
+    gap: 4px;
+  }
+
+  .card-name {
+    font-size: 0.5rem;
+  }
+}
+
+/* Orientation-specific styles */
+@media (max-width: 768px) and (orientation: landscape) {
+  .container {
+    flex-direction: row;
+  }
+
+  .game-panel {
+    overflow-y: auto;
+  }
+
+  #si-canvas {
+    height: 220px;
+  }
+}
+</style>
 </head>
+
 <body>
-    <!-- Background Elements -->
-    <video id=\"bg-video\" loop muted playsinline>
-        <source src=\"https://customer-assets.emergentagent.com/job_web-proposal/artifacts/4lrb4nqg_loop-bg.mp4\" type=\"video/mp4\">
-    </video>
-    <div class=\"bg-overlay\"></div>
-    <audio id=\"bg-music\" loop>
-        <source src=\"https://customer-assets.emergentagent.com/job_web-proposal/artifacts/3w96qyo5_running%20out%20of%20time.mp3\" type=\"audio/mpeg\">
-    </audio>
-    
-    <!-- Welcome Modal -->
-    <div id=\"welcome-overlay\" class=\"overlay\">
-        <div class=\"modal\">
-            <h2>Hey hi hello how are you doing so basically you can start exploring now.</h2>
-            <button id=\"start-btn\" class=\"btn\">Start</button>
-        </div>
-    </div>
-    
-    <!-- Outside Click Warning -->
-    <div id=\"outer-click-message\" class=\"overlay\" style=\"display: none;\">
-        <div class=\"modal\">
-            <p id=\"warning-text\">explore inside the container not outside it because just a plain looping bg is there. focus bro</p>
-            <p>Clicks outside: <span id=\"click-count\">0</span>/6</p>
-            <button id=\"close-warning\" class=\"btn\">Got it</button>
-        </div>
-    </div>
-    
-    <!-- Game Over Modal -->
-    <div id=\"game-over-overlay\" class=\"overlay\" style=\"display: none;\">
-        <div class=\"modal\">
-            <h2>GAME OVER</h2>
-            <p>You must restart the entire 8-level challenge. Try again from the beginning.</p>
-            <button id=\"try-again-btn\" class=\"btn\">Try Again</button>
-        </div>
-    </div>
-    
-    <!-- Win Modal -->
-    <div id=\"win-overlay\" class=\"overlay\" style=\"display: none;\">
-        <div class=\"modal\">
-            <h2 class=\"glitch-text\" id=\"glitch-message\">You weren't supposed to beat this…</h2>
-            <p id=\"win-message\" style=\"display: none;\">Congratulations on finishing these beautifully coded games...</p>
-        </div>
-    </div>
-    
-    <!-- Main Content -->
-    <div class=\"container\">
-        <!-- Left Panel - Games -->
-        <div class=\"game-panel\" id=\"game-container\">
-            <div class=\"memory-game-container\" id=\"memory-game\">
-                <h2>UNO Memory Challenge</h2>
-                <div class=\"memory-board\" id=\"memory-board\"></div>
-            </div>
-            
-            <div class=\"space-invaders-container\" id=\"space-invaders\">
-                <h2>Space Invaders Challenge</h2>
-                <div class=\"canvas-wrapper\">
-                    <canvas id=\"si-canvas\"></canvas>
-                    <div class=\"in-game-message\" id=\"in-game-message\"></div>
-                </div>
-                <div class=\"game-ui\">
-                    <div class=\"level-indicator\">Level: <span id=\"level-number\">1</span> - <span id=\"level-name\">Notthebest OG</span></div>
-                    <div class=\"lives-indicator\">
-                        <div class=\"life\"></div>
-                        <div class=\"life\"></div>
-                        <div class=\"life\"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Right Panel - Personality Paths -->
-        <div class=\"paths-panel locked\" id=\"paths-panel\">
-            <h2 class=\"paths-title\">Personality Paths</h2>
-            <p class=\"lock-message\">Complete all games to unlock personality paths</p>
-            
-            <div class=\"paths-grid\">
-                <a href=\"allout-q1.html\" class=\"path-item\">
-                    <span class=\"path-emoji\">🔥</span>
-                    <span class=\"path-label\">Path Alpha</span>
-                </a>
-                <a href=\"allout-q2.html\" class=\"path-item\">
-                    <span class=\"path-emoji\">🌟</span>
-                    <span class=\"path-label\">Path Beta</span>
-                </a>
-                <a href=\"allout-q3.html\" class=\"path-item\">
-                    <span class=\"path-emoji\">⚡</span>
-                    <span class=\"path-label\">Path Gamma</span>
-                </a>
-                <a href=\"allout-q4.html\" class=\"path-item\">
-                    <span class=\"path-emoji\">💎</span>
-                    <span class=\"path-label\">Path Delta</span>
-                </a>
-            </div>
-        </div>
+<!-- Background Elements -->
+<video id="bg-video" loop muted playsinline>
+  <source src="https://assets.codepen.io/236284/loop-bg.mp4" type="video/mp4">
+</video>
+<div class="bg-overlay"></div>
+<audio id="bg-music" loop>
+  <source src="https://assets.codepen.io/236284/running-out-of-time.mp3" type="audio/mpeg">
+</audio>
+
+<!-- Welcome Modal -->
+<div id="welcome-overlay" class="overlay">
+  <div class="modal">
+    <h2>Hey, hi, hello!</h2>
+    <p>How are you doing? So basically you can start exploring now.</p>
+    <button id="start-btn" class="btn">Begin Exploring</button>
+  </div>
+</div>
+
+<!-- Outside Click Warning -->
+<div id="outer-click-message" class="overlay">
+  <div class="modal">
+    <p id="warning-text">explore inside the container not outside it because just a plain looping bg is there. focus bro</p>
+    <button id="close-warning" class="btn">Got it</button>
+  </div>
+</div>
+
+<!-- Game Over Modal -->
+<div id="game-over-overlay" class="overlay" style="display: none;">
+  <div class="modal">
+    <h2>GAME OVER</h2>
+    <p>You've run out of lives. Try again from the beginning.</p>
+    <button id="try-again-btn" class="btn">Try Again</button>
+  </div>
+</div>
+
+<!-- Win Modal -->
+<div id="win-overlay" class="overlay" style="display: none;">
+  <div class="modal">
+    <h2 class="glitch-text" id="glitch-message">You weren't supposed to beat this...</h2>
+    <p id="win-message" style="display: none;">Congratulations on playing these beautifully coded games in this beautifully coded website. Thank you for staying till here. One suggestion: if you want to stay and visit the personality path and find your outfit, do it. If you don't want, then just leave… it's your option.</p>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="container">
+  <!-- Left Panel - Games -->
+  <div class="game-panel" id="game-container">
+    <div class="memory-game-container" id="memory-game">
+      <h2>Memory Challenge</h2>
+      <div class="memory-board" id="memory-board"></div>
     </div>
 
-    <script>
-        // ===== GAME STATE MANAGEMENT =====
-        const gameState = {
-            initialized: false,
-            outsideClicks: 0,
-            memoryGameCompleted: false,
-            spaceInvadersCompleted: false,
-            pathSelected: false
-        };
-        
-        // ===== ELEMENT REFERENCES =====
-        const welcomeOverlay = document.getElementById('welcome-overlay');
-        const startBtn = document.getElementById('start-btn');
-        const outerClickMessage = document.getElementById('outer-click-message');
-        const warningText = document.getElementById('warning-text');
-        const closeWarning = document.getElementById('close-warning');
-        const gameContainer = document.getElementById('game-container');
-        const pathsPanel = document.getElementById('paths-panel');
-        const memoryGameDiv = document.getElementById('memory-game');
-        const spaceInvaders = document.getElementById('space-invaders');
-        const memoryBoard = document.getElementById('memory-board');
-        const gameOverOverlay = document.getElementById('game-over-overlay');
-        const tryAgainBtn = document.getElementById('try-again-btn');
-        const winOverlay = document.getElementById('win-overlay');
-        const glitchMessage = document.getElementById('glitch-message');
-        const winMessage = document.getElementById('win-message');
-        const bgVideo = document.getElementById('bg-video');
-        const bgMusic = document.getElementById('bg-music');
-        const inGameMessage = document.getElementById('in-game-message');
-        const levelNumber = document.getElementById('level-number');
-        const levelName = document.getElementById('level-name');
-        const clickCountElement = document.getElementById('click-count');
-        
-        // ===== AUDIO CONTEXT FOR SOUND EFFECTS =====
-        let audioContext;
-        
-        function initAudioContext() {
-            try {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            } catch (error) {
-                console.log('Audio context not supported');
-            }
-        }
-        
-        function playSound(type, frequency = 440, duration = 0.2) {
-            if (!audioContext) return;
-            
-            try {
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-                
-                oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
-                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
-                
-                if (type === 'flip') {
-                    oscillator.frequency.setValueAtTime(880, audioContext.currentTime + 0.1);
-                } else if (type === 'match') {
-                    oscillator.frequency.setValueAtTime(659, audioContext.currentTime + 0.1);
-                    oscillator.frequency.setValueAtTime(784, audioContext.currentTime + 0.2);
-                } else if (type === 'shoot') {
-                    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-                    oscillator.frequency.setValueAtTime(400, audioContext.currentTime + 0.05);
-                } else if (type === 'hit') {
-                    oscillator.frequency.setValueAtTime(150, audioContext.currentTime);
-                } else if (type === 'complete') {
-                    oscillator.frequency.setValueAtTime(523, audioContext.currentTime);
-                    oscillator.frequency.setValueAtTime(659, audioContext.currentTime + 0.1);
-                    oscillator.frequency.setValueAtTime(784, audioContext.currentTime + 0.2);
-                }
-                
-                oscillator.start(audioContext.currentTime);
-                oscillator.stop(audioContext.currentTime + duration);
-            } catch (error) {
-                console.log('Sound generation failed');
-            }
-        }
-        
-        // ===== INITIALIZATION =====
-        document.addEventListener('DOMContentLoaded', () => {
-            // Initialize audio context
-            initAudioContext();
-            
-            // Initialize memory game
-            initMemoryGame();
-            
-            // Set up event listeners
-            startBtn.addEventListener('click', startExperience);
-            closeWarning.addEventListener('click', () => {
-                outerClickMessage.style.display = 'none';
-            });
-            
-            tryAgainBtn.addEventListener('click', () => {
-                gameOverOverlay.style.display = 'none';
-                resetSpaceInvaders();
-            });
-            
-            // Prevent path selection until game is completed
-            document.querySelectorAll('.path-item').forEach(path => {
-                path.addEventListener('click', (e) => {
-                    if (pathsPanel.classList.contains('locked')) {
-                        e.preventDefault();
-                        // Visual feedback that paths are locked
-                        pathsPanel.animate([
-                            { transform: 'translateX(0px)' },
-                            { transform: 'translateX(10px)' },
-                            { transform: 'translateX(-10px)' },
-                            { transform: 'translateX(0px)' }
-                        ], {
-                            duration: 300,
-                            iterations: 1
-                        });
-                    } else {
-                        gameState.pathSelected = true;
-                        window.removeEventListener('beforeunload', handleBeforeUnload);
-                    }
-                });
-            });
-            
-            // Outside click handler
-            document.addEventListener('click', (e) => {
-                if (!gameState.initialized) return;
-                if (gameState.spaceInvadersCompleted) return; // Don't penalize after completion
-                
-                const isInGamePanel = gameContainer.contains(e.target);
-                const isInPathsPanel = pathsPanel.contains(e.target);
-                const isInOverlay = e.target.closest('.overlay') !== null;
-                
-                if (!isInGamePanel && !isInPathsPanel && !isInOverlay) {
-                    handleOutsideClick();
-                }
-            });
-            
-            // Handle beforeunload for exit message
-            window.addEventListener('beforeunload', handleBeforeUnload);
+    <div class="space-invaders-container" id="space-invaders">
+      <h2>Space Invaders</h2>
+      <div class="canvas-wrapper">
+        <canvas id="si-canvas"></canvas>
+        <div class="in-game-message" id="in-game-message"></div>
+      </div>
+      <div class="game-ui">
+        <div class="level-indicator">Level: <span id="level-number">1</span> - <span id="level-name">Notthebest OG</span></div>
+        <div class="lives-indicator">
+          <div class="life"></div>
+          <div class="life"></div>
+          <div class="life"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Panel - Personality Paths -->
+  <div class="paths-panel locked" id="paths-panel">
+    <h2 class="paths-title">Choose Your Path</h2>
+    <p class="lock-message">Complete the challenges to unlock your path</p>
+
+    <div class="paths-grid">
+      <a href="allout-q1.html" class="path-item">
+        <span class="path-emoji">💥</span>
+        <span class="path-label">All Out</span>
+      </a>
+      <a href="somewhatout-q1.html" class="path-item">
+        <span class="path-emoji">🤔</span>
+        <span class="path-label">Somewhat Out</span>
+      </a>
+      <a href="maybe-q1.html" class="path-item">
+        <span class="path-emoji">🤷</span>
+        <span class="path-label">Maybe</span>
+      </a>
+      <a href="never-q1.html" class="path-item">
+        <span class="path-emoji">🚫</span>
+        <span class="path-label">Never</span>
+      </a>
+      <a href="twosides-q1.html" class="path-item">
+        <span class="path-emoji">☯️</span>
+        <span class="path-label">Two Sides</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== GAME STATE MANAGEMENT =====
+const gameState = {
+  initialized: false,
+  outsideClicks: 0,
+  memoryGameCompleted: false,
+  spaceInvadersCompleted: false,
+  pathSelected: false
+};
+
+// ===== ELEMENT REFERENCES =====
+const welcomeOverlay = document.getElementById('welcome-overlay');
+const startBtn = document.getElementById('start-btn');
+const outerClickMessage = document.getElementById('outer-click-message');
+const warningText = document.getElementById('warning-text');
+const closeWarning = document.getElementById('close-warning');
+const gameContainer = document.getElementById('game-container');
+const pathsPanel = document.getElementById('paths-panel');
+const memoryGameDiv = document.getElementById('memory-game');
+const spaceInvaders = document.getElementById('space-invaders');
+const memoryBoard = document.getElementById('memory-board');
+const gameOverOverlay = document.getElementById('game-over-overlay');
+const tryAgainBtn = document.getElementById('try-again-btn');
+const winOverlay = document.getElementById('win-overlay');
+const glitchMessage = document.getElementById('glitch-message');
+const winMessage = document.getElementById('win-message');
+const bgVideo = document.getElementById('bg-video');
+const bgMusic = document.getElementById('bg-music');
+const inGameMessage = document.getElementById('in-game-message');
+const levelNumber = document.getElementById('level-number');
+const levelName = document.getElementById('level-name');
+
+// ===== MEDIA PLAYBACK FIXES =====
+// Fix for iOS video playback
+bgVideo.setAttribute('playsinline', '');
+bgVideo.setAttribute('muted', '');
+bgVideo.muted = true;
+
+// ===== INITIALIZATION =====
+document.addEventListener('DOMContentLoaded', () => {
+  // Initialize memory game
+  initMemoryGame();
+
+  // Set up event listeners
+  startBtn.addEventListener('click', startExperience);
+  closeWarning.addEventListener('click', () => {
+    outerClickMessage.style.display = 'none';
+  });
+
+  tryAgainBtn.addEventListener('click', () => {
+    gameOverOverlay.style.display = 'none';
+    resetSpaceInvaders();
+  });
+
+  // Prevent path selection until game is completed
+  document.querySelectorAll('.path-item').forEach(path => {
+    path.addEventListener('click', (e) => {
+      if (pathsPanel.classList.contains('locked')) {
+        e.preventDefault();
+        // Visual feedback that paths are locked
+        pathsPanel.animate([
+          { transform: 'translateX(0px)' },
+          { transform: 'translateX(10px)' },
+          { transform: 'translateX(-10px)' },
+          { transform: 'translateX(0px)' }
+        ], {
+          duration: 300,
+          iterations: 1
         });
-        
-        function handleBeforeUnload(e) {
-            if (gameState.initialized && !gameState.pathSelected && !gameState.spaceInvadersCompleted) {
-                e.preventDefault();
-                e.returnValue = \"Not so fast internet warrior, complete what you started\";
-                return \"Not so fast internet warrior, complete what you started\";
-            }
-        }
-        
-        // ===== EXPERIENCE FLOW =====
-        function startExperience() {
-            welcomeOverlay.style.display = 'none';
-            gameState.initialized = true;
-            
-            // Start background media
-            playBackgroundMedia();
-        }
-        
-        function playBackgroundMedia() {
-            // Set video properties
-            bgVideo.loop = true;
-            bgVideo.muted = true;
-            
-            // Play video
-            const playVideoPromise = bgVideo.play();
-            if (playVideoPromise !== undefined) {
-                playVideoPromise
-                    .then(() => {
-                        console.log(\"Video playback started\");
-                    })
-                    .catch(error => {
-                        console.log(\"Video play failed:\", error);
-                    });
-            }
-            
-            // Play audio
-            try {
-                bgMusic.volume = 0.3;
-                const playPromise = bgMusic.play();
-                
-                if (playPromise !== undefined) {
-                    playPromise
-                        .then(() => {
-                            console.log(\"Audio playback started\");
-                        })
-                        .catch(error => {
-                            console.log(\"Audio play failed:\", error);
-                        });
-                }
-            } catch (error) {
-                console.log(\"Audio error:\", error);
-            }
-        }
-        
-        function handleOutsideClick() {
-            gameState.outsideClicks++;
-            clickCountElement.textContent = gameState.outsideClicks;
-            
-            if (gameState.outsideClicks >= 6) {
-                // Reload the page after 6 outside clicks
-                location.reload();
-                return;
-            }
-            
-            // Show warning overlay
-            outerClickMessage.style.display = 'flex';
-            
-            // Also show floating message
-            showOutsideMessage(\"explore inside the container not outside it because just a plain looping bg is there. focus bro\");
-        }
-        
-        function showOutsideMessage(text) {
-            // Remove any existing message
-            const existingMessage = document.querySelector('.outside-message');
-            if (existingMessage) {
-                existingMessage.remove();
-            }
-            
-            // Create and show new message
-            const messageElement = document.createElement('div');
-            messageElement.className = 'outside-message';
-            messageElement.textContent = text;
-            document.body.appendChild(messageElement);
-            
-            // Remove message after 2 seconds
-            setTimeout(() => {
-                messageElement.remove();
-            }, 2000);
-        }
-        
-        function completeMemoryGame() {
-            gameState.memoryGameCompleted = true;
-            playSound('complete', 523, 0.4);
-            
-            setTimeout(() => {
-                memoryGameDiv.style.display = 'none';
-                spaceInvaders.style.display = 'flex';
-                initSpaceInvaders();
-            }, 1500);
-        }
-        
-        function completeSpaceInvaders() {
-            gameState.spaceInvadersCompleted = true;
-            gameActive = false;
-            
-            // Show glitch message first
-            winOverlay.style.display = 'flex';
-            
-            // After delay, show the full win message and unlock paths
-            setTimeout(() => {
-                glitchMessage.style.display = 'none';
-                winMessage.style.display = 'block';
-                
-                setTimeout(() => {
-                    winOverlay.style.display = 'none';
-                    pathsPanel.classList.remove('locked');
-                    pathsPanel.querySelector('.lock-message').style.display = 'none';
-                }, 4000);
-            }, 3000);
-        }
-        
-        function gameOver() {
-            gameOverOverlay.style.display = 'flex';
-            gameActive = false;
-        }
-        
-        // ===== MEMORY GAME IMPLEMENTATION =====
-        function initMemoryGame() {
-            const productNames = [
-                \"Notthebest OG\", \"Initial D\", \"Lorem Ipsum\", \"Your Toast\", 
-                \"Grapefruit x Lime\", \"Cake Was A Lie\", \"Berserk\", \"RANDOMODIUM\"
-            ];
-            
-            const unoSymbols = ['🚫', '🔄', '+2', '+4', '🎨', '0', '1', '5'];
-            
-            // Create card pairs (16 cards total)
-            let cards = [];
-            productNames.forEach((name, index) => {
-                cards.push({ id: index * 2, name, symbol: unoSymbols[index] });
-                cards.push({ id: index * 2 + 1, name, symbol: unoSymbols[index] });
-            });
-            
-            // Shuffle cards
-            shuffleArray(cards);
-            
-            // Clear board first
-            memoryBoard.innerHTML = '';
-            
-            // Create card elements
-            cards.forEach(card => {
-                const cardElement = document.createElement('div');
-                cardElement.className = 'card';
-                cardElement.dataset.name = card.name;
-                cardElement.dataset.id = card.id;
-                
-                cardElement.innerHTML = `
-                    <div class=\"card-inner\">
-                        <div class=\"card-face card-back\">N</div>
-                        <div class=\"card-face card-front\">
-                            <div class=\"card-symbol\">${card.symbol}</div>
-                            <div class=\"card-name\">${card.name}</div>
-                            <div class=\"card-symbol bottom\">${card.symbol}</div>
-                        </div>
-                    </div>
-                `;
-                
-                cardElement.addEventListener('click', () => flipCard(cardElement));
-                memoryBoard.appendChild(cardElement);
-            });
-        }
-        
-        let hasFlippedCard = false;
-        let lockBoard = false;
-        let firstCard, secondCard;
-        let matchedPairs = 0;
-        
-        function flipCard(card) {
-            if (lockBoard) return;
-            if (card === firstCard) return;
-            if (card.classList.contains('matched')) return;
-            if (card.classList.contains('flip')) return;
-            
-            playSound('flip');
-            card.classList.add('flip');
-            
-            if (!hasFlippedCard) {
-                // First flip
-                hasFlippedCard = true;
-                firstCard = card;
-                return;
-            }
-            
-            // Second flip
-            secondCard = card;
-            checkForMatch();
-        }
-        
-        function checkForMatch() {
-            const isMatch = firstCard.dataset.name === secondCard.dataset.name;
-            
-            if (isMatch) {
-                disableCards();
-                playSound('match', 659, 0.3);
-                matchedPairs++;
-                
-                if (matchedPairs === 8) {
-                    setTimeout(completeMemoryGame, 1000);
-                }
-            } else {
-                unflipCards();
-            }
-        }
-        
-        function disableCards() {
-            firstCard.classList.add('matched');
-            secondCard.classList.add('matched');
-            resetBoard();
-        }
-        
-        function unflipCards() {
-            lockBoard = true;
-            
-            setTimeout(() => {
-                firstCard.classList.remove('flip');
-                secondCard.classList.remove('flip');
-                resetBoard();
-            }, 1000);
-        }
-        
-        function resetBoard() {
-            [hasFlippedCard, lockBoard] = [false, false];
-            [firstCard, secondCard] = [null, null];
-        }
-        
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-        }
-        
-        // ===== SPACE INVADERS IMPLEMENTATION =====
-        let canvas, ctx;
-        let player, aliens, bullets, enemyBullets, obstacles, chaosObjects;
-        let gameActive = false;
-        let currentLevel = 0;
-        let lives = 3;
-        let lastShotTime = 0;
-        let gameTick = 0;
-        let keys = {};
-        let messageTimer = 0;
-        let chaosEffects = {
-            invert: 0,
-            tilt: 0,
-            shake: 0,
-            cash: 0,
-            invisible: 0
-        };
-        let lastMessageTime = 0;
+      } else {
+        gameState.pathSelected = true;
+      }
+    });
+  });
 
-        const levelConfigs = [
-            { 
-                name: \"Notthebest OG\", 
-                rows: 2, 
-                speed: 0.5, 
-                fireRate: 0.002, 
-                alienType: 'normal',
-                description: \"Simple enemies, chill\"
-            },
-            {
-                name: \"Initial D\",
-                rows: 3,
-                speed: 1.0,
-                fireRate: 0.003,
-                alienType: \"drift\",
-                description: \"Fast enemies with zigzag movement\"
-            },
-            {
-                name: \"Lorem Ipsum\",
-                rows: 3,
-                speed: 0.8,
-                fireRate: 0.004,
-                alienType: \"text\",
-                description: \"Enemies with Latin text sprites\"
-            },
-            {
-                name: \"Your Toast\",
-                rows: 4,
-                speed: 1.0,
-                fireRate: 0.005,
-                alienType: \"toaster\",
-                special: \"bread-bullets\",
-                description: \"Toaster enemies, bread bullets\"
-            },
-            { 
-                name: \"Grapefruit x Lime\", 
-                rows: 4, 
-                speed: 1.2, 
-                fireRate: 0.006, 
-                alienType: 'grapefruit', 
-                special: 'lime-bullets', 
-                description: \"Grapefruit enemies with lime bullets\"
-            },
-            { 
-                name: \"Cake Was A Lie\", 
-                rows: 4, 
-                speed: 1.4, 
-                fireRate: 0.007, 
-                alienType: 'cake', 
-                special: 'frosting-laser',
-                description: \"Cake enemies with frosting laser\"
-            },
-            { 
-                name: \"Berserk\", 
-                rows: 5, 
-                speed: 1.8,
-                fireRate: 0.015,
-                alienType: 'armor',
-                special: 'sword-bullets',
-                description: \"Fast, aggressive armor enemies\"
-            },
-            {
-                name: \"RANDOMODIUM\",
-                rows: 5,
-                speed: 2.0,
-                fireRate: 0.02,
-                alienType: 'chaos',
-                special: 'chaos-bullets',
-                description: \"Final chaos boss level\"
-            }
-        ];
+  // Outside click handler
+  document.addEventListener('click', (e) => {
+    if (!gameState.initialized) return;
 
-        const messages = [
-            \"what you doing\", 
-            \"complete it bro\", 
-            \"choose persistence over consistency\",
-            \"focus!\",
-            \"don't give up\",
-            \"almost there\",
-            \"keep going\",
-            \"you got this\"
-        ];
+    const isInGamePanel = gameContainer.contains(e.target);
+    const isInPathsPanel = pathsPanel.contains(e.target);
+    const isInOverlay = e.target.closest('.overlay') !== null;
 
-        const chaosItems = [
-            { type: 'book', emoji: '📕', effect: 'block' },
-            { type: 'cash', emoji: '💵', effect: 'hide' },
-            { type: 'question', emoji: '❓', effect: 'shake' },
-            { type: 'donut', emoji: '🍩', effect: 'shield' },
-            { type: 'glasses', emoji: '🕶️', effect: 'invisible' },
-            { type: 'blob', emoji: '🫧', effect: 'grow' }
-        ];
+    if (!isInGamePanel && !isInPathsPanel && !isInOverlay) {
+      handleOutsideClick();
+    }
+  });
 
-        function initSpaceInvaders() {
-            canvas = document.getElementById('si-canvas');
-            ctx = canvas.getContext('2d');
-            
-            // Set canvas size properly
-            canvas.width = canvas.offsetWidth;
-            canvas.height = canvas.offsetHeight;
-            
-            // Initialize game state
-            player = {
-                x: canvas.width / 2 - 15,
-                y: canvas.height - 50,
-                width: 30,
-                height: 20,
-                speed: 5
-            };
-            
-            // Reset lives
-            lives = 3;
-            updateLivesDisplay();
-            
-            // Keyboard controls
-            document.addEventListener('keydown', handleKeyDown);
-            document.addEventListener('keyup', handleKeyUp);
-            
-            // Touch controls for mobile
-            setupTouchControls();
-            
-            // Start the first level
-            startLevel(0);
-            
-            // Start the game loop
-            gameActive = true;
-            gameLoop();
+  // Handle beforeunload for exit message
+  window.addEventListener('beforeunload', (e) => {
+    if (!gameState.pathSelected && gameState.spaceInvadersCompleted) {
+      e.preventDefault();
+      e.returnValue = "Not so fast internet warrior, complete what you started";
+      return "Not so fast internet warrior, complete what you started";
+    }
+  });
+});
+
+// ===== EXPERIENCE FLOW =====
+function startExperience() {
+  welcomeOverlay.style.display = 'none';
+  gameState.initialized = true;
+
+  // Start background media with improved compatibility
+  playBackgroundMedia();
+}
+
+function playBackgroundMedia() {
+  // Set video to loop and mute it for autoplay
+  bgVideo.loop = true;
+  bgVideo.muted = true;
+
+  // Play video with promise-based approach
+  const playVideoPromise = bgVideo.play();
+
+  if (playVideoPromise !== undefined) {
+    playVideoPromise
+      .then(() => {
+        // Video playback started successfully
+        console.log("Video playback started");
+      })
+      .catch(error => {
+        // Auto-play was prevented, show unmute button or handle accordingly
+        console.log("Video play failed:", error);
+      });
+  }
+
+  // Play audio with user gesture
+  try {
+    bgMusic.volume = 0.7;
+    const playPromise = bgMusic.play();
+
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          console.log("Audio playback started");
+        })
+        .catch(error => {
+          console.log("Audio play failed, will try again after user interaction:", error);
+          // Set up a one-time click handler to start audio
+          document.body.addEventListener('click', function startAudioOnClick() {
+            bgMusic.play().catch(e => console.log("Audio play on click failed:", e));
+            document.body.removeEventListener('click', startAudioOnClick);
+          }, { once: true });
+        });
+    }
+  } catch (error) {
+    console.log("Audio error:", error);
+  }
+}
+
+function handleOutsideClick() {
+  gameState.outsideClicks++;
+
+  if (gameState.outsideClicks >= 6) {
+    // Reload the page after 6 outside clicks
+    location.reload();
+    return;
+  }
+
+  // Show random outside click message
+  const messages = [
+    "Hey, wrong place to click!",
+    "Focus on the game!",
+    "Stop clicking outside!",
+    "The game is in the container!",
+    "Pay attention to the game!",
+    "Stop wandering around!"
+  ];
+
+  const message = messages[Math.floor(Math.random() * messages.length)];
+  showOutsideMessage(message);
+}
+
+function showOutsideMessage(text) {
+  // Remove any existing message
+  const existingMessage = document.querySelector('.outside-message');
+  if (existingMessage) {
+    existingMessage.remove();
+  }
+
+  // Create and show new message
+  const messageElement = document.createElement('div');
+  messageElement.className = 'outside-message';
+  messageElement.textContent = text;
+  document.body.appendChild(messageElement);
+
+  // Remove message after 2 seconds
+  setTimeout(() => {
+    messageElement.remove();
+  }, 2000);
+}
+
+function completeMemoryGame() {
+  gameState.memoryGameCompleted = true;
+  memoryGameDiv.style.display = 'none';
+  spaceInvaders.style.display = 'flex';
+  initSpaceInvaders();
+}
+
+function completeSpaceInvaders() {
+  gameState.spaceInvadersCompleted = true;
+
+  // Show glitch message first
+  winOverlay.style.display = 'flex';
+
+  // After delay, show the full win message
+  setTimeout(() => {
+    glitchMessage.style.display = 'none';
+    winMessage.style.display = 'block';
+
+    // Unlock the paths panel after another delay
+    setTimeout(() => {
+      winOverlay.style.display = 'none';
+      pathsPanel.classList.remove('locked');
+    }, 5000);
+  }, 3000);
+}
+
+function gameOver() {
+  gameOverOverlay.style.display = 'flex';
+  gameActive = false;
+}
+
+// ===== MEMORY GAME IMPLEMENTATION =====
+function initMemoryGame() {
+  const productNames = [
+    "Notthebest OG", "Initial D", "Lorem Ipsum", "Your Toast",
+    "Grapefruit x Lime", "Cake Was A Lie", "Berserk", "RANDOMODIUM"
+  ];
+
+  const unoSymbols = ['🚫', '🔄', '+2', '+4', '🎨', '0', '1', '5'];
+
+  // Create card pairs
+  let cards = [];
+  productNames.forEach((name, index) => {
+    cards.push({ id: index * 2, name, symbol: unoSymbols[index] });
+    cards.push({ id: index * 2 + 1, name, symbol: unoSymbols[index] });
+  });
+
+  // Shuffle cards
+  shuffleArray(cards);
+
+  // Create card elements
+  cards.forEach(card => {
+    const cardElement = document.createElement('div');
+    cardElement.className = 'card';
+    cardElement.dataset.name = card.name;
+
+    cardElement.innerHTML = `
+      <div class="card-inner">
+        <div class="card-face card-back">N</div>
+        <div class="card-face card-front">
+          <div class="card-symbol">${card.symbol}</div>
+          <div class="card-name">${card.name}</div>
+          <div class="card-symbol bottom">${card.symbol}</div>
+        </div>
+      </div>
+    `;
+
+    cardElement.addEventListener('click', () => flipCard(cardElement));
+    memoryBoard.appendChild(cardElement);
+  });
+}
+
+let hasFlippedCard = false;
+let lockBoard = false;
+let firstCard, secondCard;
+let matchedPairs = 0;
+
+function flipCard(card) {
+  if (lockBoard) return;
+  if (card === firstCard) return;
+  if (card.classList.contains('matched')) return;
+
+  card.classList.add('flip');
+
+  if (!hasFlippedCard) {
+    // First flip
+    hasFlippedCard = true;
+    firstCard = card;
+    return;
+  }
+
+  // Second flip
+  secondCard = card;
+  checkForMatch();
+}
+
+function checkForMatch() {
+  const isMatch = firstCard.dataset.name === secondCard.dataset.name;
+
+  if (isMatch) {
+    disableCards();
+    matchedPairs++;
+
+    if (matchedPairs === 8) {
+      setTimeout(completeMemoryGame, 1000);
+    }
+  } else {
+    unflipCards();
+  }
+}
+
+function disableCards() {
+  firstCard.classList.add('matched');
+  secondCard.classList.add('matched');
+  resetBoard();
+}
+
+function unflipCards() {
+  lockBoard = true;
+
+  setTimeout(() => {
+    firstCard.classList.remove('flip');
+    secondCard.classList.remove('flip');
+    resetBoard();
+  }, 1000);
+}
+
+function resetBoard() {
+  [hasFlippedCard, lockBoard] = [false, false];
+  [firstCard, secondCard] = [null, null];
+}
+
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
+
+// ===== SPACE INVADERS IMPLEMENTATION =====
+let canvas, ctx;
+let player, aliens, bullets, enemyBullets, obstacles, chaosObjects;
+let gameActive = false;
+let currentLevel = 0;
+let lives = 3;
+let lastShotTime = 0;
+let gameTick = 0;
+let keys = {};
+let messageTimer = 0;
+let chaosEffects = {
+  invert: 0,
+  tilt: 0,
+  shake: 0,
+  cash: 0,
+  invisible: 0
+};
+let lastMessageTime = 0;
+
+const levelConfigs = [
+  {
+    name: "Notthebest OG",
+    rows: 2,
+    speed: 0.8,
+    fireRate: 0.003,
+    alienType: 'normal',
+    description: "Intro, simple enemies, chill"
+  },
+  {
+    name: "Initial D",
+    rows: 3,
+    alienType: "zigzag",
+    description: "Mini cars drifting in zig-zag motion",
+    speed: 1.5 // slower base speed so they don't rush down instantly
+  },
+  {
+    name: "Lorem Ipsum",
+    rows: 3,
+    speed: 1.2, // slightly faster than Level 2
+    fireRate: 0.009, // a bit more aggressive
+    alienType: "latinText", // <- updated type
+    description: "Enemies spawn with weird random Latin-like text sprites"
+  },
+  {
+    name: "Your Toast",
+    rows: 3,
+    speed: 1.4, // slightly harder than Level 3
+    fireRate: 0.012, // enemies shoot a bit more often
+    alienType: "toaster",
+    special: "bread-bullets",
+    description: "Toaster enemies that you fight using big toasted bread bullets"
+  },
+  {
+    name: "Grapefruit x Lime",
+    rows: 3,
+    speed: 0.9,
+    fireRate: 0.006,
+    alienType: 'grapefruit',
+    special: 'lime-bullets',
+    description: "Enemies shaped like half grapefruits; bullets are lime dots; floating grapefruits block bullets"
+  },
+  {
+    name: "Cake Was A Lie",
+    rows: 3,
+    speed: 1.2,
+    fireRate: 0.008,
+    alienType: 'cupcake',
+    special: 'frosting-laser', // your player shoots frosting lasers
+    description: "Cupcake-shaped enemies. Hitting floating cupcakes converts your bullets back to normal."
+  },
+  {
+    name: "Berserk",
+    rows: 4,
+    speed: 2.0, // faster movement
+    fireRate: 0.02, // very aggressive shooting
+    alienType: 'armor', // custom draw function for armor shape
+    special: 'sword-bullets',
+    description: "Fast, aggressive, non-stop shooting enemies"
+  },
+  {
+    name: "RANDOMODIUM",
+    rows: 5,
+    speed: 2.5, // fast, unpredictable movement
+    fireRate: 0.03, // frequent shooting
+    alienType: 'chaotic', // move randomly
+    special: 'chaos-bullets',
+    description: "Final chaos boss level with floating chaos objects"
+  }
+];
+
+const messages = [
+  "what you doing",
+  "complete it bro",
+  "choose persistence over consistency",
+  "focus!",
+  "don't give up",
+  "almost there",
+  "keep going",
+  "you got this"
+];
+
+const chaosItems = [
+  { type: 'book', emoji: '📕', effect: 'block' }, // blocks bullets
+  { type: 'cash', emoji: '💵', effect: 'hide' }, // hides part of screen
+  { type: 'question', emoji: '❓', effect: 'shake' }, // violent shake
+  { type: 'donut', emoji: '🍩', effect: 'shield' }, // spins like shield
+  { type: 'glasses', emoji: '🕶️', effect: 'invisible' }, // enemies invisible
+  { type: 'blob', emoji: '🫧', effect: 'grow' } // grows/shrinks randomly
+];
+
+function initSpaceInvaders() {
+  canvas = document.getElementById('si-canvas');
+  ctx = canvas.getContext('2d');
+
+  // Set canvas size properly for mobile
+  canvas.width = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+
+  // Initialize game state
+  player = {
+    x: canvas.width / 2 - 15,
+    y: canvas.height - 50,
+    width: 30,
+    height: 20,
+    speed: 7,
+    firing: false
+  };
+
+  // Keyboard controls
+  window.addEventListener('keydown', handleKeyDown);
+  window.addEventListener('keyup', handleKeyUp);
+
+  // Touch controls for mobile
+  setupTouchControls();
+
+  // Start the first level
+  startLevel(0);
+
+  // Start the game loop
+  gameActive = true;
+  gameLoop();
+}
+
+function handleKeyDown(e) {
+  keys[e.key] = true;
+
+  // Start continuous firing when space is pressed
+  if (e.key === ' ' && gameActive && !player.firing) {
+    player.firing = true;
+    fireBullet(); // Fire immediately
+    player.fireInterval = setInterval(fireBullet, 150); // Continue firing
+  }
+}
+
+function handleKeyUp(e) {
+  keys[e.key] = false;
+
+  // Stop continuous firing when space is released
+  if (e.key === ' ' && player.firing) {
+    player.firing = false;
+    clearInterval(player.fireInterval);
+  }
+}
+
+function setupTouchControls() {
+  let touchStart = 0;
+  let touchId = null;
+
+  canvas.addEventListener('touchstart', e => {
+    if (touchId !== null) return; // Ignore multi-touch
+
+    touchId = e.changedTouches[0].identifier;
+    touchStart = e.changedTouches[0].clientX;
+
+    // Start firing on touch
+    if (!player.firing) {
+      player.firing = true;
+      fireBullet();
+      player.fireInterval = setInterval(fireBullet, 150);
+    }
+  });
+
+  canvas.addEventListener('touchmove', e => {
+    if (touchId === null) return;
+
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      if (e.changedTouches[i].identifier === touchId) {
+        const touchX = e.changedTouches[i].clientX;
+        const diff = touchX - touchStart;
+
+        if (diff > 10) {
+          player.x = Math.min(canvas.width - player.width, player.x + player.speed);
+          touchStart = touchX;
+        } else if (diff < -10) {
+          player.x = Math.max(0, player.x - player.speed);
+          touchStart = touchX;
         }
+        break;
+      }
+    }
+  });
 
-        function handleKeyDown(e) {
-            keys[e.key] = true;
-            
-            if (e.key === ' ' || e.key === 'Spacebar') {
-                e.preventDefault();
-                fireBullet();
-            }
+  canvas.addEventListener('touchend', e => {
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      if (e.changedTouches[i].identifier === touchId) {
+        // Stop firing on touch end
+        if (player.firing) {
+          player.firing = false;
+          clearInterval(player.fireInterval);
         }
+        touchId = null;
+        break;
+      }
+    }
+  });
+}
 
-        function handleKeyUp(e) {
-            keys[e.key] = false;
+function startLevel(levelIndex) {
+  // Ensure levelIndex is within bounds
+  if (levelIndex >= levelConfigs.length) {
+    completeSpaceInvaders();
+    return;
+  }
+
+  currentLevel = levelIndex;
+  const config = levelConfigs[levelIndex];
+
+  // Update UI
+  levelNumber.textContent = levelIndex + 1;
+  levelName.textContent = config.name;
+
+  // Initialize game objects
+  aliens = [];
+  bullets = [];
+  enemyBullets = [];
+  obstacles = [];
+  chaosObjects = [];
+  chaosEffects = { invert: 0, tilt: 0, shake: 0, cash: 0, invisible: 0 };
+
+  // Reset canvas styles
+  canvas.className = '';
+
+  // Create aliens based on level config
+  const alienWidth = 24;
+  const alienHeight = 18;
+  const alienPadding = 10;
+  const aliensPerRow = Math.min(8, Math.floor((canvas.width - 40) / (alienWidth + alienPadding)));
+
+  for (let row = 0; row < config.rows; row++) {
+    for (let col = 0; col < aliensPerRow; col++) {
+      aliens.push({
+        x: col * (alienWidth + alienPadding) + 20,
+        y: row * (alienHeight + alienPadding) + 40,
+        width: alienWidth,
+        height: alienHeight,
+        type: config.alienType,
+        originalX: col * (alienWidth + alienPadding) + 20,
+        alive: true,
+        movePattern: config.alienType === 'zigzag' ? Math.random() * Math.PI * 2 : 0
+      });
+    }
+  }
+
+  // Show level start message
+  showInGameMessage(`Level ${levelIndex + 1}: ${config.name}`);
+}
+
+function fireBullet() {
+  const config = levelConfigs[currentLevel];
+  const bulletSize = config.special === 'bread-bullets' ? { width: 8, height: 16 } : { width: 4, height: 10 };
+  const bulletColor = config.special === 'bread-bullets' ? '#a0522d' : '#7cf3d6';
+  
+  bullets.push({
+    x: player.x + player.width / 2 - bulletSize.width / 2,
+    y: player.y,
+    width: bulletSize.width,
+    height: bulletSize.height,
+    active: true,
+    color: bulletColor
+  });
+}
+
+function gameLoop() {
+  if (!gameActive) return;
+
+  gameTick++;
+
+  // Clear canvas
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Handle player movement
+  if (keys['ArrowLeft'] || keys['a']) {
+    player.x = Math.max(0, player.x - player.speed);
+  }
+  if (keys['ArrowRight'] || keys['d']) {
+    player.x = Math.min(canvas.width - player.width, player.x + player.speed);
+  }
+
+  // Draw player
+  drawPlayer();
+
+  // Update and draw aliens
+  let allAliensDead = true;
+  let directionChange = false;
+
+  aliens.forEach(alien => {
+    if (!alien.alive) return;
+
+    allAliensDead = false;
+
+    // Update position based on alien type
+    updateAlienPosition(alien);
+
+    // Check for wall collision
+    if (alien.x <= 0 || alien.x + alien.width >= canvas.width) {
+      directionChange = true;
+    }
+
+    // Check if reached bottom
+    if (alien.y + alien.height >= player.y) {
+      loseLife();
+      alien.alive = false;
+    }
+
+    // Draw alien based on type
+    drawAlien(alien);
+  });
+
+  // Change direction if needed
+  if (directionChange) {
+    levelConfigs[currentLevel].speed *= -1;
+    aliens.forEach(alien => {
+      if (alien.alive) alien.y += 10;
+    });
+  }
+
+  // Check for level completion
+  if (allAliensDead) {
+    if (currentLevel < levelConfigs.length - 1) {
+      setTimeout(() => {
+        startLevel(currentLevel + 1);
+        gameActive = true; // resume the game
+        gameLoop(); // restart the loop
+      }, 1000);
+      gameActive = false;
+      return;
+    } else {
+      completeSpaceInvaders();
+      gameActive = false;
+      return;
+    }
+  }
+
+  // Update and draw bullets
+  updateBullets();
+
+  // Random enemy firing
+  if (Math.random() < levelConfigs[currentLevel].fireRate * 0.8) {
+    const aliveAliens = aliens.filter(alien => alien.alive);
+    if (aliveAliens.length > 0) {
+      const shooter = aliveAliens[Math.floor(Math.random() * aliveAliens.length)];
+      enemyBullets.push({
+        x: shooter.x + shooter.width / 2 - 2,
+        y: shooter.y + shooter.height,
+        width: 4,
+        height: 10,
+        active: true,
+        color: '#ff6f61'
+      });
+    }
+  }
+
+  // Update and draw enemy bullets
+  updateEnemyBullets();
+
+  // Handle chaos objects for level 8
+  if (currentLevel === 7 && gameTick % 60 === 0) {
+    spawnChaosObject();
+  }
+
+  // Update and draw chaos objects
+  updateChaosObjects();
+
+  // Update and draw obstacles
+  updateObstacles();
+
+  // Update chaos effects
+  updateChaosEffects();
+
+  // Show random messages every 5 seconds
+  const now = Date.now();
+  if (now - lastMessageTime > 5000) {
+    showInGameMessage(messages[Math.floor(Math.random() * messages.length)]);
+    lastMessageTime = now;
+  }
+
+  // Continue the game loop
+  requestAnimationFrame(gameLoop);
+}
+
+function drawPlayer() {
+  ctx.fillStyle = '#7cf3d6';
+  // Draw spaceship body
+  ctx.beginPath();
+  ctx.moveTo(player.x + player.width / 2, player.y);
+  ctx.lineTo(player.x + player.width, player.y + player.height);
+  ctx.lineTo(player.x, player.y + player.height);
+  ctx.closePath();
+  ctx.fill();
+
+  // Draw cockpit
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.arc(player.x + player.width / 2, player.y + player.height / 2, 4, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Draw fins
+  ctx.fillStyle = '#ff6f61';
+  ctx.fillRect(player.x, player.y + player.height - 5, 5, 5);
+  ctx.fillRect(player.x + player.width - 5, player.y + player.height - 5, 5, 5);
+}
+
+function updateAlienPosition(alien) {
+  const config = levelConfigs[currentLevel];
+  if (alien.type === 'zigzag') {
+    // Drift-style zigzag motion for Level 2
+    alien.movePattern += 0.05;
+    alien.x = alien.originalX + Math.sin(alien.movePattern) * 40; // wider zig-zag
+    alien.y += 0.3; // slow descent instead of dropping too fast
+  } else if (alien.type === 'chaotic') {
+    // Random movement for chaotic aliens
+    alien.x += (Math.random() - 0.5) * 3;
+    alien.y += config.speed || 0.5;
+  } else {
+    // Default straight descent
+    if (currentLevel === 0) {
+      alien.y += (config.speed || 0.5) * 0.2; // Slow down vertical speed for Level 1
+    } else {
+      alien.y += config.speed || 0.5;
+    }
+  }
+}
+
+function drawAlien(alien) {
+  const config = levelConfigs[currentLevel];
+  
+  // Handle invisibility effect
+  ctx.globalAlpha = (chaosEffects.invisible > 0) ? 0.3 : 1;
+
+  // Latin text alien
+  if (alien.type === "latinText") {
+    ctx.fillStyle = "purple";
+    ctx.font = "bold 20px serif";
+    const latinChars = ["Æ","Ω","Ʃ","Ð","Ø","Ǝ","Ψ","Λ"];
+    const char = latinChars[Math.floor(Math.random() * latinChars.length)];
+    ctx.fillText(char, alien.x, alien.y);
+  }
+  // Zigzag alien
+  else if (alien.type === 'zigzag') {
+    // Car-like drifting alien
+    ctx.fillStyle = '#ff3333';
+    ctx.fillRect(alien.x, alien.y, alien.width, alien.height); // car body
+    ctx.fillStyle = '#000';
+    ctx.fillRect(alien.x, alien.y + alien.height - 4, 6, 4); // left wheel
+    ctx.fillRect(alien.x + alien.width - 6, alien.y + alien.height - 4, 6, 4); // right wheel
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(alien.x + alien.width / 4, alien.y + 2, alien.width / 2, 6); // windshield
+  }
+  // Toaster alien
+  else if (alien.type === "toaster") {
+    ctx.fillStyle = "sienna";
+    ctx.fillRect(alien.x, alien.y, alien.width, alien.height); // base toaster body
+    ctx.fillStyle = "black";
+    ctx.fillRect(alien.x + 5, alien.y + 5, alien.width - 10, 8); // slot
+    ctx.fillStyle = "wheat";
+    ctx.fillRect(alien.x + 10, alien.y - 8, alien.width - 20, 8); // bread sticking out
+  }
+  // Grapefruit alien
+  else if (alien.type === 'grapefruit') {
+    ctx.fillStyle = 'pink';
+    ctx.beginPath();
+    ctx.arc(alien.x + alien.width/2, alien.y + alien.height, alien.width/2, Math.PI, 0, false);
+    ctx.lineTo(alien.x + alien.width, alien.y + alien.height);
+    ctx.lineTo(alien.x, alien.y + alien.height);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Optional: add white lines for grapefruit segments
+    ctx.strokeStyle = 'white';
+    ctx.beginPath();
+    ctx.moveTo(alien.x + alien.width/2, alien.y + alien.height);
+    ctx.lineTo(alien.x + alien.width/2, alien.y);
+    ctx.stroke();
+  }
+  // Cupcake alien
+  else if (alien.type === 'cupcake') {
+    // Cupcake body
+    ctx.fillStyle = '#634832';
+    ctx.fillRect(alien.x, alien.y + alien.height / 2, alien.width, alien.height / 2);
+    
+    // Frosting
+    ctx.fillStyle = '#e6a4b4';
+    ctx.beginPath();
+    ctx.arc(alien.x + alien.width / 2, alien.y + alien.height / 2, alien.width / 2, Math.PI, Math.PI * 2);
+    ctx.fill();
+    
+    // Cherry on top
+    ctx.fillStyle = 'red';
+    ctx.beginPath();
+    ctx.arc(alien.x + alien.width / 2, alien.y + 3, 2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  // Armor alien
+  else if (alien.type === 'armor') {
+    ctx.fillStyle = '#555555'; // gray armor
+    ctx.fillRect(alien.x, alien.y, alien.width, alien.height); // body
+    ctx.fillStyle = '#999999'; // helmet highlight
+    ctx.beginPath();
+    ctx.arc(alien.x + alien.width/2, alien.y + alien.height/2, alien.width/2, 0, Math.PI*2);
+    ctx.fill();
+  }
+  // Chaotic alien
+  else if (alien.type === 'chaotic') {
+    ctx.fillStyle = `hsl(${gameTick % 360}, 100%, 50%)`;
+    ctx.fillRect(alien.x, alien.y, alien.width, alien.height);
+  }
+  // Default normal alien
+  else {
+    ctx.fillStyle = '#aaffaa';
+    ctx.beginPath();
+    ctx.moveTo(alien.x + alien.width/2, alien.y);
+    ctx.lineTo(alien.x + alien.width, alien.y + alien.height/2);
+    ctx.lineTo(alien.x, alien.y + alien.height/2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillRect(alien.x + alien.width/4, alien.y + alien.height/2, alien.width/2, alien.height/2);
+  }
+  
+  ctx.globalAlpha = 1; // Reset alpha after drawing
+}
+
+function updateBullets() {
+  for (let i = bullets.length - 1; i >= 0; i--) {
+    if (!bullets[i].active) {
+      bullets.splice(i, 1);
+      continue;
+    }
+
+    bullets[i].y -= 7;
+
+    // Remove if out of bounds
+    if (bullets[i].y < 0) {
+      bullets.splice(i, 1);
+      continue;
+    }
+
+    // Draw bullets based on level
+    const special = levelConfigs[currentLevel].special;
+    if (special === "bread-bullets") {
+      ctx.fillStyle = "wheat";
+      ctx.fillRect(bullets[i].x, bullets[i].y, 20, 10);
+      ctx.strokeStyle = "sienna";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(bullets[i].x, bullets[i].y, 20, 10);
+    } else if (special === "lime-bullets") {
+      ctx.fillStyle = "limegreen";
+      ctx.beginPath();
+      ctx.arc(bullets[i].x + bullets[i].width / 2, bullets[i].y + bullets[i].height / 2, 3, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (special === "frosting-laser") {
+      ctx.fillStyle = "#ff69b4";
+      ctx.fillRect(bullets[i].x, bullets[i].y, bullets[i].width, bullets[i].height * 2);
+    } else if (special === "sword-bullets") {
+      ctx.fillStyle = "#c0c0c0";
+      ctx.fillRect(bullets[i].x + bullets[i].width / 2 - 1, bullets[i].y, 2, bullets[i].height * 3);
+      ctx.strokeStyle = "#999";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(bullets[i].x + bullets[i].width / 2 - 1, bullets[i].y, 2, bullets[i].height * 3);
+    } else {
+      // Default bullet
+      ctx.fillStyle = bullets[i].color;
+      ctx.fillRect(bullets[i].x, bullets[i].y, bullets[i].width, bullets[i].height);
+    }
+
+    // Collision with aliens
+    for (let j = aliens.length - 1; j >= 0; j--) {
+      if (!aliens[j].alive) continue;
+      
+      if (
+        bullets[i].x < aliens[j].x + aliens[j].width &&
+        bullets[i].x + bullets[i].width > aliens[j].x &&
+        bullets[i].y < aliens[j].y + aliens[j].height &&
+        bullets[i].y + bullets[i].height > aliens[j].y
+      ) {
+        aliens[j].alive = false;
+        bullets[i].active = false;
+        bullets.splice(i, 1);
+        break;
+      }
+    }
+    
+    if (!bullets[i]) continue;
+
+    // Collision with obstacles
+    for (let j = obstacles.length - 1; j >= 0; j--) {
+      if (
+        bullets[i].x < obstacles[j].x + obstacles[j].width &&
+        bullets[i].x + bullets[i].width > obstacles[j].x &&
+        bullets[i].y < obstacles[j].y + obstacles[j].height &&
+        bullets[i].y + bullets[i].height > obstacles[j].y
+      ) {
+        if (obstacles[j].type === 'cupcake-floating') {
+          levelConfigs[currentLevel].special = null; // bullets go back to default
         }
+        bullets[i].active = false;
+        bullets.splice(i, 1);
+        break;
+      }
+    }
+    
+    if (!bullets[i]) continue;
 
-        function setupTouchControls() {
-            let touchStartX = 0;
-            
-            canvas.addEventListener('touchstart', e => {
-                e.preventDefault();
-                touchStartX = e.touches[0].clientX;
-                fireBullet();
-            });
-            
-            canvas.addEventListener('touchmove', e => {
-                e.preventDefault();
-                const touchX = e.touches[0].clientX;
-                const diff = touchX - touchStartX;
-                
-                if (Math.abs(diff) > 10) {
-                    if (diff > 0) {
-                        player.x = Math.min(canvas.width - player.width, player.x + player.speed);
-                    } else {
-                        player.x = Math.max(0, player.x - player.speed);
-                    }
-                    touchStartX = touchX;
-                }
-            });
-            
-            canvas.addEventListener('touchend', e => {
-                e.preventDefault();
-            });
+    // Collision with chaos objects
+    for (let j = chaosObjects.length - 1; j >= 0; j--) {
+      if (
+        bullets[i].x < chaosObjects[j].x + chaosObjects[j].size &&
+        bullets[i].x + bullets[i].width > chaosObjects[j].x &&
+        bullets[i].y < chaosObjects[j].y + chaosObjects[j].size &&
+        bullets[i].y + bullets[i].height > chaosObjects[j].y
+      ) {
+        if (['book', 'blob'].includes(chaosObjects[j].type)) {
+          bullets[i].active = false; // bullets blocked
         }
+        handleChaosObjectHit(chaosObjects[j]);
+        chaosObjects.splice(j, 1);
+        bullets.splice(i, 1);
+        break;
+      }
+    }
+  }
+}
 
-        function startLevel(levelIndex) {
-            if (levelIndex >= levelConfigs.length) {
-                completeSpaceInvaders();
-                return;
-            }
-            
-            currentLevel = levelIndex;
-            const config = levelConfigs[levelIndex];
-            
-            // Update UI
-            levelNumber.textContent = levelIndex + 1;
-            levelName.textContent = config.name;
-            
-            // Initialize game objects
-            aliens = [];
-            bullets = [];
-            enemyBullets = [];
-            obstacles = [];
-            chaosObjects = [];
-            chaosEffects = { invert: 0, tilt: 0, shake: 0, cash: 0, invisible: 0 };
-            
-            // Reset canvas styles
-            canvas.className = '';
-            
-            // Create aliens
-            const alienWidth = 30;
-            const alienHeight = 20;
-            const alienPadding = 15;
-            const aliensPerRow = Math.floor((canvas.width - 40) / (alienWidth + alienPadding));
-            
-            for (let row = 0; row < config.rows; row++) {
-                for (let col = 0; col < aliensPerRow; col++) {
-                    aliens.push({
-                        x: col * (alienWidth + alienPadding) + 20,
-                        y: row * (alienHeight + alienPadding) + 40,
-                        width: alienWidth,
-                        height: alienHeight,
-                        type: config.alienType,
-                        originalX: col * (alienWidth + alienPadding) + 20,
-                        alive: true,
-                        moveDirection: 1,
-                        zigzagOffset: Math.random() * Math.PI * 2
-                    });
-                }
-            }
-            
-            // Show level start message
-            showInGameMessage(`Level ${levelIndex + 1}: ${config.name}`);
-        }
+function updateEnemyBullets() {
+  for (let i = enemyBullets.length - 1; i >= 0; i--) {
+    if (!enemyBullets[i].active) {
+      enemyBullets.splice(i, 1);
+      continue;
+    }
 
-        function fireBullet() {
-            if (!gameActive) return;
-            
-            const now = Date.now();
-            if (now - lastShotTime < 150) return; // Cooldown
-            
-            lastShotTime = now;
-            playSound('shoot');
-            
-            const config = levelConfigs[currentLevel];
-            let bulletWidth = 4, bulletHeight = 10, bulletColor = '#7cf3d6';
-            
-            if (config.special === 'bread-bullets') {
-                bulletWidth = 15;
-                bulletHeight = 8;
-                bulletColor = '#8B4513';
-            } else if (config.special === 'lime-bullets') {
-                bulletWidth = 6;
-                bulletHeight = 6;
-                bulletColor = '#32CD32';
-            } else if (config.special === 'frosting-laser') {
-                bulletWidth = 8;
-                bulletHeight = 15;
-                bulletColor = '#FFB6C1';
-            } else if (config.special === 'sword-bullets') {
-                bulletWidth = 6;
-                bulletHeight = 20;
-                bulletColor = '#C0C0C0';
-            }
+    enemyBullets[i].y += 5;
 
-            bullets.push({
-                x: player.x + player.width / 2 - bulletWidth / 2,
-                y: player.y,
-                width: bulletWidth,
-                height: bulletHeight,
-                speed: 8,
-                color: bulletColor,
-                type: config.special || 'normal'
-            });
-        }
+    // Remove if out of bounds
+    if (enemyBullets[i].y > canvas.height) {
+      enemyBullets.splice(i, 1);
+      continue;
+    }
 
-        function gameLoop() {
-            if (!gameActive) return;
-            
-            gameTick++;
-            
-            // Clear canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Handle player movement
-            if (keys['ArrowLeft'] || keys['a']) {
-                player.x = Math.max(0, player.x - player.speed);
-            }
-            if (keys['ArrowRight'] || keys['d']) {
-                player.x = Math.min(canvas.width - player.width, player.x + player.speed);
-            }
-            
-            // Draw player
-            drawPlayer();
-            
-            // Update and draw aliens
-            updateAliens();
-            
-            // Update bullets
-            updateBullets();
-            
-            // Update enemy bullets
-            updateEnemyBullets();
-            
-            // Handle chaos objects for level 8
-            if (currentLevel === 7 && gameTick % 120 === 0) {
-                spawnChaosObject();
-            }
-            
-            // Update chaos objects
-            updateChaosObjects();
-            
-            // Update chaos effects
-            updateChaosEffects();
-            
-            // Check for level completion
-            const aliveAliens = aliens.filter(alien => alien.alive);
-            if (aliveAliens.length === 0) {
-                if (currentLevel < levelConfigs.length - 1) {
-                    setTimeout(() => {
-                        startLevel(currentLevel + 1);
-                    }, 2000);
-                    gameActive = false;
-                    return;
-                } else {
-                    completeSpaceInvaders();
-                    return;
-                }
-            }
-            
-            // Random messages
-            if (gameTick % 300 === 0) {
-                showInGameMessage(messages[Math.floor(Math.random() * messages.length)]);
-            }
-            
-            // Continue game loop
-            requestAnimationFrame(gameLoop);
-        }
+    // Draw enemy bullet
+    ctx.fillStyle = enemyBullets[i].color;
+    ctx.fillRect(enemyBullets[i].x, enemyBullets[i].y, enemyBullets[i].width, enemyBullets[i].height);
 
-        function drawPlayer() {
-            ctx.fillStyle = '#7cf3d6';
-            ctx.beginPath();
-            ctx.moveTo(player.x + player.width / 2, player.y);
-            ctx.lineTo(player.x + player.width, player.y + player.height);
-            ctx.lineTo(player.x, player.y + player.height);
-            ctx.closePath();
-            ctx.fill();
-            
-            // Cockpit
-            ctx.fillStyle = '#ffffff';
-            ctx.beginPath();
-            ctx.arc(player.x + player.width / 2, player.y + player.height / 2, 3, 0, Math.PI * 2);
-            ctx.fill();
-        }
+    // Check for collision with player
+    if (
+      enemyBullets[i].x < player.x + player.width &&
+      enemyBullets[i].x + enemyBullets[i].width > player.x &&
+      enemyBullets[i].y < player.y + player.height &&
+      enemyBullets[i].y + enemyBullets[i].height > player.y
+    ) {
+      loseLife();
+      enemyBullets[i].active = false;
+      enemyBullets.splice(i, 1);
+    }
+  }
+}
 
-        function updateAliens() {
-            const config = levelConfigs[currentLevel];
-            let moveDown = false;
-            
-            // Check if any alien hits the wall
-            aliens.forEach(alien => {
-                if (!alien.alive) return;
-                if (alien.x <= 0 || alien.x + alien.width >= canvas.width) {
-                    moveDown = true;
-                }
-            });
-            
-            // Move aliens
-            aliens.forEach(alien => {
-                if (!alien.alive) return;
-                
-                // Update position based on alien type
-                if (alien.type === 'drift') {
-                    alien.zigzagOffset += 0.1;
-                    alien.x += config.speed * alien.moveDirection + Math.sin(alien.zigzagOffset) * 2;
-                } else if (alien.type === 'chaos') {
-                    alien.x += config.speed * alien.moveDirection + (Math.random() - 0.5) * 3;
-                } else {
-                    alien.x += config.speed * alien.moveDirection;
-                }
-                
-                if (moveDown) {
-                    alien.y += 20;
-                    alien.moveDirection *= -1;
-                }
-                
-                // Check if alien reached player
-                if (alien.y + alien.height >= player.y) {
-                    loseLife();
-                }
-                
-                // Draw alien
-                drawAlien(alien);
-                
-                // Enemy shooting
-                if (Math.random() < config.fireRate) {
-                    enemyBullets.push({
-                        x: alien.x + alien.width / 2 - 2,
-                        y: alien.y + alien.height,
-                        width: 4,
-                        height: 10,
-                        speed: 3,
-                        color: '#ff6f61'
-                    });
-                }
-            });
-        }
+function updateObstacles() {
+  for (let i = obstacles.length - 1; i >= 0; i--) {
+    const obs = obstacles[i];
+    
+    // Draw based on type or level
+    if (currentLevel === 4) { // Level 5: Grapefruit
+      ctx.fillStyle = 'pink';
+      ctx.beginPath();
+      ctx.arc(obs.x + obs.width/2, obs.y + obs.height/2, obs.width/2, Math.PI, 0, false);
+      ctx.lineTo(obs.x + obs.width, obs.y + obs.height);
+      ctx.lineTo(obs.x, obs.y + obs.height);
+      ctx.closePath();
+      ctx.fill();
+    } else if (obs.type === 'cupcake-floating') {
+      // Draw floating cupcake
+      ctx.fillStyle = '#634832';
+      ctx.fillRect(obs.x, obs.y + obs.height / 2, obs.width, obs.height / 2);
+      ctx.fillStyle = '#e6a4b4';
+      ctx.beginPath();
+      ctx.arc(obs.x + obs.width / 2, obs.y + obs.height / 2, obs.width / 2, Math.PI, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = 'red';
+      ctx.beginPath();
+      ctx.arc(obs.x + obs.width / 2, obs.y + 3, 2, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      // Default (lemons, etc.)
+      ctx.fillStyle = 'yellow';
+      ctx.beginPath();
+      ctx.arc(obs.x + obs.width / 2, obs.y + obs.height / 2, obs.width / 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
 
-        function drawAlien(alien) {
-            // Handle invisibility
-            if (chaosEffects.invisible > 0) {
-                ctx.globalAlpha = 0.3;
-            }
-            
-            switch (alien.type) {
-                case 'normal':
-                    ctx.fillStyle = '#00ff00';
-                    ctx.fillRect(alien.x, alien.y, alien.width, alien.height);
-                    break;
-                    
-                case 'drift':
-                    ctx.fillStyle = '#ff3333';
-                    ctx.fillRect(alien.x, alien.y, alien.width, alien.height);
-                    // Add racing stripes
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillRect(alien.x + 5, alien.y + 5, alien.width - 10, 3);
-                    break;
-                    
-                case 'text':
-                    ctx.fillStyle = '#800080';
-                    ctx.font = '16px serif';
-                    ctx.fillText('Æ', alien.x, alien.y + alien.height);
-                    break;
-                    
-                case 'toaster':
-                    ctx.fillStyle = '#8B4513';
-                    ctx.fillRect(alien.x, alien.y, alien.width, alien.height);
-                    // Toast slots
-                    ctx.fillStyle = '#000000';
-                    ctx.fillRect(alien.x + 5, alien.y + 3, alien.width - 10, 4);
-                    break;
-                    
-                case 'grapefruit':
-                    ctx.fillStyle = '#FF69B4';
-                    ctx.beginPath();
-                    ctx.arc(alien.x + alien.width/2, alien.y + alien.height, alien.width/2, Math.PI, 0);
-                    ctx.fill();
-                    break;
-                    
-                case 'cake':
-                    // Cupcake body
-                    ctx.fillStyle = '#8B4513';
-                    ctx.fillRect(alien.x, alien.y + alien.height/2, alien.width, alien.height/2);
-                    // Frosting
-                    ctx.fillStyle = '#FFB6C1';
-                    ctx.beginPath();
-                    ctx.arc(alien.x + alien.width/2, alien.y + alien.height/2, alien.width/2, Math.PI, 0);
-                    ctx.fill();
-                    break;
-                    
-                case 'armor':
-                    ctx.fillStyle = '#555555';
-                    ctx.fillRect(alien.x, alien.y, alien.width, alien.height);
-                    // Helmet
-                    ctx.fillStyle = '#999999';
-                    ctx.fillRect(alien.x + 5, alien.y + 2, alien.width - 10, alien.height/2);
-                    break;
-                    
-                case 'chaos':
-                    const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff'];
-                    ctx.fillStyle = colors[gameTick % colors.length];
-                    ctx.fillRect(alien.x, alien.y, alien.width, alien.height);
-                    break;
-                    
-                default:
-                    ctx.fillStyle = '#00ff00';
-                    ctx.fillRect(alien.x, alien.y, alien.width, alien.height);
-            }
-            
-            ctx.globalAlpha = 1; // Reset alpha
-        }
+    // Move obstacles slowly if not special
+    if (obs.type !== 'cupcake-floating') {
+      obs.y += 0.5;
+      
+      // Remove if out of bounds
+      if (obs.y > canvas.height) {
+        obstacles.splice(i, 1);
+      }
+    }
+  }
+}
 
-        function updateBullets() {
-            for (let i = bullets.length - 1; i >= 0; i--) {
-                const bullet = bullets[i];
-                bullet.y -= bullet.speed;
-                
-                // Remove if off screen
-                if (bullet.y < 0) {
-                    bullets.splice(i, 1);
-                    continue;
-                }
-                
-                // Draw bullet
-                ctx.fillStyle = bullet.color;
-                if (bullet.type === 'bread-bullets') {
-                    ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
-                    ctx.strokeStyle = '#654321';
-                    ctx.strokeRect(bullet.x, bullet.y, bullet.width, bullet.height);
-                } else if (bullet.type === 'lime-bullets') {
-                    ctx.beginPath();
-                    ctx.arc(bullet.x + bullet.width/2, bullet.y + bullet.height/2, bullet.width/2, 0, Math.PI * 2);
-                    ctx.fill();
-                } else {
-                    ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
-                }
-                
-                // Check collision with aliens
-                for (let j = aliens.length - 1; j >= 0; j--) {
-                    const alien = aliens[j];
-                    if (!alien.alive) continue;
-                    
-                    if (bullet.x < alien.x + alien.width &&
-                        bullet.x + bullet.width > alien.x &&
-                        bullet.y < alien.y + alien.height &&
-                        bullet.y + bullet.height > alien.y) {
-                        
-                        alien.alive = false;
-                        bullets.splice(i, 1);
-                        playSound('hit', 150);
-                        break;
-                    }
-                }
-            }
-        }
+function spawnChaosObject() {
+  if (currentLevel !== 7) return; // Level 8 = index 7
+  
+  const item = chaosItems[Math.floor(Math.random() * chaosItems.length)];
+  chaosObjects.push({
+    type: item.type,
+    emoji: item.emoji,
+    effect: item.effect,
+    x: Math.random() * (canvas.width - 30),
+    y: -30,
+    size: 20,
+    speed: 1 + Math.random() * 3,
+    growth: item.effect === 'grow' ? 0.5 : 0
+  });
+}
 
-        function updateEnemyBullets() {
-            for (let i = enemyBullets.length - 1; i >= 0; i--) {
-                const bullet = enemyBullets[i];
-                bullet.y += bullet.speed;
-                
-                // Remove if off screen
-                if (bullet.y > canvas.height) {
-                    enemyBullets.splice(i, 1);
-                    continue;
-                }
-                
-                // Draw bullet
-                ctx.fillStyle = bullet.color;
-                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
-                
-                // Check collision with player
-                if (bullet.x < player.x + player.width &&
-                    bullet.x + bullet.width > player.x &&
-                    bullet.y < player.y + player.height &&
-                    bullet.y + bullet.height > player.y) {
-                    
-                    loseLife();
-                    enemyBullets.splice(i, 1);
-                }
-            }
-        }
+function updateChaosObjects() {
+  for (let i = chaosObjects.length - 1; i >= 0; i--) {
+    const obj = chaosObjects[i];
+    
+    // Move
+    obj.y += obj.speed;
+    
+    // Grow/shrink effect
+    if (obj.effect === 'grow') {
+      obj.size += obj.growth;
+      if (obj.size > 50 || obj.size < 10) obj.growth *= -1;
+    }
+    
+    // Draw
+    ctx.font = `${obj.size}px Arial`;
+    ctx.fillText(obj.emoji, obj.x, obj.y);
+    
+    // Collision with player
+    if (
+      obj.x < player.x + player.width &&
+      obj.x + obj.size > player.x &&
+      obj.y < player.y + player.height &&
+      obj.y + obj.size > player.y
+    ) {
+      handleChaosObjectCollision(obj);
+      chaosObjects.splice(i, 1);
+    }
+    
+    // Remove offscreen
+    if (obj.y > canvas.height) chaosObjects.splice(i, 1);
+  }
+}
 
-        function spawnChaosObject() {
-            const item = chaosItems[Math.floor(Math.random() * chaosItems.length)];
-            chaosObjects.push({
-                type: item.type,
-                emoji: item.emoji,
-                effect: item.effect,
-                x: Math.random() * (canvas.width - 30),
-                y: -30,
-                size: 20 + Math.random() * 10,
-                speed: 1 + Math.random() * 2
-            });
-        }
+function handleChaosObjectHit(obj) {
+  switch (obj.effect) {
+    case 'shake':
+      chaosEffects.shake = 60;
+      break;
+    case 'question':
+      chaosEffects.shake = 120;
+      break;
+  }
+}
 
-        function updateChaosObjects() {
-            for (let i = chaosObjects.length - 1; i >= 0; i--) {
-                const obj = chaosObjects[i];
-                obj.y += obj.speed;
-                
-                // Draw chaos object
-                ctx.font = `${obj.size}px Arial`;
-                ctx.fillText(obj.emoji, obj.x, obj.y);
-                
-                // Check collision with bullets
-                for (let j = bullets.length - 1; j >= 0; j--) {
-                    const bullet = bullets[j];
-                    if (bullet.x < obj.x + obj.size &&
-                        bullet.x + bullet.width > obj.x &&
-                        bullet.y < obj.y + obj.size &&
-                        bullet.y + bullet.height > obj.y) {
-                        
-                        handleChaosEffect(obj.effect);
-                        bullets.splice(j, 1);
-                        chaosObjects.splice(i, 1);
-                        break;
-                    }
-                }
-                
-                // Remove if off screen
-                if (obj.y > canvas.height) {
-                    chaosObjects.splice(i, 1);
-                }
-            }
-        }
+function handleChaosObjectCollision(obj) {
+  switch (obj.effect) {
+    case 'block':
+      // Book: blocks bullets, handled in updateBullets collision
+      break;
+    case 'hide':
+      chaosEffects.cash = 120; // hide screen overlay
+      break;
+    case 'shake':
+      chaosEffects.shake = 120;
+      break;
+    case 'invisible':
+      chaosEffects.invisible = 180;
+      break;
+    case 'shield':
+      // Donut: maybe make enemies temporarily invincible or bouncing bullets
+      break;
+    case 'grow':
+      // Blob handled in updateChaosObjects
+      break;
+  }
+}
 
-        function handleChaosEffect(effect) {
-            switch (effect) {
-                case 'shake':
-                    chaosEffects.shake = 60;
-                    break;
-                case 'hide':
-                    chaosEffects.cash = 120;
-                    break;
-                case 'invisible':
-                    chaosEffects.invisible = 180;
-                    break;
-            }
-        }
+function updateChaosEffects() {
+  // Apply chaos effects
+  let canvasClasses = [];
+  
+  // Invert screen effect
+  if (chaosEffects.invert > 0) {
+    canvasClasses.push('chaos-invert');
+    chaosEffects.invert--;
+  }
+  
+  // Tilt screen effect
+  if (chaosEffects.tilt > 0) {
+    canvasClasses.push('chaos-tilt');
+    chaosEffects.tilt--;
+  }
+  
+  // Screen shake effect
+  if (chaosEffects.shake > 0) {
+    canvasClasses.push('chaos-shake');
+    chaosEffects.shake--;
+  }
+  
+  // Cash overlay effect
+  if (chaosEffects.cash > 0) {
+    let cashOverlay = document.getElementById('cash-effect');
+    if (!cashOverlay) {
+      cashOverlay = document.createElement('div');
+      cashOverlay.id = 'cash-effect';
+      cashOverlay.className = 'cash-effect';
+      document.body.appendChild(cashOverlay);
+    }
+    chaosEffects.cash--;
+    if (chaosEffects.cash <= 0) {
+      cashOverlay.remove();
+    }
+  }
+  
+  // Invisible enemies effect
+  if (chaosEffects.invisible > 0) {
+    canvasClasses.push('invisible-aliens');
+    chaosEffects.invisible--;
+  }
+  
+  // Random effects for Level 8 (RANDOMODIUM)
+  if (currentLevel === 7) {
+    if (Math.random() < 0.01) { // random invert
+      chaosEffects.invert = 60;
+    }
+    if (Math.random() < 0.01) { // random tilt
+      chaosEffects.tilt = 60;
+    }
+    if (Math.random() < 0.01) { // random shake
+      chaosEffects.shake = 60;
+    }
+    if (Math.random() < 0.002) { // music glitch
+      bgMusic.playbackRate = 0.5;
+      setTimeout(() => { bgMusic.playbackRate = 1; }, 500);
+    }
+  }
+  
+  // Apply CSS classes to canvas
+  canvas.className = canvasClasses.join(' ');
+}
 
-        function updateChaosEffects() {
-            let canvasClasses = [];
-            
-            if (chaosEffects.shake > 0) {
-                canvasClasses.push('chaos-shake');
-                chaosEffects.shake--;
-            }
-            
-            if (chaosEffects.cash > 0) {
-                let cashOverlay = document.getElementById('cash-effect');
-                if (!cashOverlay) {
-                    cashOverlay = document.createElement('div');
-                    cashOverlay.id = 'cash-effect';
-                    cashOverlay.className = 'cash-effect';
-                    document.body.appendChild(cashOverlay);
-                }
-                chaosEffects.cash--;
-                if (chaosEffects.cash <= 0) {
-                    cashOverlay.remove();
-                }
-            }
-            
-            if (chaosEffects.invisible > 0) {
-                chaosEffects.invisible--;
-            }
-            
-            // Random effects for level 8
-            if (currentLevel === 7) {
-                if (Math.random() < 0.01) {
-                    chaosEffects.shake = 30;
-                }
-                if (Math.random() < 0.005) {
-                    canvas.style.filter = 'invert(1)';
-                    setTimeout(() => {
-                        canvas.style.filter = 'none';
-                    }, 1000);
-                }
-                if (Math.random() < 0.005) {
-                    canvas.style.transform = 'rotate(10deg)';
-                    setTimeout(() => {
-                        canvas.style.transform = 'rotate(0deg)';
-                    }, 1500);
-                }
-            }
-            
-            canvas.className = canvasClasses.join(' ');
-        }
+function showInGameMessage(text) {
+  inGameMessage.textContent = text;
+  inGameMessage.style.opacity = '1';
 
-        function showInGameMessage(text) {
-            inGameMessage.textContent = text;
-            inGameMessage.style.opacity = '1';
-            
-            setTimeout(() => {
-                inGameMessage.style.opacity = '0';
-            }, 3000);
-        }
+  setTimeout(() => {
+    inGameMessage.style.opacity = '0';
+  }, 4000);
+}
 
-        function loseLife() {
-            lives--;
-            updateLivesDisplay();
-            
-            if (lives <= 0) {
-                gameOver();
-            }
-        }
+function loseLife() {
+  lives--;
+  updateLivesDisplay();
 
-        function updateLivesDisplay() {
-            const lifeElements = document.querySelectorAll('.life');
-            lifeElements.forEach((life, index) => {
-                life.style.visibility = index < lives ? 'visible' : 'hidden';
-            });
-        }
+  if (lives <= 0) {
+    gameOver();
+  } else {
+    // Brief invulnerability period
+    gameActive = false;
+    setTimeout(() => {
+      gameActive = true;
+      gameLoop();
+    }, 1000);
+  }
+}
 
-        function resetSpaceInvaders() {
-            lives = 3;
-            currentLevel = 0;
-            updateLivesDisplay();
-            startLevel(0);
-            gameActive = true;
-        }
+function updateLivesDisplay() {
+  const lifeElements = document.querySelectorAll('.life');
+  for (let i = 0; i < 3; i++) {
+    lifeElements[i].style.visibility = i < lives ? 'visible' : 'hidden';
+  }
+}
 
-        // Initialize lives display
-        updateLivesDisplay();
-    </script>
+function resetSpaceInvaders() {
+  lives = 3;
+  updateLivesDisplay();
+  startLevel(0);
+  gameActive = true;
+  gameLoop();
+}
+
+// Initialize lives display
+updateLivesDisplay();
+</script>
 </body>
-</html>"
-
+</html>
