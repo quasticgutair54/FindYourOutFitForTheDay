@@ -512,11 +512,11 @@
 <body>
     <!-- Background Elements -->
     <video id="bg-video" loop muted playsinline autoplay>
-        <source src="https://assets.codepen.io/236284/loop-bg.mp4" type="video/mp4">
+        <source src="assets/loop-bg.mp4" type="video/mp4">
     </video>
     <div class="bg-overlay"></div>
     <audio id="bg-music" loop>
-        <source src="https://assets.codepen.io/236284/running-out-of-time.mp3" type="audio/mpeg">
+        <source src="assets/running out of time.mp3" type="audio/mpeg">
     </audio>
 
     <!-- Sound Effects -->
@@ -1162,6 +1162,19 @@
         }
 
         // ===== SPACE INVADERS IMPLEMENTATION =====
+        / Helper function to safely play sounds
+function playSound(soundElement) {
+    if (soundElement && soundElement.play) {
+        try {
+            soundElement.currentTime = 0;
+            soundElement.play().catch(error => {
+                // Sound file not available, ignore silently
+            });
+        } catch (error) {
+            // Sound element doesn't exist, ignore
+        }
+    }
+}
         function initSpaceInvaders() {
     // CRITICAL: Ensure lives are properly set
     lives = 3;
