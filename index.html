@@ -1010,7 +1010,7 @@ function playBackgroundMedia() {
             }, 2000);
         }
 
-       function completeMemoryGame() {
+      function completeMemoryGame() {
     gameState.memoryGameCompleted = true;
     
     // Hide memory game
@@ -1057,14 +1057,20 @@ function playBackgroundMedia() {
         
         // IMPORTANT: Reset lives and game state before starting Space Invaders
         lives = 3;
-        gameActive = false; // Will be set to true in initSpaceInvaders
         
         // Reset lives display
         document.querySelectorAll('.life').forEach(life => {
             life.style.opacity = '1';
         });
         
+        // Initialize Space Invaders but don't start the game loop yet
         initSpaceInvaders();
+        
+        // Set gameActive to true AFTER initialization
+        gameActive = true;
+        
+        // Start the game loop
+        requestAnimationFrame(gameLoop);
     }, 5000);
 }
 
@@ -1226,7 +1232,6 @@ function playSound(soundElement) {
     // CRITICAL: Ensure lives are properly set
     lives = 3;
     currentLevel = 0;
-    gameActive = false;
     
     // Reset lives display
     document.querySelectorAll('.life').forEach(life => {
@@ -1252,9 +1257,10 @@ function playSound(soundElement) {
     // Start the first level
     startLevel(0);
 
+    // REMOVE THESE LINES:
     // Start the game loop
-    gameActive = true;
-    requestAnimationFrame(gameLoop);
+    // gameActive = true;
+    // requestAnimationFrame(gameLoop);
 }
         function setupMobileControls() {
             // Left button
