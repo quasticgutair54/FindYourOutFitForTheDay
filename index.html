@@ -887,15 +887,87 @@
         function startExperience() {
     welcomeOverlay.style.display = 'none';
     gameState.initialized = true;
-
-    function playBackgroundMedia() {
-        bgVideo.play().catch(err => console.warn('Video play failed:', err));
-        bgMusic.play().catch(err => console.warn('Audio play failed:', err));
-    }
-
+    
+    // Start background media
     playBackgroundMedia();
 }
 
+function playBackgroundMedia() {
+    // Play video (usually has fewer restrictions when muted)
+    bgVideo.play().catch(err => {
+        console.warn('Video play failed:', err);
+    });
+    
+    // Try to play music - play() always returns a Promise
+    bgMusic.play().then(() => {
+        console.log('Background music started successfully');
+    }).catch(error => {
+        // Autoplay was prevented, set up a user interaction handler
+        console.log('Autoplay prevented, waiting for user interaction');
+        
+        // Create a subtle prompt for the user
+        const audioPrompt = document.createElement('div');
+        audioPrompt.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--accent);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            z-index: 1000;
+            cursor: pointer;
+            font-size: 14px;
+            animation: pulse 2s infinite;
+        `;
+        audioPrompt.innerHTML = '🔇 Click anywhere to enable sound';
+        document.body.appendChild(audioPrompt);
+        
+        // Add pulse animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes pulse {
+                0% { opacity: 0.7; transform: scale(1); }
+                50% { opacity: 1; transform: scale(1.05); }
+                100% { opacity: 0.7; transform: scale(1); }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Enable audio on any user interaction
+        const enableAudio = () => {
+            bgMusic.play().then(() => {
+                audioPrompt.innerHTML = '🔊 Sound enabled';
+                setTimeout(() => {
+                    audioPrompt.style.opacity = '0';
+                    setTimeout(() => audioPrompt.remove(), 1000);
+                }, 2000);
+            }).catch(err => {
+                console.warn('Still cannot play audio:', err);
+                audioPrompt.innerHTML = '❌ Sound blocked by browser';
+                audioPrompt.style.background = '#f44336';
+            });
+            
+            // Remove listeners after first interaction
+            document.removeEventListener('click', enableAudio);
+            document.removeEventListener('keydown', enableAudio);
+            document.removeEventListener('touchstart', enableAudio);
+        };
+        
+        // Add multiple interaction listeners
+        document.addEventListener('click', enableAudio);
+        document.addEventListener('keydown', enableAudio);
+        document.addEventListener('touchstart', enableAudio);
+        
+        // Remove prompt after 10 seconds
+        setTimeout(() => {
+            if (document.body.contains(audioPrompt)) {
+                audioPrompt.style.opacity = '0';
+                setTimeout(() => audioPrompt.remove(), 1000);
+            }
+        }, 10000);
+    });
+}
         function handleOutsideClick() {
             gameState.outsideClicks++;
 
