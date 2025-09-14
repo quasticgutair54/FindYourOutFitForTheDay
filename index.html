@@ -1229,15 +1229,6 @@ function playSound(soundElement) {
     }
 }
         function initSpaceInvaders() {
-    // CRITICAL: Ensure lives are properly set
-    lives = 3;
-    currentLevel = 0;
-    
-    // Reset lives display
-    document.querySelectorAll('.life').forEach(life => {
-        life.style.opacity = '1';
-    });
-
     // Initialize game state
     player = {
         x: canvas.width / 2 - 15,
@@ -1250,17 +1241,29 @@ function playSound(soundElement) {
         fireCooldown: 150
     };
 
+    // Clear all game objects
+    aliens = [];
+    bullets = [];
+    enemyBullets = [];
+    obstacles = [];
+    chaosObjects = [];
+    butterPellets = [];
+    shields = [];
+    chocolates = [];
+    
+    // Reset game state
+    currentLevel = 0;
+    chaosEffects = { invert: 0, tilt: 0, shake: 0, cash: 0, invisible: 0 };
+    levelButterHits = 0;
+    playerInvisible = false;
+    invisibleTimer = 0;
+
     // Keyboard controls
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
 
     // Start the first level
     startLevel(0);
-
-    // REMOVE THESE LINES:
-    // Start the game loop
-    // gameActive = true;
-    // requestAnimationFrame(gameLoop);
 }
         function setupMobileControls() {
             // Left button
