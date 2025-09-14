@@ -888,9 +888,8 @@
             welcomeOverlay.style.display = 'none';
             gameState.initialized = true;
             
-          function playBackgroundMedia() {
-    bgVideo.play().catch(err => console.warn('Video play failed:', err));
-    bgMusic.play().catch(err => console.warn('Audio play failed:', err));
+       // Start background media
+    playBackgroundMedia();
 }
         function handleOutsideClick() {
             gameState.outsideClicks++;
