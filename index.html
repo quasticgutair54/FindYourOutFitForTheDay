@@ -510,22 +510,7 @@
     </style>
 </head>
 <body>
-    <!-- Background Elements -->
-    <video id="bg-video" loop muted playsinline autoplay>
-        <source src="assets/loop-bg.mp4" type="video/mp4">
-    </video>
-    <div class="bg-overlay"></div>
-    <audio id="bg-music" loop>
-        <source src="assets/running out of time.mp3" type="audio/mpeg">
-    </audio>
-
-    <!-- Sound Effects -->
-    <audio id="shoot-sound" src="https://assets.codepen.io/236284/laser-shoot.wav" preload="auto"></audio>
-    <audio id="explosion-sound" src="https://assets.codepen.io/236284/explosion.wav" preload="auto"></audio>
-    <audio id="flip-sound" src="https://assets.codepen.io/236284/card-flip.wav" preload="auto"></audio>
-    <audio id="match-sound" src="https://assets.codepen.io/236284/card-match.wav" preload="auto"></audio>
-    <audio id="glitch-sound" src="https://assets.codepen.io/236284/glitch-sound.wav" preload="auto"></audio>
-
+    
     <!-- Welcome Modal -->
     <div id="welcome-overlay" class="overlay">
         <div class="modal">
@@ -891,36 +876,34 @@
             // Start background media
             playBackgroundMedia();
         }
+function playBackgroundMedia() {
+    // Set video to loop and mute it for autoplay
+    bgVideo.loop = true;
+    bgVideo.muted = true;
 
-        function playBackgroundMedia() {
-            // Set video to loop and mute it for autoplay
-            bgVideo.loop = true;
-            bgVideo.muted = true;
+    // Play video with promise-based approach
+    const playVideoPromise = bgVideo.play();
 
-            // Play video with promise-based approach
-            const playVideoPromise = bgVideo.play();
+    if (playVideoPromise !== undefined) {
+        playVideoPromise.catch(error => {
+            console.log("Video play failed:", error);
+        });
+    }
 
-            if (playVideoPromise !== undefined) {
-                playVideoPromise.catch(error => {
-                    console.log("Video play failed:", error);
-                });
-            }
+    // Play audio with user gesture
+    try {
+        bgMusic.volume = 0.7;
+        const playPromise = bgMusic.play();
 
-            // Play audio with user gesture
-            try {
-                bgMusic.volume = 0.7;
-                const playPromise = bgMusic.play();
-
-                if (playPromise !== undefined) {
-                    playPromise.catch(error => {
-                        console.log("Audio play failed:", error);
-                    });
-                }
-            } catch (error) {
-                console.log("Audio error:", error);
-            }
+        if (playPromise !== undefined) {
+            playPromise.catch(error => {
+                console.log("Audio play failed:", error);
+            });
         }
-
+    } catch (error) {
+        console.log("Audio error:", error);
+    }
+}
         function handleOutsideClick() {
             gameState.outsideClicks++;
 
@@ -1161,8 +1144,8 @@
             }
         }
 
-        // ===== SPACE INVADERS IMPLEMENTATION =====
-        / Helper function to safely play sounds
+       // ===== SPACE INVADERS IMPLEMENTATION =====
+// Helper function to safely play sounds
 function playSound(soundElement) {
     if (soundElement && soundElement.play) {
         try {
