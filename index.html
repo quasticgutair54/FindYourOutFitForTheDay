@@ -963,12 +963,63 @@
             }, 2000);
         }
 
-        function completeMemoryGame() {
-            gameState.memoryGameCompleted = true;
-            memoryGameDiv.style.display = 'none';
-            spaceInvaders.style.display = 'flex';
-            initSpaceInvaders();
-        }
+       function completeMemoryGame() {
+    gameState.memoryGameCompleted = true;
+    
+    // Hide memory game
+    memoryGameDiv.style.display = 'none';
+    
+    // Show "not yet over" message
+    const notYetOverDiv = document.createElement('div');
+    notYetOverDiv.id = 'not-yet-over-message';
+    notYetOverDiv.style.cssText = `
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        font-size: 2rem;
+        color: var(--accent-2);
+        text-align: center;
+        animation: pulse 1s infinite;
+    `;
+    notYetOverDiv.innerHTML = '<h2>Not Yet Over...</h2><p style="font-size: 1.2rem; margin-top: 20px;">Prepare for the next challenge</p>';
+    
+    // Add pulse animation if not already added
+    if (!document.getElementById('pulse-animation')) {
+        const style = document.createElement('style');
+        style.id = 'pulse-animation';
+        style.textContent = `
+            @keyframes pulse {
+                0% { opacity: 0.7; transform: scale(1); }
+                50% { opacity: 1; transform: scale(1.05); }
+                100% { opacity: 0.7; transform: scale(1); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    // Show the message in the game panel
+    const gameContainer = document.getElementById('game-container');
+    gameContainer.appendChild(notYetOverDiv);
+    
+    // After 5 seconds, remove message and start Space Invaders
+    setTimeout(() => {
+        notYetOverDiv.remove();
+        spaceInvaders.style.display = 'flex';
+        
+        // IMPORTANT: Reset lives and game state before starting Space Invaders
+        lives = 3;
+        gameActive = false; // Will be set to true in initSpaceInvaders
+        
+        // Reset lives display
+        document.querySelectorAll('.life').forEach(life => {
+            life.style.opacity = '1';
+        });
+        
+        initSpaceInvaders();
+    }, 5000);
+}
 
         function completeSpaceInvaders() {
             gameState.spaceInvadersCompleted = true;
@@ -1112,30 +1163,39 @@
 
         // ===== SPACE INVADERS IMPLEMENTATION =====
         function initSpaceInvaders() {
-            // Initialize game state
-            player = {
-                x: canvas.width / 2 - 15,
-                y: canvas.height - 50,
-                width: 30,
-                height: 20,
-                speed: 7,
-                firing: false,
-                lastFireTime: 0,
-                fireCooldown: 150 // milliseconds between shots
-            };
+    // CRITICAL: Ensure lives are properly set
+    lives = 3;
+    currentLevel = 0;
+    gameActive = false;
+    
+    // Reset lives display
+    document.querySelectorAll('.life').forEach(life => {
+        life.style.opacity = '1';
+    });
 
-            // Keyboard controls
-            window.addEventListener('keydown', handleKeyDown);
-            window.addEventListener('keyup', handleKeyUp);
+    // Initialize game state
+    player = {
+        x: canvas.width / 2 - 15,
+        y: canvas.height - 50,
+        width: 30,
+        height: 20,
+        speed: 7,
+        firing: false,
+        lastFireTime: 0,
+        fireCooldown: 150
+    };
 
-            // Start the first level
-            startLevel(0);
+    // Keyboard controls
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
 
-            // Start the game loop
-            gameActive = true;
-            requestAnimationFrame(gameLoop);
-        }
+    // Start the first level
+    startLevel(0);
 
+    // Start the game loop
+    gameActive = true;
+    requestAnimationFrame(gameLoop);
+}
         function setupMobileControls() {
             // Left button
             leftBtn.addEventListener('touchstart', () => {
@@ -2220,20 +2280,32 @@
         }
 
         function resetSpaceInvaders() {
-            lives = 3;
-            
-            // Reset lives display
-            document.querySelectorAll('.life').forEach(life => {
-                life.style.opacity = '1';
-            });
-            
-            // Start from level 1 again
-            startLevel(0);
-            
-            // Restart game loop
-            gameActive = true;
-            requestAnimationFrame(gameLoop);
-        }
+    // Reset to 3 lives
+    lives = 3;
+    
+    // Reset lives display
+    document.querySelectorAll('.life').forEach(life => {
+        life.style.opacity = '1';
+    });
+    
+    // ALWAYS restart from level 1 (index 0)
+    currentLevel = 0;
+    
+    // Reset player position
+    player.x = canvas.width / 2 - 15;
+    player.y = canvas.height - 50;
+    
+    // Clear all bullets
+    bullets = [];
+    enemyBullets = [];
+    
+    // Start from level 1 again
+    startLevel(0);
+    
+    // Restart game loop
+    gameActive = true;
+    requestAnimationFrame(gameLoop);
+}
     </script>
 </body>
 </html>
