@@ -1363,60 +1363,67 @@ function playSound(soundElement) {
             }
         }
 function startLevel(levelIndex) {
-    console.log('Starting level:', levelIndex); {
-                completeSpaceInvaders();
-                return;
-            }
+    console.log('Starting level:', levelIndex);
+    
+    // Remove this extra curly brace and fix the condition
+    if (levelIndex >= levelConfigs.length) {
+        completeSpaceInvaders();
+        return;
+    }
 
-            currentLevel = levelIndex;
-            const config = levelConfigs[levelIndex];
+    currentLevel = levelIndex;
+    const config = levelConfigs[levelIndex];
 
-            // Update UI
-            levelNumber.textContent = levelIndex + 1;
-            levelName.textContent = config.name;
+    // Update UI
+    levelNumber.textContent = levelIndex + 1;
+    levelName.textContent = config.name;
 
-            // Initialize game objects
-            aliens = [];
-            bullets = [];
-            enemyBullets = [];
-            obstacles = [];
-            chaosObjects = [];
-            butterPellets = [];
-            shields = [];
-            chocolates = [];
-            chaosEffects = { invert: 0, tilt: 0, shake: 0, cash: 0, invisible: 0 };
-            levelButterHits = 0;
-            playerInvisible = false;
+    // Initialize game objects
+    aliens = [];
+    bullets = [];
+    enemyBullets = [];
+    obstacles = [];
+    chaosObjects = [];
+    butterPellets = [];
+    shields = [];
+    chocolates = [];
+    chaosEffects = { invert: 0, tilt: 0, shake: 0, cash: 0, invisible: 0 };
+    levelButterHits = 0;
+    playerInvisible = false;
 
-            // Reset canvas styles
-            canvas.className = '';
+    // Reset canvas styles
+    canvas.className = '';
 
-            // Create aliens based on level config - CENTERED
-            const alienWidth = config.alienWidth;
-            const alienHeight = config.alienHeight;
-            const alienPadding = 10;
-            const totalWidth = config.cols * (alienWidth + alienPadding) - alienPadding;
-            const startX = (canvas.width - totalWidth) / 2;
+    // Create aliens based on level config - CENTERED
+    const alienWidth = config.alienWidth;
+    const alienHeight = config.alienHeight;
+    const alienPadding = 10;
+    const totalWidth = config.cols * (alienWidth + alienPadding) - alienPadding;
+    const startX = (canvas.width - totalWidth) / 2;
 
-            for (let row = 0; row < config.rows; row++) {
-                for (let col = 0; col < config.cols; col++) {
-                    aliens.push({
-                        x: startX + col * (alienWidth + alienPadding),
-                        y: row * (alienHeight + alienPadding) + 40,
-                        width: alienWidth,
-                        height: alienHeight,
-                        type: config.alienType,
-                        originalX: startX + col * (alienWidth + alienPadding),
-                        alive: true,
-                        movePattern: config.movement === 'zigzag' ? Math.random() * Math.PI * 2 : 0
-                    });
-                }
-            }
-
-            // Show level start message
-            showInGameMessage(`Level ${levelIndex + 1}: ${config.name}`);
+    console.log('Creating', config.rows, 'rows x', config.cols, 'cols aliens');
+    
+    for (let row = 0; row < config.rows; row++) {
+        for (let col = 0; col < config.cols; col++) {
+            aliens.push({
+                x: startX + col * (alienWidth + alienPadding),
+                y: row * (alienHeight + alienPadding) + 40,
+                width: alienWidth,
+                height: alienHeight,
+                type: config.alienType,
+                originalX: startX + col * (alienWidth + alienPadding),
+                alive: true,
+                movePattern: config.movement === 'zigzag' ? Math.random() * Math.PI * 2 : 0
+            });
         }
+    }
 
+    console.log('Total aliens created:', aliens.length);
+    console.log('Alive aliens:', aliens.filter(a => a.alive).length);
+
+    // Show level start message
+    showInGameMessage(`Level ${levelIndex + 1}: ${config.name}`);
+}
         function fireBullet() {
             const currentTime = Date.now();
             if (currentTime - player.lastFireTime < player.fireCooldown) return;
@@ -1467,13 +1474,15 @@ function startLevel(levelIndex) {
             });
         }
 
-       function gameLoop() {
+      function gameLoop() {
+    console.log('Game loop running - Aliens:', aliens.length, 'Alive:', aliens.filter(a => a.alive).length); // DEBUG
+    
     if (!gameActive) {
         console.log('Game not active, stopping loop');
         return;
     }
-
-    // Clear canvas
+          
+/ Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Handle player movement
@@ -1503,13 +1512,13 @@ function startLevel(levelIndex) {
     }
 
     // Update and draw aliens
-    let allAliensDead = true;
+    let allAliensDead = true;  // Assume all are dead initially
     let directionChange = false;
 
     aliens.forEach(alien => {
-        if (!alien.alive) return;
+        if (!alien.alive) return;  // Skip dead aliens
 
-        allAliensDead = false;
+        allAliensDead = false;  // Found at least one alive alien
 
         // Update position based on alien movement type
         updateAlienPosition(alien);
@@ -1537,8 +1546,9 @@ function startLevel(levelIndex) {
         });
     }
 
-    // Check for level completion
+    // Check for level completion - ONLY if all aliens are actually dead
     if (allAliensDead) {
+        console.log('All aliens dead, completing level'); // DEBUG
         if (currentLevel < levelConfigs.length - 1) {
             setTimeout(() => {
                 startLevel(currentLevel + 1);
@@ -1603,10 +1613,9 @@ function startLevel(levelIndex) {
         showInGameMessage(messages[Math.floor(Math.random() * messages.length)]);
     }
 
-    // CONTINUE THE GAME LOOP - THIS WAS MISSING!
+    // Continue the game loop
     requestAnimationFrame(gameLoop);
 }
-
         function drawPlayer() {
             ctx.fillStyle = '#7cf3d6';
             // Draw spaceship body
