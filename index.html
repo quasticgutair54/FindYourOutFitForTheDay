@@ -891,32 +891,6 @@
             // Start background media
             playBackgroundMedia();
         }
-document.addEventListener('DOMContentLoaded', () => {
-    const bgVideo = document.getElementById('bg-video');
-    const bgMusic = document.getElementById('bg-music');
-    const startBtn = document.getElementById('start-btn');
-    const welcomeOverlay = document.getElementById('welcome-overlay');
-
-    // Setup media sources and attributes if not already set in HTML
-    bgVideo.src = 'assets/loop-bg.mp4';
-    bgVideo.muted = true; // required for autoplay
-    bgVideo.loop = true;
-    bgVideo.playsInline = true;
-
-    bgMusic.src = 'assets/running out of time.mp3';
-    bgMusic.loop = true;
-    bgMusic.volume = 0.7;
-
-    function playBackgroundMedia() {
-        bgVideo.play().catch(err => console.warn('Video play failed:', err));
-        bgMusic.play().catch(err => console.warn('Audio play failed:', err));
-    }
-
-    startBtn.addEventListener('click', () => {
-        if (welcomeOverlay) welcomeOverlay.style.display = 'none';
-        playBackgroundMedia();
-    });
-});
 
         function handleOutsideClick() {
             gameState.outsideClicks++;
