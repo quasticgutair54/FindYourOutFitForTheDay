@@ -1472,137 +1472,138 @@ function startLevel(levelIndex) {
         console.log('Game not active, stopping loop');
         return;
     }
-            // Clear canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Handle player movement
-            if (keys['ArrowLeft'] || keys['a']) {
-                player.x = Math.max(0, player.x - player.speed);
-            }
-            if (keys['ArrowRight'] || keys['d']) {
-                player.x = Math.min(canvas.width - player.width, player.x + player.speed);
-            }
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Handle continuous firing
-            if (player.firing) {
-                fireBullet();
-            }
+    // Handle player movement
+    if (keys['ArrowLeft'] || keys['a']) {
+        player.x = Math.max(0, player.x - player.speed);
+    }
+    if (keys['ArrowRight'] || keys['d']) {
+        player.x = Math.min(canvas.width - player.width, player.x + player.speed);
+    }
 
-            // Draw player (with invisibility effect if active)
-            ctx.globalAlpha = playerInvisible ? 0.3 : 1;
-            drawPlayer();
-            ctx.globalAlpha = 1;
+    // Handle continuous firing
+    if (player.firing) {
+        fireBullet();
+    }
 
-            // Update invisibility timer
-            if (playerInvisible) {
-                invisibleTimer--;
-                if (invisibleTimer <= 0) {
-                    playerInvisible = false;
-                }
-            }
+    // Draw player (with invisibility effect if active)
+    ctx.globalAlpha = playerInvisible ? 0.3 : 1;
+    drawPlayer();
+    ctx.globalAlpha = 1;
 
-            // Update and draw aliens
-            let allAliensDead = true;
-            let directionChange = false;
+    // Update invisibility timer
+    if (playerInvisible) {
+        invisibleTimer--;
+        if (invisibleTimer <= 0) {
+            playerInvisible = false;
+        }
+    }
 
-            aliens.forEach(alien => {
-                if (!alien.alive) return;
+    // Update and draw aliens
+    let allAliensDead = true;
+    let directionChange = false;
 
-                allAliensDead = false;
+    aliens.forEach(alien => {
+        if (!alien.alive) return;
 
-                // Update position based on alien movement type
-                updateAlienPosition(alien);
+        allAliensDead = false;
 
-                // Check for wall collision
-                if (alien.x <= 0 || alien.x + alien.width >= canvas.width) {
-                    directionChange = true;
-                }
+        // Update position based on alien movement type
+        updateAlienPosition(alien);
 
-                // Check if reached bottom
-                if (alien.y + alien.height >= player.y && !playerInvisible) {
-                    loseLife();
-                    return;
-                }
+        // Check for wall collision
+        if (alien.x <= 0 || alien.x + alien.width >= canvas.width) {
+            directionChange = true;
+        }
 
-                // Draw alien based on type
-                drawAlien(alien);
+        // Check if reached bottom
+        if (alien.y + alien.height >= player.y && !playerInvisible) {
+            loseLife();
+            return;
+        }
+
+        // Draw alien based on type
+        drawAlien(alien);
+    });
+
+    // Change direction if needed
+    if (directionChange) {
+        levelConfigs[currentLevel].speed *= -1;
+        aliens.forEach(alien => {
+            if (alien.alive) alien.y += 10;
+        });
+    }
+
+    // Check for level completion
+    if (allAliensDead) {
+        if (currentLevel < levelConfigs.length - 1) {
+            setTimeout(() => {
+                startLevel(currentLevel + 1);
+                gameActive = true;
+                requestAnimationFrame(gameLoop);
+            }, 1500);
+            gameActive = false;
+            return;
+        } else {
+            completeSpaceInvaders();
+            gameActive = false;
+            return;
+        }
+    }
+
+    // Update and draw bullets
+    updateBullets();
+
+    // Random enemy firing
+    const config = levelConfigs[currentLevel];
+    if (Math.random() < config.fireRate) {
+        const aliveAliens = aliens.filter(alien => alien.alive);
+        if (aliveAliens.length > 0) {
+            const shooter = aliveAliens[Math.floor(Math.random() * aliveAliens.length)];
+            enemyBullets.push({
+                x: shooter.x + shooter.width / 2 - 2,
+                y: shooter.y + shooter.height,
+                width: 4,
+                height: 10,
+                active: true,
+                color: '#ff6f61'
             });
+        }
+    }
 
-            // Change direction if needed
-            if (directionChange) {
-                levelConfigs[currentLevel].speed *= -1;
-                aliens.forEach(alien => {
-                    if (alien.alive) alien.y += 10;
-                });
-            }
+    // Update and draw enemy bullets
+    updateEnemyBullets();
 
-            // Check for level completion
-            if (allAliensDead) {
-                if (currentLevel < levelConfigs.length - 1) {
-                    setTimeout(() => {
-                        startLevel(currentLevel + 1);
-                        gameActive = true;
-                        requestAnimationFrame(gameLoop);
-                    }, 1500);
-                    gameActive = false;
-                    return;
-                } else {
-                    completeSpaceInvaders();
-                    gameActive = false;
-                    return;
-                }
-            }
+    // Spawn level-specific objects
+    spawnLevelObjects();
 
-            // Update and draw bullets
-            updateBullets();
+    // Update and draw obstacles
+    updateObstacles();
 
-            // Random enemy firing
-            const config = levelConfigs[currentLevel];
-            if (Math.random() < config.fireRate) {
-                const aliveAliens = aliens.filter(alien => alien.alive);
-                if (aliveAliens.length > 0) {
-                    const shooter = aliveAliens[Math.floor(Math.random() * aliveAliens.length)];
-                    enemyBullets.push({
-                        x: shooter.x + shooter.width / 2 - 2,
-                        y: shooter.y + shooter.height,
-                        width: 4,
-                        height: 10,
-                        active: true,
-                        color: '#ff6f61'
-                    });
-                }
-            }
+    // Update and draw butter pellets (Level 4)
+    updateButterPellets();
 
-            // Update and draw enemy bullets
-            updateEnemyBullets();
+    // Update and draw shields (Level 7)
+    updateShields();
 
-            // Spawn level-specific objects
-            spawnLevelObjects();
+    // Update and draw chocolates (Level 6)
+    updateChocolates();
 
-            // Update and draw obstacles
-            updateObstacles();
+    // Update chaos objects (Level 8)
+    updateChaosObjects();
 
-            // Update and draw butter pellets (Level 4)
-            updateButterPellets();
+    // Update chaos effects
+    updateChaosEffects();
 
-            // Update and draw shields (Level 7)
-            updateShields();
+    // Show random messages
+    if (gameTick % 300 === 0) {
+        showInGameMessage(messages[Math.floor(Math.random() * messages.length)]);
+    }
 
-            // Update and draw chocolates (Level 6)
-            updateChocolates();
-
-            // Update chaos objects (Level 8)
-            updateChaosObjects();
-
-            // Update chaos effects
-            updateChaosEffects();
-
-            // Show random messages
-            if (gameTick % 300 === 0) {
-                showInGameMessage(messages[Math.floor(Math.random() * messages.length)]);
-            }
-
-           // Continue the game loop
+    // CONTINUE THE GAME LOOP - THIS WAS MISSING!
     requestAnimationFrame(gameLoop);
 }
 
