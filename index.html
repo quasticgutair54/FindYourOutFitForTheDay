@@ -1010,7 +1010,7 @@ function playBackgroundMedia() {
             }, 2000);
         }
 
-      function completeMemoryGame() {
+     function completeMemoryGame() {
     gameState.memoryGameCompleted = true;
     
     // Hide memory game
@@ -1030,7 +1030,7 @@ function playBackgroundMedia() {
         text-align: center;
         animation: pulse 1s infinite;
     `;
-    notYetOverDiv.innerHTML = '<h2>Not Yet Over...</h2><p style="font-size: 1.2rem; margin-top: 20px;">Prepare for the next challenge</p>';
+    notYetOverDiv.innerHTML = '<h2>Not Yet Over...</h2><p style="font-size: 1.2rem; margin-top: 20px;">Prepare for Space Invaders</p>';
     
     // Add pulse animation if not already added
     if (!document.getElementById('pulse-animation')) {
@@ -1047,7 +1047,6 @@ function playBackgroundMedia() {
     }
     
     // Show the message in the game panel
-    const gameContainer = document.getElementById('game-container');
     gameContainer.appendChild(notYetOverDiv);
     
     // After 5 seconds, remove message and start Space Invaders
@@ -1055,25 +1054,31 @@ function playBackgroundMedia() {
         notYetOverDiv.remove();
         spaceInvaders.style.display = 'flex';
         
-        // IMPORTANT: Reset lives and game state before starting Space Invaders
+        // IMPORTANT: Reset canvas size
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+        
+        // Reset lives and game state
         lives = 3;
+        gameActive = false; // Ensure game is not active during setup
         
         // Reset lives display
-        document.querySelectorAll('.life').forEach(life => {
-            life.style.opacity = '1';
+        document.querySelectorAll('.life').forEach((life, index) => {
+            life.style.opacity = index < lives ? '1' : '0.3';
         });
         
-        // Initialize Space Invaders but don't start the game loop yet
+        // Initialize Space Invaders
         initSpaceInvaders();
         
         // Set gameActive to true AFTER initialization
         gameActive = true;
         
+        console.log('Starting Space Invaders...'); // Debug log
+        
         // Start the game loop
         requestAnimationFrame(gameLoop);
     }, 5000);
 }
-
         function completeSpaceInvaders() {
             gameState.spaceInvadersCompleted = true;
 
@@ -1228,7 +1233,8 @@ function playSound(soundElement) {
         }
     }
 }
-       function initSpaceInvaders() {
+     function initSpaceInvaders() {
+    console.log('Initializing Space Invaders');
     // Initialize game state
     player = {
         x: canvas.width / 2 - 15,
@@ -1356,9 +1362,8 @@ function playSound(soundElement) {
                 player.firing = false;
             }
         }
-
-        function startLevel(levelIndex) {
-            if (levelIndex >= levelConfigs.length) {
+function startLevel(levelIndex) {
+    console.log('Starting level:', levelIndex); {
                 completeSpaceInvaders();
                 return;
             }
@@ -1462,11 +1467,11 @@ function playSound(soundElement) {
             });
         }
 
-        function gameLoop() {
-            if (!gameActive) return;
-
-            gameTick++;
-
+       function gameLoop() {
+    if (!gameActive) {
+        console.log('Game not active, stopping loop');
+        return;
+    }
             // Clear canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -1597,9 +1602,9 @@ function playSound(soundElement) {
                 showInGameMessage(messages[Math.floor(Math.random() * messages.length)]);
             }
 
-            // Continue the game loop
-            requestAnimationFrame(gameLoop);
-        }
+           // Continue the game loop
+    requestAnimationFrame(gameLoop);
+}
 
         function drawPlayer() {
             ctx.fillStyle = '#7cf3d6';
