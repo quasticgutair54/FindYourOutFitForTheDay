@@ -889,34 +889,33 @@
             // Start background media
             playBackgroundMedia();
         }
-function playBackgroundMedia() {
-    // Set video to loop and mute it for autoplay
+document.addEventListener('DOMContentLoaded', () => {
+    const bgVideo = document.getElementById('bg-video');
+    const bgMusic = document.getElementById('bg-music');
+    const startBtn = document.getElementById('start-btn');
+    const welcomeOverlay = document.getElementById('welcome-overlay');
+
+    // Setup media sources and attributes if not already set in HTML
+    bgVideo.src = 'assets/loop-bg.mp4';
+    bgVideo.muted = true; // required for autoplay
     bgVideo.loop = true;
-    bgVideo.muted = true;
+    bgVideo.playsInline = true;
 
-    // Play video with promise-based approach
-    const playVideoPromise = bgVideo.play();
+    bgMusic.src = 'assets/running out of time.mp3';
+    bgMusic.loop = true;
+    bgMusic.volume = 0.7;
 
-    if (playVideoPromise !== undefined) {
-        playVideoPromise.catch(error => {
-            console.log("Video play failed:", error);
-        });
+    function playBackgroundMedia() {
+        bgVideo.play().catch(err => console.warn('Video play failed:', err));
+        bgMusic.play().catch(err => console.warn('Audio play failed:', err));
     }
 
-    // Play audio with user gesture
-    try {
-        bgMusic.volume = 0.7;
-        const playPromise = bgMusic.play();
+    startBtn.addEventListener('click', () => {
+        if (welcomeOverlay) welcomeOverlay.style.display = 'none';
+        playBackgroundMedia();
+    });
+});
 
-        if (playPromise !== undefined) {
-            playPromise.catch(error => {
-                console.log("Audio play failed:", error);
-            });
-        }
-    } catch (error) {
-        console.log("Audio error:", error);
-    }
-}
         function handleOutsideClick() {
             gameState.outsideClicks++;
 
