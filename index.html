@@ -686,6 +686,8 @@
         let lastBulletType = 'normal';
         let touchId = null;
         let touchStartX = 0;
+        let lastFrameTime = 0;
+        let deltaTime = 0;
 
        const levelConfigs = [
     {
@@ -1076,6 +1078,7 @@ function playBackgroundMedia() {
         console.log('Starting Space Invaders...'); // Debug log
         
         // Start the game loop
+        lastFrameTime = performance.now();
         requestAnimationFrame(gameLoop);
     }, 3000); // Reduced from 5 to 3 seconds
 }
@@ -1330,10 +1333,10 @@ function playSound(soundElement) {
                     const diff = touchX - touchStartX;
                     
                     if (diff > 10) {
-                        player.x = Math.min(canvas.width - player.width, player.x + player.speed);
+                        player.x = Math.min(canvas.width - player.width, player.x + player.speed * (deltaTime / 16));
                         touchStartX = touchX;
                     } else if (diff < -10) {
-                        player.x = Math.max(0, player.x - player.speed);
+                        player.x = Math.max(0, player.x - player.speed * (deltaTime / 16));
                         touchStartX = touchX;
                     }
                     break;
@@ -1480,21 +1483,25 @@ function startLevel(levelIndex) {
             });
         }
 
-    function gameLoop() {
+    function gameLoop(timestamp) {
     if (!gameActive) {
         console.log('Game not active, stopping loop');
         return;
     }
+    
+    // Calculate delta time for frame rate independence
+    deltaTime = timestamp - lastFrameTime;
+    lastFrameTime = timestamp;
     
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Handle player movement
     if (keys['ArrowLeft'] || keys['a']) {
-        player.x = Math.max(0, player.x - player.speed);
+        player.x = Math.max(0, player.x - player.speed * (deltaTime / 16));
     }
     if (keys['ArrowRight'] || keys['d']) {
-        player.x = Math.min(canvas.width - player.width, player.x + player.speed);
+        player.x = Math.min(canvas.width - player.width, player.x + player.speed * (deltaTime / 16));
     }
 
     // Handle continuous firing
@@ -1561,6 +1568,7 @@ function startLevel(levelIndex) {
             setTimeout(() => {
                 startLevel(currentLevel + 1);
                 gameActive = true;
+                lastFrameTime = performance.now();
                 requestAnimationFrame(gameLoop);
             }, 1500);
             gameActive = false;
@@ -1627,8 +1635,8 @@ function startLevel(levelIndex) {
     requestAnimationFrame(gameLoop);
 }
         function drawPlayer() {
-            ctx.fillStyle = '#7cf3d6';
             // Draw spaceship body
+            ctx.fillStyle = '#7cf3d6';
             ctx.beginPath();
             ctx.moveTo(player.x + player.width / 2, player.y);
             ctx.lineTo(player.x + player.width, player.y + player.height);
@@ -1646,6 +1654,12 @@ function startLevel(levelIndex) {
             ctx.fillStyle = '#ff6f61';
             ctx.fillRect(player.x, player.y + player.height - 5, 5, 5);
             ctx.fillRect(player.x + player.width - 5, player.y + player.height - 5, 5, 5);
+            
+            // Draw engine glow
+            ctx.fillStyle = 'rgba(255, 111, 97, 0.5)';
+            ctx.beginPath();
+            ctx.arc(player.x + player.width / 2, player.y + player.height + 3, 3, 0, Math.PI);
+            ctx.fill();
         }
 
         function updateAlienPosition(alien) {
@@ -1654,20 +1668,20 @@ function startLevel(levelIndex) {
             switch(config.movement) {
                 case "zigzag":
                     // Zigzag movement for Level 2
-                    alien.movePattern += 0.05;
+                    alien.movePattern += 0.05 * (deltaTime / 16);
                     alien.x = alien.originalX + Math.sin(alien.movePattern) * 30;
-                    alien.y += config.speed;
+                    alien.y += config.speed * (deltaTime / 16);
                     break;
                     
                 case "chaotic":
                     // Random movement for chaotic aliens (Level 8)
-                    alien.x += (Math.random() - 0.5) * 3;
-                    alien.y += config.speed * (0.8 + Math.random() * 0.4);
+                    alien.x += (Math.random() - 0.5) * 3 * (deltaTime / 16);
+                    alien.y += config.speed * (0.8 + Math.random() * 0.4) * (deltaTime / 16);
                     break;
                     
                 default:
                     // Straight descent for other levels
-                    alien.y += config.speed;
+                    alien.y += config.speed * (deltaTime / 16);
             }
         }
 
@@ -1690,6 +1704,10 @@ function startLevel(levelIndex) {
                     ctx.fillStyle = '#000';
                     ctx.fillRect(alien.x + 3, alien.y + alien.height - 3, 4, 3);
                     ctx.fillRect(alien.x + alien.width - 7, alien.y + alien.height - 3, 4, 3);
+                    // Headlights
+                    ctx.fillStyle = '#ffff00';
+                    ctx.fillRect(alien.x + 2, alien.y + 2, 2, 2);
+                    ctx.fillRect(alien.x + alien.width - 4, alien.y + 2, 2, 2);
                     break;
                     
                 case "latin":
@@ -1703,64 +1721,108 @@ function startLevel(levelIndex) {
                     break;
                     
                 case "toaster":
-                    // Toaster body
-                    ctx.fillStyle = '#8b4513';
+                    // Toaster body - silver metallic
+                    const gradient = ctx.createLinearGradient(alien.x, alien.y, alien.x, alien.y + alien.height);
+                    gradient.addColorStop(0, '#d4d4d4');
+                    gradient.addColorStop(0.5, '#f0f0f0');
+                    gradient.addColorStop(1, '#b0b0b0');
+                    ctx.fillStyle = gradient;
                     ctx.fillRect(alien.x, alien.y, alien.width, alien.height);
-                    // Toaster slots
+                    
+                    // Toaster slots - dark with bread
                     ctx.fillStyle = '#333';
                     ctx.fillRect(alien.x + 5, alien.y + 7, alien.width - 10, 4);
-                    // Bread
+                    
+                    // Bread - realistic toast texture
                     ctx.fillStyle = '#deb887';
                     ctx.fillRect(alien.x + 7, alien.y - 5, alien.width - 14, 5);
-                    // Bread texture
+                    
+                    // Bread texture - toast lines
                     ctx.fillStyle = '#d2b48c';
-                    ctx.fillRect(alien.x + 10, alien.y - 4, 2, 3);
-                    ctx.fillRect(alien.x + 15, alien.y - 4, 2, 3);
-                    ctx.fillRect(alien.x + 20, alien.y - 4, 2, 3);
+                    for (let i = 0; i < 3; i++) {
+                        ctx.fillRect(alien.x + 8 + i*5, alien.y - 4, 3, 3);
+                    }
+                    
+                    // Toaster controls
+                    ctx.fillStyle = '#ff6f61';
+                    ctx.beginPath();
+                    ctx.arc(alien.x + alien.width - 5, alien.y + 5, 2, 0, Math.PI * 2);
+                    ctx.fill();
                     break;
                     
                 case "grapefruit":
-                    // Grapefruit body
+                    // Grapefruit body - realistic texture
                     ctx.fillStyle = '#ff6b6b';
                     ctx.beginPath();
                     ctx.arc(alien.x + alien.width/2, alien.y + alien.height/2, alien.width/2, 0, Math.PI * 2);
                     ctx.fill();
+                    
+                    // Grapefruit texture - pitted surface
+                    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+                    for (let i = 0; i < 8; i++) {
+                        const angle = (i / 8) * Math.PI * 2;
+                        const x = alien.x + alien.width/2 + Math.cos(angle) * (alien.width/3);
+                        const y = alien.y + alien.height/2 + Math.sin(angle) * (alien.height/3);
+                        ctx.beginPath();
+                        ctx.arc(x, y, 1, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    
                     // Grapefruit segments
                     ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-                    ctx.beginPath();
-                    ctx.moveTo(alien.x + alien.width/2, alien.y);
-                    ctx.lineTo(alien.x + alien.width/2, alien.y + alien.height);
-                    ctx.stroke();
-                    ctx.beginPath();
-                    ctx.moveTo(alien.x, alien.y + alien.height/2);
-                    ctx.lineTo(alien.x + alien.width, alien.y + alien.height/2);
-                    ctx.stroke();
-                    // Grapefruit pulp
-                    ctx.fillStyle = '#ff8e8e';
-                    ctx.beginPath();
-                    ctx.arc(alien.x + alien.width/2, alien.y + alien.height/2, alien.width/4, 0, Math.PI * 2);
-                    ctx.fill();
+                    ctx.lineWidth = 1;
+                    for (let i = 0; i < 4; i++) {
+                        const angle = (i / 4) * Math.PI;
+                        ctx.beginPath();
+                        ctx.moveTo(alien.x + alien.width/2, alien.y + alien.height/2);
+                        ctx.lineTo(
+                            alien.x + alien.width/2 + Math.cos(angle) * (alien.width/2),
+                            alien.y + alien.height/2 + Math.sin(angle) * (alien.height/2)
+                        );
+                        ctx.stroke();
+                    }
                     break;
                     
                 case "cupcake":
-                    // Cupcake bottom
+                    // Cupcake bottom - paper wrapper
                     ctx.fillStyle = '#634832';
                     ctx.fillRect(alien.x, alien.y + alien.height/2, alien.width, alien.height/2);
-                    // Frosting
+                    
+                    // Paper wrapper pattern
+                    ctx.fillStyle = '#8b5a2b';
+                    ctx.fillRect(alien.x, alien.y + alien.height/2, alien.width, 2);
+                    ctx.fillRect(alien.x, alien.y + alien.height - 5, alien.width, 2);
+                    
+                    // Frosting - pink with swirls
                     ctx.fillStyle = '#ffc0cb';
                     ctx.beginPath();
                     ctx.arc(alien.x + alien.width/2, alien.y + alien.height/2, alien.width/2, Math.PI, 0, false);
                     ctx.fill();
-                    // Frosting swirl
+                    
+                    // Frosting texture - realistic swirl
                     ctx.fillStyle = '#ff9eb5';
                     ctx.beginPath();
-                    ctx.arc(alien.x + alien.width/2, alien.y + alien.height/3, alien.width/4, 0, Math.PI * 2);
+                    for (let i = 0; i < 8; i++) {
+                        const angle = (i / 8) * Math.PI;
+                        const x = alien.x + alien.width/2 + Math.cos(angle) * (alien.width/3);
+                        const y = alien.y + alien.height/3 + Math.sin(angle) * 2;
+                        if (i === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    }
                     ctx.fill();
-                    // Cherry
+                    
+                    // Cherry - realistic with shine
                     ctx.fillStyle = '#ff0000';
                     ctx.beginPath();
                     ctx.arc(alien.x + alien.width/2, alien.y + alien.height/4, 3, 0, Math.PI * 2);
                     ctx.fill();
+                    
+                    // Cherry shine
+                    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+                    ctx.beginPath();
+                    ctx.arc(alien.x + alien.width/2 - 1, alien.y + alien.height/4 - 1, 1, 0, Math.PI * 2);
+                    ctx.fill();
+                    
                     // Cherry stem
                     ctx.strokeStyle = '#006400';
                     ctx.lineWidth = 1;
@@ -1771,27 +1833,48 @@ function startLevel(levelIndex) {
                     break;
                     
                 case "armor":
-                    // Armor body
-                    ctx.fillStyle = '#555';
+                    // Armor body - metallic with gradient
+                    const armorGradient = ctx.createLinearGradient(alien.x, alien.y, alien.x, alien.y + alien.height);
+                    armorGradient.addColorStop(0, '#777');
+                    armorGradient.addColorStop(0.5, '#999');
+                    armorGradient.addColorStop(1, '#666');
+                    ctx.fillStyle = armorGradient;
                     ctx.fillRect(alien.x, alien.y, alien.width, alien.height);
-                    // Armor details
-                    ctx.fillStyle = '#777';
+                    
+                    // Armor details - plates and joints
+                    ctx.fillStyle = '#555';
                     ctx.fillRect(alien.x + 5, alien.y + 5, alien.width - 10, 5);
                     ctx.fillRect(alien.x + 5, alien.y + alien.height - 10, alien.width - 10, 5);
-                    // Helmet
-                    ctx.fillStyle = '#999';
+                    
+                    // Helmet - rounded with visor
+                    ctx.fillStyle = '#888';
                     ctx.beginPath();
                     ctx.arc(alien.x + alien.width/2, alien.y + alien.height/2, alien.width/3, 0, Math.PI * 2);
                     ctx.fill();
-                    // Visor
+                    
+                    // Visor - dark with reflection
                     ctx.fillStyle = '#333';
                     ctx.fillRect(alien.x + alien.width/3, alien.y + alien.height/3, alien.width/3, 3);
+                    
+                    // Visor reflection
+                    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                    ctx.fillRect(alien.x + alien.width/3 + 2, alien.y + alien.height/3 + 1, 5, 1);
                     break;
                     
                 case "chaos":
-                    // Chaos alien with changing colors
+                    // Chaos alien with changing colors and energy effect
                     ctx.fillStyle = `hsl(${gameTick % 360}, 100%, 50%)`;
-                    ctx.fillRect(alien.x, alien.y, alien.width, alien.height);
+                    ctx.beginPath();
+                    ctx.arc(alien.x + alien.width/2, alien.y + alien.height/2, alien.width/2, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Chaos energy effect
+                    ctx.strokeStyle = `hsl(${(gameTick + 180) % 360}, 100%, 70%)`;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(alien.x + alien.width/2, alien.y + alien.height/2, alien.width/2 + 2, 0, Math.PI * 2);
+                    ctx.stroke();
+                    
                     // Chaos symbol
                     ctx.fillStyle = '#000';
                     ctx.font = '16px Arial';
@@ -1799,14 +1882,24 @@ function startLevel(levelIndex) {
                     break;
                     
                 default:
-                    // Default alien (Level 1)
+                    // Default alien (Level 1) - classic space invader design
+                    ctx.fillStyle = '#aaffaa';
                     ctx.beginPath();
                     ctx.moveTo(alien.x + alien.width/2, alien.y);
                     ctx.lineTo(alien.x + alien.width, alien.y + alien.height/2);
                     ctx.lineTo(alien.x, alien.y + alien.height/2);
                     ctx.closePath();
                     ctx.fill();
+                    
                     ctx.fillRect(alien.x + alien.width/4, alien.y + alien.height/2, alien.width/2, alien.height/2);
+                    
+                    // Alien eyes
+                    ctx.fillStyle = '#000';
+                    ctx.fillRect(alien.x + alien.width/3, alien.y + alien.height/3, 3, 3);
+                    ctx.fillRect(alien.x + alien.width*2/3 - 3, alien.y + alien.height/3, 3, 3);
+                    
+                    // Alien mouth
+                    ctx.fillRect(alien.x + alien.width/3, alien.y + alien.height*2/3, alien.width/3, 2);
             }
             
             ctx.globalAlpha = 1; // Reset alpha
@@ -1820,7 +1913,7 @@ function startLevel(levelIndex) {
                 }
 
                 // Move bullet
-                bullets[i].y -= 7;
+                bullets[i].y -= 7 * (deltaTime / 16);
 
                 // Remove if out of bounds
                 if (bullets[i].y < 0) {
@@ -1831,57 +1924,115 @@ function startLevel(levelIndex) {
                 // Draw bullets based on type
                 switch(bullets[i].type) {
                     case "bread":
+                        // Bread bullet - realistic toast
                         ctx.fillStyle = "#a0522d";
                         ctx.fillRect(bullets[i].x, bullets[i].y, bullets[i].width, bullets[i].height);
-                        // Bread crust
+                        
+                        // Bread crust - darker edges
                         ctx.strokeStyle = "#8b4513";
                         ctx.lineWidth = 2;
                         ctx.strokeRect(bullets[i].x, bullets[i].y, bullets[i].width, bullets[i].height);
-                        // Bread texture
+                        
+                        // Bread texture - air pockets
                         ctx.fillStyle = "#deb887";
-                        ctx.fillRect(bullets[i].x + 2, bullets[i].y + 3, 3, 2);
-                        ctx.fillRect(bullets[i].x + 8, bullets[i].y + 3, 3, 2);
-                        ctx.fillRect(bullets[i].x + 14, bullets[i].y + 3, 3, 2);
+                        for (let j = 0; j < 3; j++) {
+                            ctx.beginPath();
+                            ctx.arc(bullets[i].x + 5 + j*7, bullets[i].y + 5, 2, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
                         break;
                     case "lime":
+                        // Lime bullet - realistic fruit
                         ctx.fillStyle = "limegreen";
                         ctx.beginPath();
                         ctx.arc(bullets[i].x + bullets[i].width/2, bullets[i].y + bullets[i].height/2, bullets[i].width/2, 0, Math.PI * 2);
                         ctx.fill();
-                        // Lime details
-                        ctx.fillStyle = "#32cd32";
+                        
+                        // Lime details - segments
+                        ctx.strokeStyle = "#32cd32";
+                        ctx.lineWidth = 1;
                         ctx.beginPath();
-                        ctx.arc(bullets[i].x + bullets[i].width/2, bullets[i].y + bullets[i].height/2, bullets[i].width/4, 0, Math.PI * 2);
-                        ctx.fill();
+                        ctx.arc(bullets[i].x + bullets[i].width/2, bullets[i].y + bullets[i].height/2, bullets[i].width/2, 0, Math.PI * 2);
+                        ctx.stroke();
+                        
+                        // Lime texture - pores
+                        ctx.fillStyle = "#228b22";
+                        for (let j = 0; j < 4; j++) {
+                            const angle = (j / 4) * Math.PI * 2;
+                            const x = bullets[i].x + bullets[i].width/2 + Math.cos(angle) * (bullets[i].width/4);
+                            const y = bullets[i].y + bullets[i].height/2 + Math.sin(angle) * (bullets[i].height/4);
+                            ctx.beginPath();
+                            ctx.arc(x, y, 1, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
                         break;
                     case "frosting":
+                        // Frosting laser - pink with shine
                         ctx.fillStyle = "#ff69b4";
                         ctx.fillRect(bullets[i].x, bullets[i].y, bullets[i].width, bullets[i].height);
-                        // Frosting shine
-                        ctx.fillStyle = "rgba(255,255,255,0.5)";
-                        ctx.fillRect(bullets[i].x + 2, bullets[i].y + 2, 2, bullets[i].height - 4);
+                        
+                        // Frosting shine - gradient effect
+                        const frostingGradient = ctx.createLinearGradient(
+                            bullets[i].x, bullets[i].y, 
+                            bullets[i].x + bullets[i].width, bullets[i].y
+                        );
+                        frostingGradient.addColorStop(0, 'rgba(255,255,255,0.5)');
+                        frostingGradient.addColorStop(0.5, 'rgba(255,255,255,0.2)');
+                        frostingGradient.addColorStop(1, 'rgba(255,255,255,0.5)');
+                        ctx.fillStyle = frostingGradient;
+                        ctx.fillRect(bullets[i].x, bullets[i].y, bullets[i].width, bullets[i].height/2);
                         break;
                     case "sword":
+                        // Sword bullet - metallic with edge
                         ctx.fillStyle = "#c0c0c0";
                         ctx.fillRect(bullets[i].x, bullets[i].y, bullets[i].width, bullets[i].height);
-                        // Sword hilt
+                        
+                        // Sword edge - sharpened
+                        ctx.strokeStyle = "#ffffff";
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(bullets[i].x, bullets[i].y);
+                        ctx.lineTo(bullets[i].x + bullets[i].width, bullets[i].y);
+                        ctx.stroke();
+                        
+                        // Sword hilt - decorative
                         ctx.fillStyle = "#8b4513";
                         ctx.fillRect(bullets[i].x - 2, bullets[i].y + bullets[i].height - 5, bullets[i].width + 4, 3);
-                        // Sword details
+                        
+                        // Sword details - gem in hilt
                         ctx.fillStyle = "#ffd700";
-                        ctx.fillRect(bullets[i].x, bullets[i].y + bullets[i].height - 5, bullets[i].width, 1);
+                        ctx.beginPath();
+                        ctx.arc(bullets[i].x + bullets[i].width/2, bullets[i].y + bullets[i].height - 4, 2, 0, Math.PI * 2);
+                        ctx.fill();
                         break;
                     case "chaos":
+                        // Chaos bullet - energy effect
                         ctx.fillStyle = bullets[i].color;
-                        ctx.fillRect(bullets[i].x, bullets[i].y, bullets[i].width, bullets[i].height);
-                        // Chaos effect
+                        ctx.beginPath();
+                        ctx.arc(bullets[i].x + bullets[i].width/2, bullets[i].y + bullets[i].height/2, bullets[i].width/2, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        // Chaos energy aura
+                        ctx.strokeStyle = bullets[i].color;
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.arc(bullets[i].x + bullets[i].width/2, bullets[i].y + bullets[i].height/2, bullets[i].width/2 + 2, 0, Math.PI * 2);
+                        ctx.stroke();
+                        
+                        // Chaos core
                         ctx.fillStyle = "#ffffff";
-                        ctx.fillRect(bullets[i].x + 1, bullets[i].y + 2, 1, 1);
-                        ctx.fillRect(bullets[i].x + 4, bullets[i].y + 5, 1, 1);
+                        ctx.beginPath();
+                        ctx.arc(bullets[i].x + bullets[i].width/2, bullets[i].y + bullets[i].height/2, 1, 0, Math.PI * 2);
+                        ctx.fill();
                         break;
                     default:
+                        // Default laser bullet - energy beam
                         ctx.fillStyle = "#7cf3d6";
                         ctx.fillRect(bullets[i].x, bullets[i].y, bullets[i].width, bullets[i].height);
+                        
+                        // Laser glow effect
+                        ctx.fillStyle = "rgba(124, 243, 214, 0.5)";
+                        ctx.fillRect(bullets[i].x - 1, bullets[i].y, bullets[i].width + 2, bullets[i].height);
                 }
 
                 // Collision with aliens
@@ -2018,7 +2169,7 @@ function startLevel(levelIndex) {
                     continue;
                 }
 
-                enemyBullets[i].y += 5;
+                enemyBullets[i].y += 5 * (deltaTime / 16);
 
                 // Remove if out of bounds
                 if (enemyBullets[i].y > canvas.height) {
@@ -2026,9 +2177,21 @@ function startLevel(levelIndex) {
                     continue;
                 }
 
-                // Draw enemy bullet
+                // Draw enemy bullet with realistic effect
                 ctx.fillStyle = enemyBullets[i].color;
-                ctx.fillRect(enemyBullets[i].x, enemyBullets[i].y, enemyBullets[i].width, enemyBullets[i].height);
+                ctx.beginPath();
+                ctx.arc(enemyBullets[i].x + enemyBullets[i].width/2, 
+                        enemyBullets[i].y + enemyBullets[i].height/2, 
+                        enemyBullets[i].width/2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Bullet glow effect
+                ctx.fillStyle = 'rgba(255, 111, 97, 0.5)';
+                ctx.beginPath();
+                ctx.arc(enemyBullets[i].x + enemyBullets[i].width/2, 
+                        enemyBullets[i].y + enemyBullets[i].height/2, 
+                        enemyBullets[i].width/2 + 1, 0, Math.PI * 2);
+                ctx.fill();
 
                 // Check for collision with player
                 if (
@@ -2110,17 +2273,24 @@ function startLevel(levelIndex) {
                 const butter = butterPellets[i];
                 
                 // Move
-                butter.y += butter.speed;
+                butter.y += butter.speed * (deltaTime / 16);
                 
-                // Draw
+                // Draw realistic butter
                 ctx.fillStyle = '#ffff00';
                 ctx.beginPath();
                 ctx.arc(butter.x + butter.size/2, butter.y + butter.size/2, butter.size/2, 0, Math.PI * 2);
                 ctx.fill();
-                // Butter details
+                
+                // Butter highlights
                 ctx.fillStyle = '#ffcc00';
                 ctx.beginPath();
-                ctx.arc(butter.x + butter.size/2, butter.y + butter.size/2, butter.size/4, 0, Math.PI * 2);
+                ctx.arc(butter.x + butter.size/3, butter.y + butter.size/3, butter.size/4, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Butter shine
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.beginPath();
+                ctx.arc(butter.x + butter.size/4, butter.y + butter.size/4, butter.size/8, 0, Math.PI * 2);
                 ctx.fill();
                 
                 // Remove offscreen
@@ -2133,21 +2303,37 @@ function startLevel(levelIndex) {
                 const shield = shields[i];
                 
                 // Move
-                shield.y += shield.speed;
+                shield.y += shield.speed * (deltaTime / 16);
                 
-                // Draw
+                // Draw realistic shield with energy effect
                 ctx.fillStyle = 'rgba(0, 100, 255, 0.3)';
                 ctx.beginPath();
                 ctx.arc(shield.x + shield.size/2, shield.y + shield.size/2, shield.size/2, 0, Math.PI * 2);
                 ctx.fill();
+                
+                // Shield border
                 ctx.strokeStyle = '#00aaff';
                 ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(shield.x + shield.size/2, shield.y + shield.size/2, shield.size/2, 0, Math.PI * 2);
                 ctx.stroke();
-                // Shield details
+                
+                // Shield energy pattern
                 ctx.strokeStyle = '#ffffff';
                 ctx.beginPath();
                 ctx.arc(shield.x + shield.size/2, shield.y + shield.size/2, shield.size/3, 0, Math.PI * 2);
                 ctx.stroke();
+                
+                // Shield energy particles
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                for (let j = 0; j < 4; j++) {
+                    const angle = (gameTick / 10 + j * Math.PI/2) % (Math.PI * 2);
+                    const x = shield.x + shield.size/2 + Math.cos(angle) * (shield.size/3);
+                    const y = shield.y + shield.size/2 + Math.sin(angle) * (shield.size/3);
+                    ctx.beginPath();
+                    ctx.arc(x, y, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
                 
                 // Remove offscreen
                 if (shield.y > canvas.height) shields.splice(i, 1);
@@ -2159,17 +2345,30 @@ function startLevel(levelIndex) {
                 const chocolate = chocolates[i];
                 
                 // Move
-                chocolate.y += chocolate.speed;
+                chocolate.y += chocolate.speed * (deltaTime / 16);
                 
-                // Draw
+                // Draw realistic chocolate
                 ctx.fillStyle = '#4a2c2a';
                 ctx.fillRect(chocolate.x, chocolate.y, chocolate.size, chocolate.size);
-                // Chocolate details
+                
+                // Chocolate texture
                 ctx.fillStyle = '#7b3f00';
                 ctx.fillRect(chocolate.x + 2, chocolate.y + 2, chocolate.size - 4, chocolate.size - 4);
+                
+                // Chocolate chips
                 ctx.fillStyle = '#5a1f1f';
-                ctx.fillRect(chocolate.x + 5, chocolate.y + 5, 2, 2);
-                ctx.fillRect(chocolate.x + 10, chocolate.y + 10, 2, 2);
+                for (let j = 0; j < 4; j++) {
+                    const x = chocolate.x + 5 + (j % 2) * 5;
+                    const y = chocolate.y + 5 + Math.floor(j / 2) * 5;
+                    ctx.beginPath();
+                    ctx.arc(x, y, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                
+                // Chocolate wrapper
+                ctx.strokeStyle = '#8b4513';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(chocolate.x, chocolate.y, chocolate.size, chocolate.size);
                 
                 // Remove offscreen
                 if (chocolate.y > canvas.height) chocolates.splice(i, 1);
@@ -2181,27 +2380,36 @@ function startLevel(levelIndex) {
                 const obs = obstacles[i];
                 
                 // Move
-                obs.y += 1;
+                obs.y += 1 * (deltaTime / 16);
                 
                 // Draw based on type
                 if (obs.type === 'lemon') {
-                    // Lemon body
+                    // Lemon body - realistic
                     ctx.fillStyle = 'yellow';
                     ctx.beginPath();
                     ctx.arc(obs.x + obs.width/2, obs.y + obs.height/2, obs.width/2, 0, Math.PI * 2);
                     ctx.fill();
-                    // Lemon details
-                    ctx.strokeStyle = '#cccc00';
-                    ctx.lineWidth = 2;
-                    ctx.stroke();
-                    // Lemon texture
+                    
+                    // Lemon texture - dimples
+                    ctx.fillStyle = '#cccc00';
+                    for (let j = 0; j < 5; j++) {
+                        const angle = (j / 5) * Math.PI * 2;
+                        const x = obs.x + obs.width/2 + Math.cos(angle) * (obs.width/3);
+                        const y = obs.y + obs.height/2 + Math.sin(angle) * (obs.height/3);
+                        ctx.beginPath();
+                        ctx.arc(x, y, 2, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    
+                    // Lemon highlights
                     ctx.fillStyle = 'rgba(255,255,255,0.3)';
                     ctx.beginPath();
                     ctx.arc(obs.x + obs.width/3, obs.y + obs.height/3, 2, 0, Math.PI * 2);
                     ctx.fill();
-                    ctx.beginPath();
-                    ctx.arc(obs.x + obs.width*2/3, obs.y + obs.height*2/3, 2, 0, Math.PI * 2);
-                    ctx.fill();
+                    
+                    // Lemon stem
+                    ctx.fillStyle = '#006400';
+                    ctx.fillRect(obs.x + obs.width/2 - 1, obs.y, 2, 3);
                 }
                 
                 // Remove offscreen
@@ -2214,16 +2422,17 @@ function startLevel(levelIndex) {
                 const obj = chaosObjects[i];
                 
                 // Move
-                obj.y += obj.speed;
+                obj.y += obj.speed * (deltaTime / 16);
                 
                 // Grow/shrink effect
                 if (obj.effect === 'grow') {
-                    obj.size += obj.growth;
+                    obj.size += obj.growth * (deltaTime / 16);
                     if (obj.size > 50 || obj.size < 10) obj.growth *= -1;
                 }
                 
-                // Draw
-                ctx.font = `${obj.size}px Arial`;
+                // Draw with pulsing effect
+                const pulse = Math.sin(gameTick / 10) * 2;
+                ctx.font = `${obj.size + pulse}px Arial`;
                 ctx.fillText(obj.emoji, obj.x, obj.y);
                 
                 // Collision with player
@@ -2397,6 +2606,7 @@ function showInGameMessage(text) {
         // IMPORTANT: Ensure game loop continues
         if (!gameActive) {
             gameActive = true;
+            lastFrameTime = performance.now();
             requestAnimationFrame(gameLoop);
         }
     }
@@ -2426,6 +2636,7 @@ function showInGameMessage(text) {
     
     // Restart game loop
     gameActive = true;
+    lastFrameTime = performance.now();
     requestAnimationFrame(gameLoop);
 }
     </script>
