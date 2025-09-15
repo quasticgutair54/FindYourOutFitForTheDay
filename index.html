@@ -1475,12 +1475,16 @@ function startLevel(levelIndex) {
         }
 
       function gameLoop() {
-    console.log('Game loop running - Aliens:', aliens.length, 'Alive:', aliens.filter(a => a.alive).length); // DEBUG
+    console.log('Game loop running - Aliens:', aliens.length, 'Alive:', aliens.filter(a => a.alive).length);
     
     if (!gameActive) {
         console.log('Game not active, stopping loop');
         return;
     }
+    
+    let shouldLoseLife = false; // Add this variable
+    let allAliensDead = true;
+    let directionChange = false;
           
    // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -1516,28 +1520,33 @@ function startLevel(levelIndex) {
     let directionChange = false;
 
     aliens.forEach(alien => {
-        if (!alien.alive) return;  // Skip dead aliens
+    if (!alien.alive) return;  // Skip dead aliens
 
-        allAliensDead = false;  // Found at least one alive alien
+    allAliensDead = false;  // Found at least one alive alien
 
-        // Update position based on alien movement type
-        updateAlienPosition(alien);
+    // Update position based on alien movement type
+    updateAlienPosition(alien);
 
-        // Check for wall collision
-        if (alien.x <= 0 || alien.x + alien.width >= canvas.width) {
-            directionChange = true;
-        }
+    // Check for wall collision
+    if (alien.x <= 0 || alien.x + alien.width >= canvas.width) {
+        directionChange = true;
+    }
 
-        // Check if reached bottom
-        if (alien.y + alien.height >= player.y && !playerInvisible) {
-            loseLife();
-            return;
-        }
+    // Check if reached bottom - DON'T call loseLife() here repeatedly
+    if (alien.y + alien.height >= player.y && !playerInvisible) {
+        // Set a flag instead of calling loseLife directly
+        shouldLoseLife = true;
+    }
 
-        // Draw alien based on type
-        drawAlien(alien);
-    });
+    // Draw alien based on type
+    drawAlien(alien);
+});
 
+// Handle life loss AFTER processing all aliens
+if (shouldLoseLife && !playerInvisible) {
+    loseLife();
+    shouldLoseLife = false; // Reset flag
+}
     // Change direction if needed
     if (directionChange) {
         levelConfigs[currentLevel].speed *= -1;
