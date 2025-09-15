@@ -2338,8 +2338,6 @@ function startLevel(levelIndex) {
             canvas.className = canvasClasses.join(' ');
         }
 
-        let lastMessageTime = 0; // Add this with your other variables at the top
-
 function showInGameMessage(text) {
     const now = Date.now();
     
@@ -2363,27 +2361,36 @@ function showInGameMessage(text) {
     }, 2000);
 }
         function loseLife() {
-            lives--;
-            
-            // Update lives display
-            const lifeElements = document.querySelectorAll('.life');
-            for (let i = 0; i < lifeElements.length; i++) {
-                if (i >= lives) {
-                    lifeElements[i].style.opacity = '0.3';
-                }
-            }
-            
-            if (lives <= 0) {
-                gameOver();
-            } else {
-                // Reset player position
-                player.x = canvas.width / 2 - 15;
-                
-                // Clear bullets
-                bullets = [];
-                enemyBullets = [];
-            }
-        }
+    // Prevent multiple life loss in the same frame
+    if (lives <= 0) return;
+    
+    lives--;
+    console.log('Life lost! Lives remaining:', lives);
+    
+    // Update lives display
+    const lifeElements = document.querySelectorAll('.life');
+    for (let i = 0; i < lifeElements.length; i++) {
+        lifeElements[i].style.opacity = i < lives ? '1' : '0.3';
+    }
+    
+    if (lives <= 0) {
+        gameOver();
+    } else {
+        // Reset player position
+        player.x = canvas.width / 2 - 15;
+        
+        // Clear bullets
+        bullets = [];
+        enemyBullets = [];
+        
+        // Show message that you lost a life
+        showInGameMessage(`Ouch! ${lives} lives remaining`);
+        
+        // Add a brief invincibility period
+        playerInvisible = true;
+        invisibleTimer = 60; // About 1 second at 60fps
+    }
+}
 
         function resetSpaceInvaders() {
     // Reset to 3 lives
