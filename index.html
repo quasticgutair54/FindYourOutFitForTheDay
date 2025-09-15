@@ -221,19 +221,19 @@
             border-radius: 50%;
         }
         
-        .in-game-message {
-            position: absolute;
-            bottom: 20px;
-            left: 0;
-            right: 0;
-            text-align: center;
-            font-size: 1.2rem;
-            color: var(--accent-2);
-            opacity: 0;
-            transition: opacity 0.5s;
-            pointer-events: none;
-            text-shadow: 0 0 10px var(--accent-2);
-        }
+       .in-game-message {
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 1.2rem;
+    color: var(--accent-2);
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out; /* Add smooth fade */
+    pointer-events: none;
+    text-shadow: 0 0 10px var(--accent-2);
+}
         
         .overlay {
             position: fixed;
@@ -2340,15 +2340,30 @@ if (shouldLoseLife && !playerInvisible) {
             canvas.className = canvasClasses.join(' ');
         }
 
-        function showInGameMessage(text) {
-            inGameMessage.textContent = text;
-            inGameMessage.style.opacity = '1';
-            
-            setTimeout(() => {
-                inGameMessage.style.opacity = '0';
-            }, 2000);
-        }
+        let lastMessageTime = 0; // Add this with your other variables at the top
 
+function showInGameMessage(text) {
+    const now = Date.now();
+    
+    // Cooldown protection - only show message every 2 seconds
+    if (now - lastMessageTime < 2000) {
+        return; // Skip if message was shown recently
+    }
+    
+    lastMessageTime = now; // Update last message time
+    
+    inGameMessage.textContent = text;
+    inGameMessage.style.opacity = '1';
+    
+    // Clear any existing timeout to prevent conflicts
+    if (window.messageTimeout) {
+        clearTimeout(window.messageTimeout);
+    }
+    
+    window.messageTimeout = setTimeout(() => {
+        inGameMessage.style.opacity = '0';
+    }, 2000);
+}
         function loseLife() {
             lives--;
             
