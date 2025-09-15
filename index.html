@@ -692,8 +692,8 @@
         name: "Notthebest OG",
         rows: 2,
         cols: 7,
-        speed: 0.1,  // Further reduced from 0.15
-        fireRate: 0.0015,  // Further reduced fire rate
+        speed: 0.15,  // Reduced from 0.3 - much slower for level 1
+        fireRate: 0.002,  // Reduced fire rate
         alienType: 'normal',
         alienWidth: 24,
         alienHeight: 18,
@@ -1648,31 +1648,29 @@ function startLevel(levelIndex) {
             ctx.fillRect(player.x + player.width - 5, player.y + player.height - 5, 5, 5);
         }
 
-       function updateAlienPosition(alien) {
-    const config = levelConfigs[currentLevel];
-    
-    // Apply mobile speed reduction
-    const actualSpeed = config.speed * mobileSpeedMultiplier;
-    
-    switch(config.movement) {
-        case "zigzag":
-            // Zigzag movement for Level 2
-            alien.movePattern += 0.05;
-            alien.x = alien.originalX + Math.sin(alien.movePattern) * 30;
-            alien.y += actualSpeed;  // Use adjusted speed
-            break;
+        function updateAlienPosition(alien) {
+            const config = levelConfigs[currentLevel];
             
-        case "chaotic":
-            // Random movement for chaotic aliens (Level 8)
-            alien.x += (Math.random() - 0.5) * 3;
-            alien.y += actualSpeed * (0.8 + Math.random() * 0.4);  // Use adjusted speed
-            break;
-            
-        default:
-            // Straight descent for other levels
-            alien.y += actualSpeed;  // Use adjusted speed
-    }
-}
+            switch(config.movement) {
+                case "zigzag":
+                    // Zigzag movement for Level 2
+                    alien.movePattern += 0.05;
+                    alien.x = alien.originalX + Math.sin(alien.movePattern) * 30;
+                    alien.y += config.speed;
+                    break;
+                    
+                case "chaotic":
+                    // Random movement for chaotic aliens (Level 8)
+                    alien.x += (Math.random() - 0.5) * 3;
+                    alien.y += config.speed * (0.8 + Math.random() * 0.4);
+                    break;
+                    
+                default:
+                    // Straight descent for other levels
+                    alien.y += config.speed;
+            }
+        }
+
         function drawAlien(alien) {
             // Handle invisibility effect
             ctx.globalAlpha = (chaosEffects.invisible > 0) ? 0.3 : 1;
@@ -2013,41 +2011,39 @@ function startLevel(levelIndex) {
             }
         }
 
-       function updateEnemyBullets() {
-    for (let i = enemyBullets.length - 1; i >= 0; i--) {
-        if (!enemyBullets[i].active) {
-            enemyBullets.splice(i, 1);
-            continue;
+        function updateEnemyBullets() {
+            for (let i = enemyBullets.length - 1; i >= 0; i--) {
+                if (!enemyBullets[i].active) {
+                    enemyBullets.splice(i, 1);
+                    continue;
+                }
+
+                enemyBullets[i].y += 5;
+
+                // Remove if out of bounds
+                if (enemyBullets[i].y > canvas.height) {
+                    enemyBullets.splice(i, 1);
+                    continue;
+                }
+
+                // Draw enemy bullet
+                ctx.fillStyle = enemyBullets[i].color;
+                ctx.fillRect(enemyBullets[i].x, enemyBullets[i].y, enemyBullets[i].width, enemyBullets[i].height);
+
+                // Check for collision with player
+                if (
+                    enemyBullets[i].x < player.x + player.width &&
+                    enemyBullets[i].x + enemyBullets[i].width > player.x &&
+                    enemyBullets[i].y < player.y + player.height &&
+                    enemyBullets[i].y + enemyBullets[i].height > player.y &&
+                    !playerInvisible
+                ) {
+                    loseLife();
+                    enemyBullets[i].active = false;
+                    enemyBullets.splice(i, 1);
+                }
+            }
         }
-
-        // Adjust bullet speed for mobile
-        const bulletSpeed = isMobileDevice ? 3 : 5;
-        enemyBullets[i].y += bulletSpeed;
-
-        // Remove if out of bounds
-        if (enemyBullets[i].y > canvas.height) {
-            enemyBullets.splice(i, 1);
-            continue;
-        }
-
-        // Draw enemy bullet
-        ctx.fillStyle = enemyBullets[i].color;
-        ctx.fillRect(enemyBullets[i].x, enemyBullets[i].y, enemyBullets[i].width, enemyBullets[i].height);
-
-        // Check for collision with player
-        if (
-            enemyBullets[i].x < player.x + player.width &&
-            enemyBullets[i].x + enemyBullets[i].width > player.x &&
-            enemyBullets[i].y < player.y + player.height &&
-            enemyBullets[i].y + enemyBullets[i].height > player.y &&
-            !playerInvisible
-        ) {
-            loseLife();
-            enemyBullets[i].active = false;
-            enemyBullets.splice(i, 1);
-        }
-    }
-}
 
         function spawnLevelObjects() {
             const config = levelConfigs[currentLevel];
@@ -2382,6 +2378,7 @@ function showInGameMessage(text) {
     
     if (lives <= 0) {
         gameOver();
+        // Don't return here - let the gameOver function handle the state
     } else {
         // Reset player position
         player.x = canvas.width / 2 - 15;
@@ -2398,7 +2395,6 @@ function showInGameMessage(text) {
         invisibleTimer = 60; // About 1 second at 60fps
         
         // IMPORTANT: Ensure game loop continues
-        // The game should already be active, but let's make sure
         if (!gameActive) {
             gameActive = true;
             requestAnimationFrame(gameLoop);
@@ -2435,5 +2431,3 @@ function showInGameMessage(text) {
     </script>
 </body>
 </html>
-
-
