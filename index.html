@@ -1474,7 +1474,7 @@ function startLevel(levelIndex) {
             });
         }
 
-      function gameLoop() {
+     function gameLoop() {
     console.log('Game loop running - Aliens:', aliens.length, 'Alive:', aliens.filter(a => a.alive).length);
     
     if (!gameActive) {
@@ -1483,10 +1483,10 @@ function startLevel(levelIndex) {
     }
     
     let shouldLoseLife = false; // Add this variable
-    let allAliensDead = true;
-    let directionChange = false;
+    let allAliensDead = true;   // Declare here ONCE
+    let directionChange = false; // Declare here ONCE
           
-   // Clear canvas
+    // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Handle player movement
@@ -1515,38 +1515,36 @@ function startLevel(levelIndex) {
         }
     }
 
-    // Update and draw aliens
-    let allAliensDead = true;  // Assume all are dead initially
-    let directionChange = false;
-
+    // Update and draw aliens - REMOVE the duplicate declarations here
     aliens.forEach(alien => {
-    if (!alien.alive) return;  // Skip dead aliens
+        if (!alien.alive) return;  // Skip dead aliens
 
-    allAliensDead = false;  // Found at least one alive alien
+        allAliensDead = false;  // Found at least one alive alien
 
-    // Update position based on alien movement type
-    updateAlienPosition(alien);
+        // Update position based on alien movement type
+        updateAlienPosition(alien);
 
-    // Check for wall collision
-    if (alien.x <= 0 || alien.x + alien.width >= canvas.width) {
-        directionChange = true;
+        // Check for wall collision
+        if (alien.x <= 0 || alien.x + alien.width >= canvas.width) {
+            directionChange = true;
+        }
+
+        // Check if reached bottom - DON'T call loseLife() here repeatedly
+        if (alien.y + alien.height >= player.y && !playerInvisible) {
+            // Set a flag instead of calling loseLife directly
+            shouldLoseLife = true;
+        }
+
+        // Draw alien based on type
+        drawAlien(alien);
+    });
+
+    // Handle life loss AFTER processing all aliens
+    if (shouldLoseLife && !playerInvisible) {
+        loseLife();
+        shouldLoseLife = false; // Reset flag
     }
 
-    // Check if reached bottom - DON'T call loseLife() here repeatedly
-    if (alien.y + alien.height >= player.y && !playerInvisible) {
-        // Set a flag instead of calling loseLife directly
-        shouldLoseLife = true;
-    }
-
-    // Draw alien based on type
-    drawAlien(alien);
-});
-
-// Handle life loss AFTER processing all aliens
-if (shouldLoseLife && !playerInvisible) {
-    loseLife();
-    shouldLoseLife = false; // Reset flag
-}
     // Change direction if needed
     if (directionChange) {
         levelConfigs[currentLevel].speed *= -1;
