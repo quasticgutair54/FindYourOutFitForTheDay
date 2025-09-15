@@ -687,114 +687,114 @@
         let touchId = null;
         let touchStartX = 0;
 
-        const levelConfigs = [
-            {
-                name: "Notthebest OG",
-                rows: 2,
-                cols: 7,
-                speed: 0.3,  // Very slow for level 1
-                fireRate: 0.003,
-                alienType: 'normal',
-                alienWidth: 24,
-                alienHeight: 18,
-                description: "Intro, simple enemies, chill",
-                movement: "straight"
-            },
-            {
-                name: "Initial D",
-                rows: 2,
-                cols: 7,
-                speed: 0.5,  // Slightly faster for level 2
-                fireRate: 0.005,
-                alienType: "car",
-                alienWidth: 24,
-                alienHeight: 14,
-                description: "Mini cars drifting in zig-zag motion",
-                movement: "zigzag"
-            },
-            {
-                name: "Lorem Ipsum",
-                rows: 3,
-                cols: 7,
-                speed: 0.7,  // Faster for level 3
-                fireRate: 0.007,
-                alienType: "latin",
-                alienWidth: 24,
-                alienHeight: 18,
-                description: "Enemies spawn with weird random Latin-like text sprites",
-                movement: "straight"
-            },
-            {
-                name: "Your Toast",
-                rows: 3,
-                cols: 7,
-                speed: 0.9,  // Even faster for level 4
-                fireRate: 0.009,
-                alienType: "toaster",
-                alienWidth: 24,
-                alienHeight: 20,
-                special: "bread-bullets",
-                description: "Toaster enemies, bread bullets, butter pellet blockers",
-                movement: "straight",
-                butterSpawnRate: 0.01
-            },
-            {
-                name: "Grapefruit x Lime",
-                rows: 3,
-                cols: 7,
-                speed: 1.1,  // Faster for level 5
-                fireRate: 0.01,
-                alienType: "grapefruit",
-                alienWidth: 22,
-                alienHeight: 22,
-                special: "lime-bullets",
-                description: "Grapefruit enemies, lime bullets, lemon blockers",
-                movement: "straight",
-                obstacleSpawnRate: 0.005
-            },
-            {
-                name: "Cake Was A Lie",
-                rows: 3,
-                cols: 7,
-                speed: 1.3,  // Faster for level 6
-                fireRate: 0.012,
-                alienType: "cupcake",
-                alienWidth: 24,
-                alienHeight: 24,
-                special: "frosting-laser",
-                description: "Cupcake enemies, frosting lasers, chocolate converters",
-                movement: "straight",
-                chocolateSpawnRate: 0.003
-            },
-            {
-                name: "Berserk",
-                rows: 4,
-                cols: 7,
-                speed: 1.6,  // Faster for level 7
-                fireRate: 0.02,
-                alienType: "armor",
-                alienWidth: 22,
-                alienHeight: 22,
-                special: "sword-bullets",
-                description: "Armor enemies, sword bullets, shield blockers",
-                movement: "straight",
-                shieldSpawnRate: 0.004
-            },
-            {
-                name: "RANDOMODIUM",
-                rows: 5,
-                cols: 7,
-                speed: 2.0,  // Fastest for level 8
-                fireRate: 0.03,
-                alienType: "chaos",
-                alienWidth: 24,
-                alienHeight: 18,
-                special: "chaos-bullets",
-                description: "Final chaos boss level with floating chaos objects",
-                movement: "chaotic",
-                chaosSpawnRate: 0.02
-            }
-        ];
+       const levelConfigs = [
+    {
+        name: "Notthebest OG",
+        rows: 2,
+        cols: 7,
+        speed: 0.15,  // Reduced from 0.3 - much slower for level 1
+        fireRate: 0.002,  // Reduced fire rate
+        alienType: 'normal',
+        alienWidth: 24,
+        alienHeight: 18,
+        description: "Intro, simple enemies, chill",
+        movement: "straight"
+    },
+    {
+        name: "Initial D",
+        rows: 2,
+        cols: 7,
+        speed: 0.25,  // Reduced from 0.5
+        fireRate: 0.003,
+        alienType: "car",
+        alienWidth: 24,
+        alienHeight: 14,
+        description: "Mini cars drifting in zig-zag motion",
+        movement: "zigzag"
+    },
+    {
+        name: "Lorem Ipsum",
+        rows: 3,
+        cols: 7,
+        speed: 0.35,  // Reduced from 0.7
+        fireRate: 0.004,
+        alienType: "latin",
+        alienWidth: 24,
+        alienHeight: 18,
+        description: "Enemies spawn with weird random Latin-like text sprites",
+        movement: "straight"
+    },
+    {
+        name: "Your Toast",
+        rows: 3,
+        cols: 7,
+        speed: 0.45,  // Reduced from 0.9
+        fireRate: 0.005,
+        alienType: "toaster",
+        alienWidth: 24,
+        alienHeight: 20,
+        special: "bread-bullets",
+        description: "Toaster enemies, bread bullets, butter pellet blockers",
+        movement: "straight",
+        butterSpawnRate: 0.01
+    },
+    {
+        name: "Grapefruit x Lime",
+        rows: 3,
+        cols: 7,
+        speed: 0.55,  // Reduced from 1.1
+        fireRate: 0.006,
+        alienType: "grapefruit",
+        alienWidth: 22,
+        alienHeight: 22,
+        special: "lime-bullets",
+        description: "Grapefruit enemies, lime bullets, lemon blockers",
+        movement: "straight",
+        obstacleSpawnRate: 0.005
+    },
+    {
+        name: "Cake Was A Lie",
+        rows: 3,
+        cols: 7,
+        speed: 0.65,  // Reduced from 1.3
+        fireRate: 0.007,
+        alienType: "cupcake",
+        alienWidth: 24,
+        alienHeight: 24,
+        special: "frosting-laser",
+        description: "Cupcake enemies, frosting lasers, chocolate converters",
+        movement: "straight",
+        chocolateSpawnRate: 0.003
+    },
+    {
+        name: "Berserk",
+        rows: 4,
+        cols: 7,
+        speed: 0.8,   // Reduced from 1.6
+        fireRate: 0.01,
+        alienType: "armor",
+        alienWidth: 22,
+        alienHeight: 22,
+        special: "sword-bullets",
+        description: "Armor enemies, sword bullets, shield blockers",
+        movement: "straight",
+        shieldSpawnRate: 0.004
+    },
+    {
+        name: "RANDOMODIUM",
+        rows: 5,
+        cols: 7,
+        speed: 1.0,   // Reduced from 2.0
+        fireRate: 0.015,
+        alienType: "chaos",
+        alienWidth: 24,
+        alienHeight: 18,
+        special: "chaos-bullets",
+        description: "Final chaos boss level with floating chaos objects",
+        movement: "chaotic",
+        chaosSpawnRate: 0.02
+    }
+];
 
         const latinChars = ["Lorem", "Ipsum", "Dolor", "Sit", "Amet", "Conset", "Etur"];
         const messages = [
@@ -1010,7 +1010,7 @@ function playBackgroundMedia() {
             }, 2000);
         }
 
-     function completeMemoryGame() {
+    function completeMemoryGame() {
     gameState.memoryGameCompleted = true;
     
     // Hide memory game
@@ -1049,7 +1049,7 @@ function playBackgroundMedia() {
     // Show the message in the game panel
     gameContainer.appendChild(notYetOverDiv);
     
-    // After 5 seconds, remove message and start Space Invaders
+    // After 3 seconds, remove message and start Space Invaders
     setTimeout(() => {
         notYetOverDiv.remove();
         spaceInvaders.style.display = 'flex';
@@ -1077,7 +1077,7 @@ function playBackgroundMedia() {
         
         // Start the game loop
         requestAnimationFrame(gameLoop);
-    }, 5000);
+    }, 3000); // Reduced from 5 to 3 seconds
 }
         function completeSpaceInvaders() {
             gameState.spaceInvadersCompleted = true;
@@ -1099,9 +1099,15 @@ function playBackgroundMedia() {
         }
 
         function gameOver() {
-            gameOverOverlay.style.display = 'flex';
-            gameActive = false;
-        }
+    gameOverOverlay.style.display = 'flex';
+    gameActive = false;
+    
+    // Ensure the try again button works properly
+    tryAgainBtn.onclick = function() {
+        gameOverOverlay.style.display = 'none';
+        resetSpaceInvaders();
+    };
+}
 
         // ===== MEMORY GAME IMPLEMENTATION =====
         function initMemoryGame() {
@@ -1474,18 +1480,12 @@ function startLevel(levelIndex) {
             });
         }
 
-     function gameLoop() {
-    console.log('Game loop running - Aliens:', aliens.length, 'Alive:', aliens.filter(a => a.alive).length);
-    
+    function gameLoop() {
     if (!gameActive) {
         console.log('Game not active, stopping loop');
         return;
     }
     
-    let shouldLoseLife = false; // Add this variable
-    let allAliensDead = true;   // Declare here ONCE
-    let directionChange = false; // Declare here ONCE
-          
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -1515,11 +1515,15 @@ function startLevel(levelIndex) {
         }
     }
 
-    // Update and draw aliens - REMOVE the duplicate declarations here
-    aliens.forEach(alien => {
-        if (!alien.alive) return;  // Skip dead aliens
+    // Update and draw aliens
+    let allAliensDead = true;
+    let directionChange = false;
+    let shouldLoseLife = false;
 
-        allAliensDead = false;  // Found at least one alive alien
+    aliens.forEach(alien => {
+        if (!alien.alive) return;
+
+        allAliensDead = false;
 
         // Update position based on alien movement type
         updateAlienPosition(alien);
@@ -1529,9 +1533,8 @@ function startLevel(levelIndex) {
             directionChange = true;
         }
 
-        // Check if reached bottom - DON'T call loseLife() here repeatedly
+        // Check if reached bottom
         if (alien.y + alien.height >= player.y && !playerInvisible) {
-            // Set a flag instead of calling loseLife directly
             shouldLoseLife = true;
         }
 
@@ -1539,10 +1542,9 @@ function startLevel(levelIndex) {
         drawAlien(alien);
     });
 
-    // Handle life loss AFTER processing all aliens
-    if (shouldLoseLife && !playerInvisible) {
+    // Handle life loss
+    if (shouldLoseLife) {
         loseLife();
-        shouldLoseLife = false; // Reset flag
     }
 
     // Change direction if needed
@@ -1553,9 +1555,8 @@ function startLevel(levelIndex) {
         });
     }
 
-    // Check for level completion - ONLY if all aliens are actually dead
+    // Check for level completion
     if (allAliensDead) {
-        console.log('All aliens dead, completing level'); // DEBUG
         if (currentLevel < levelConfigs.length - 1) {
             setTimeout(() => {
                 startLevel(currentLevel + 1);
@@ -1619,6 +1620,8 @@ function startLevel(levelIndex) {
     if (gameTick % 300 === 0) {
         showInGameMessage(messages[Math.floor(Math.random() * messages.length)]);
     }
+
+    gameTick++;
 
     // Continue the game loop
     requestAnimationFrame(gameLoop);
@@ -2360,7 +2363,7 @@ function showInGameMessage(text) {
         inGameMessage.style.opacity = '0';
     }, 2000);
 }
-        function loseLife() {
+       function loseLife() {
     // Prevent multiple life loss in the same frame
     if (lives <= 0) return;
     
@@ -2375,6 +2378,7 @@ function showInGameMessage(text) {
     
     if (lives <= 0) {
         gameOver();
+        // Don't return here - let the gameOver function handle the state
     } else {
         // Reset player position
         player.x = canvas.width / 2 - 15;
@@ -2389,9 +2393,14 @@ function showInGameMessage(text) {
         // Add a brief invincibility period
         playerInvisible = true;
         invisibleTimer = 60; // About 1 second at 60fps
+        
+        // IMPORTANT: Ensure game loop continues
+        if (!gameActive) {
+            gameActive = true;
+            requestAnimationFrame(gameLoop);
+        }
     }
 }
-
         function resetSpaceInvaders() {
     // Reset to 3 lives
     lives = 3;
