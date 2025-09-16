@@ -221,19 +221,19 @@
             border-radius: 50%;
         }
         
-       .in-game-message {
-    position: absolute;
-    bottom: 20px;
-    left: 0;
-    right: 0;
-    text-align: center;
-    font-size: 1.2rem;
-    color: var(--accent-2);
-    opacity: 0;
-    transition: opacity 0.5s ease-in-out; /* Add smooth fade */
-    pointer-events: none;
-    text-shadow: 0 0 10px var(--accent-2);
-}
+        .in-game-message {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 1.2rem;
+            color: var(--accent-2);
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            pointer-events: none;
+            text-shadow: 0 0 10px var(--accent-2);
+        }
         
         .overlay {
             position: fixed;
@@ -511,20 +511,20 @@
 </head>
 <body>
     <!-- Background Elements -->
-<video id="bg-video" loop muted playsinline autoplay>
-    <source src="loop-bg.mp4" type="video/mp4">
-    Your browser does not support the video tag.
-</video>
-<div class="bg-overlay"></div>
-<audio id="bg-music" loop>
-    <source src="running-out-of-time.mp3" type="audio/mp3">
-    Your browser does not support the audio element.
-</audio>
-<audio id="shoot-sound" src="laser-shoot.wav" preload="auto"></audio>
-<audio id="explosion-sound" src="explosion.wav" preload="auto"></audio>
-<audio id="flip-sound" src="card-flip.wav" preload="auto"></audio>
-<audio id="match-sound" src="card-match.wav" preload="auto"></audio>
-<audio id="glitch-sound" src="glitch-sound.wav" preload="auto"></audio>
+    <video id="bg-video" loop muted playsinline autoplay>
+        <source src="loop-bg.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+    <div class="bg-overlay"></div>
+    <audio id="bg-music" loop>
+        <source src="running-out-of-time.mp3" type="audio/mp3">
+        Your browser does not support the audio element.
+    </audio>
+    <audio id="shoot-sound" src="laser-shoot.wav" preload="auto"></audio>
+    <audio id="explosion-sound" src="explosion.wav" preload="auto"></audio>
+    <audio id="flip-sound" src="card-flip.wav" preload="auto"></audio>
+    <audio id="match-sound" src="card-match.wav" preload="auto"></audio>
+    <audio id="glitch-sound" src="glitch-sound.wav" preload="auto"></audio>
     
     <!-- Welcome Modal -->
     <div id="welcome-overlay" class="overlay">
@@ -688,115 +688,147 @@
         let touchStartX = 0;
         let lastFrameTime = 0;
         let deltaTime = 0;
+        let stars = [];
 
-       const levelConfigs = [
-    {
-        name: "Notthebest OG",
-        rows: 2,
-        cols: 7,
-        speed: 0.15,  // Reduced from 0.3 - much slower for level 1
-        fireRate: 0.002,  // Reduced fire rate
-        alienType: 'normal',
-        alienWidth: 24,
-        alienHeight: 18,
-        description: "Intro, simple enemies, chill",
-        movement: "straight"
-    },
-    {
-        name: "Initial D",
-        rows: 2,
-        cols: 7,
-        speed: 0.25,  // Reduced from 0.5
-        fireRate: 0.003,
-        alienType: "car",
-        alienWidth: 24,
-        alienHeight: 14,
-        description: "Mini cars drifting in zig-zag motion",
-        movement: "zigzag"
-    },
-    {
-        name: "Lorem Ipsum",
-        rows: 3,
-        cols: 7,
-        speed: 0.35,  // Reduced from 0.7
-        fireRate: 0.004,
-        alienType: "latin",
-        alienWidth: 24,
-        alienHeight: 18,
-        description: "Enemies spawn with weird random Latin-like text sprites",
-        movement: "straight"
-    },
-    {
-        name: "Your Toast",
-        rows: 3,
-        cols: 7,
-        speed: 0.45,  // Reduced from 0.9
-        fireRate: 0.005,
-        alienType: "toaster",
-        alienWidth: 24,
-        alienHeight: 20,
-        special: "bread-bullets",
-        description: "Toaster enemies, bread bullets, butter pellet blockers",
-        movement: "straight",
-        butterSpawnRate: 0.01
-    },
-    {
-        name: "Grapefruit x Lime",
-        rows: 3,
-        cols: 7,
-        speed: 0.55,  // Reduced from 1.1
-        fireRate: 0.006,
-        alienType: "grapefruit",
-        alienWidth: 22,
-        alienHeight: 22,
-        special: "lime-bullets",
-        description: "Grapefruit enemies, lime bullets, lemon blockers",
-        movement: "straight",
-        obstacleSpawnRate: 0.005
-    },
-    {
-        name: "Cake Was A Lie",
-        rows: 3,
-        cols: 7,
-        speed: 0.65,  // Reduced from 1.3
-        fireRate: 0.007,
-        alienType: "cupcake",
-        alienWidth: 24,
-        alienHeight: 24,
-        special: "frosting-laser",
-        description: "Cupcake enemies, frosting lasers, chocolate converters",
-        movement: "straight",
-        chocolateSpawnRate: 0.003
-    },
-    {
-        name: "Berserk",
-        rows: 4,
-        cols: 7,
-        speed: 0.8,   // Reduced from 1.6
-        fireRate: 0.01,
-        alienType: "armor",
-        alienWidth: 22,
-        alienHeight: 22,
-        special: "sword-bullets",
-        description: "Armor enemies, sword bullets, shield blockers",
-        movement: "straight",
-        shieldSpawnRate: 0.004
-    },
-    {
-        name: "RANDOMODIUM",
-        rows: 5,
-        cols: 7,
-        speed: 1.0,   // Reduced from 2.0
-        fireRate: 0.015,
-        alienType: "chaos",
-        alienWidth: 24,
-        alienHeight: 18,
-        special: "chaos-bullets",
-        description: "Final chaos boss level with floating chaos objects",
-        movement: "chaotic",
-        chaosSpawnRate: 0.02
-    }
-];
+        // Create stars for space background
+        function createStars() {
+            stars = [];
+            for (let i = 0; i < 100; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 2 + 1,
+                    speed: Math.random() * 0.5 + 0.2
+                });
+            }
+        }
+
+        // Draw stars for space background
+        function drawStars() {
+            ctx.fillStyle = '#ffffff';
+            for (let i = 0; i < stars.length; i++) {
+                const star = stars[i];
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Move stars
+                star.y += star.speed * (deltaTime / 16);
+                if (star.y > canvas.height) {
+                    star.y = 0;
+                    star.x = Math.random() * canvas.width;
+                }
+            }
+        }
+
+        const levelConfigs = [
+            {
+                name: "Notthebest OG",
+                rows: 2,
+                cols: 7,
+                speed: 0.15,
+                fireRate: 0.002,
+                alienType: 'normal',
+                alienWidth: 24,
+                alienHeight: 18,
+                description: "Intro, simple enemies, chill",
+                movement: "straight"
+            },
+            {
+                name: "Initial D",
+                rows: 2,
+                cols: 7,
+                speed: 0.25,
+                fireRate: 0.003,
+                alienType: "car",
+                alienWidth: 24,
+                alienHeight: 14,
+                description: "Mini cars drifting in zig-zag motion",
+                movement: "zigzag"
+            },
+            {
+                name: "Lorem Ipsum",
+                rows: 3,
+                cols: 7,
+                speed: 0.35,
+                fireRate: 0.004,
+                alienType: "latin",
+                alienWidth: 24,
+                alienHeight: 18,
+                description: "Enemies spawn with weird random Latin-like text sprites",
+                movement: "straight"
+            },
+            {
+                name: "Your Toast",
+                rows: 3,
+                cols: 7,
+                speed: 0.45,
+                fireRate: 0.005,
+                alienType: "toaster",
+                alienWidth: 24,
+                alienHeight: 20,
+                special: "bread-bullets",
+                description: "Toaster enemies, bread bullets, butter pellet blockers",
+                movement: "straight",
+                butterSpawnRate: 0.01
+            },
+            {
+                name: "Grapefruit x Lime",
+                rows: 3,
+                cols: 7,
+                speed: 0.55,
+                fireRate: 0.006,
+                alienType: "grapefruit",
+                alienWidth: 22,
+                alienHeight: 22,
+                special: "lime-bullets",
+                description: "Grapefruit enemies, lime bullets, lemon blockers",
+                movement: "straight",
+                obstacleSpawnRate: 0.005
+            },
+            {
+                name: "Cake Was A Lie",
+                rows: 3,
+                cols: 7,
+                speed: 0.65,
+                fireRate: 0.007,
+                alienType: "cupcake",
+                alienWidth: 24,
+                alienHeight: 24,
+                special: "frosting-laser",
+                description: "Cupcake enemies, frosting lasers, chocolate converters",
+                movement: "straight",
+                chocolateSpawnRate: 0.003
+            },
+            {
+                name: "Berserk",
+                rows: 4,
+                cols: 7,
+                speed: 0.8,
+                fireRate: 0.01,
+                alienType: "armor",
+                alienWidth: 22,
+                alienHeight: 22,
+                special: "sword-bullets",
+                description: "Armor enemies, sword bullets, shield blockers",
+                movement: "straight",
+                shieldSpawnRate: 0.004
+            },
+            {
+                name: "RANDOMODIUM",
+                rows: 5,
+                cols: 7,
+                speed: 1.0,
+                fireRate: 0.015,
+                alienType: "chaos",
+                alienWidth: 24,
+                alienHeight: 18,
+                special: "chaos-bullets",
+                description: "Final chaos boss level with floating chaos objects",
+                movement: "chaotic",
+                chaosSpawnRate: 0.02
+            }
+        ];
 
         const latinChars = ["Lorem", "Ipsum", "Dolor", "Sit", "Amet", "Conset", "Etur"];
         const messages = [
@@ -882,94 +914,97 @@
             canvas.width = canvas.offsetWidth;
             canvas.height = canvas.offsetHeight;
 
+            // Create stars for space background
+            createStars();
+
             // Mobile controls
             setupMobileControls();
         });
 
         function startExperience() {
-    welcomeOverlay.style.display = 'none';
-    gameState.initialized = true;
-    
-    // Start background media
-    playBackgroundMedia();
-}
+            welcomeOverlay.style.display = 'none';
+            gameState.initialized = true;
+            
+            // Start background media
+            playBackgroundMedia();
+        }
 
-function playBackgroundMedia() {
-    // Play video (usually has fewer restrictions when muted)
-    bgVideo.play().catch(err => {
-        console.warn('Video play failed:', err);
-    });
-    
-    // Try to play music - play() always returns a Promise
-    bgMusic.play().then(() => {
-        console.log('Background music started successfully');
-    }).catch(error => {
-        // Autoplay was prevented, set up a user interaction handler
-        console.log('Autoplay prevented, waiting for user interaction');
-        
-        // Create a subtle prompt for the user
-        const audioPrompt = document.createElement('div');
-        audioPrompt.style.cssText = `
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: var(--accent);
-            color: white;
-            padding: 10px 15px;
-            border-radius: 5px;
-            z-index: 1000;
-            cursor: pointer;
-            font-size: 14px;
-            animation: pulse 2s infinite;
-        `;
-        audioPrompt.innerHTML = '🔇 Click anywhere to enable sound';
-        document.body.appendChild(audioPrompt);
-        
-        // Add pulse animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes pulse {
-                0% { opacity: 0.7; transform: scale(1); }
-                50% { opacity: 1; transform: scale(1.05); }
-                100% { opacity: 0.7; transform: scale(1); }
-            }
-        `;
-        document.head.appendChild(style);
-        
-        // Enable audio on any user interaction
-        const enableAudio = () => {
-            bgMusic.play().then(() => {
-                audioPrompt.innerHTML = '🔊 Sound enabled';
-                setTimeout(() => {
-                    audioPrompt.style.opacity = '0';
-                    setTimeout(() => audioPrompt.remove(), 1000);
-                }, 2000);
-            }).catch(err => {
-                console.warn('Still cannot play audio:', err);
-                audioPrompt.innerHTML = '❌ Sound blocked by browser';
-                audioPrompt.style.background = '#f44336';
+        function playBackgroundMedia() {
+            // Play video (usually has fewer restrictions when muted)
+            bgVideo.play().catch(err => {
+                console.warn('Video play failed:', err);
             });
             
-            // Remove listeners after first interaction
-            document.removeEventListener('click', enableAudio);
-            document.removeEventListener('keydown', enableAudio);
-            document.removeEventListener('touchstart', enableAudio);
-        };
-        
-        // Add multiple interaction listeners
-        document.addEventListener('click', enableAudio);
-        document.addEventListener('keydown', enableAudio);
-        document.addEventListener('touchstart', enableAudio);
-        
-        // Remove prompt after 10 seconds
-        setTimeout(() => {
-            if (document.body.contains(audioPrompt)) {
-                audioPrompt.style.opacity = '0';
-                setTimeout(() => audioPrompt.remove(), 1000);
-            }
-        }, 10000);
-    });
-}
+            // Try to play music
+            bgMusic.play().then(() => {
+                console.log('Background music started successfully');
+            }).catch(error => {
+                console.log('Autoplay prevented, waiting for user interaction');
+                
+                // Create a subtle prompt for the user
+                const audioPrompt = document.createElement('div');
+                audioPrompt.style.cssText = `
+                    position: fixed;
+                    bottom: 20px;
+                    right: 20px;
+                    background: var(--accent);
+                    color: white;
+                    padding: 10px 15px;
+                    border-radius: 5px;
+                    z-index: 1000;
+                    cursor: pointer;
+                    font-size: 14px;
+                    animation: pulse 2s infinite;
+                `;
+                audioPrompt.innerHTML = '🔇 Click anywhere to enable sound';
+                document.body.appendChild(audioPrompt);
+                
+                // Add pulse animation
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes pulse {
+                        0% { opacity: 0.7; transform: scale(1); }
+                        50% { opacity: 1; transform: scale(1.05); }
+                        100% { opacity: 0.7; transform: scale(1); }
+                    }
+                `;
+                document.head.appendChild(style);
+                
+                // Enable audio on any user interaction
+                const enableAudio = () => {
+                    bgMusic.play().then(() => {
+                        audioPrompt.innerHTML = '🔊 Sound enabled';
+                        setTimeout(() => {
+                            audioPrompt.style.opacity = '0';
+                            setTimeout(() => audioPrompt.remove(), 1000);
+                        }, 2000);
+                    }).catch(err => {
+                        console.warn('Still cannot play audio:', err);
+                        audioPrompt.innerHTML = '❌ Sound blocked by browser';
+                        audioPrompt.style.background = '#f44336';
+                    });
+                    
+                    // Remove listeners after first interaction
+                    document.removeEventListener('click', enableAudio);
+                    document.removeEventListener('keydown', enableAudio);
+                    document.removeEventListener('touchstart', enableAudio);
+                };
+                
+                // Add multiple interaction listeners
+                document.addEventListener('click', enableAudio);
+                document.addEventListener('keydown', enableAudio);
+                document.addEventListener('touchstart', enableAudio);
+                
+                // Remove prompt after 10 seconds
+                setTimeout(() => {
+                    if (document.body.contains(audioPrompt)) {
+                        audioPrompt.style.opacity = '0';
+                        setTimeout(() => audioPrompt.remove(), 1000);
+                    }
+                }, 10000);
+            });
+        }
+
         function handleOutsideClick() {
             gameState.outsideClicks++;
 
@@ -1012,76 +1047,80 @@ function playBackgroundMedia() {
             }, 2000);
         }
 
-    function completeMemoryGame() {
-    gameState.memoryGameCompleted = true;
-    
-    // Hide memory game
-    memoryGameDiv.style.display = 'none';
-    
-    // Show "not yet over" message
-    const notYetOverDiv = document.createElement('div');
-    notYetOverDiv.id = 'not-yet-over-message';
-    notYetOverDiv.style.cssText = `
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
-        font-size: 2rem;
-        color: var(--accent-2);
-        text-align: center;
-        animation: pulse 1s infinite;
-    `;
-    notYetOverDiv.innerHTML = '<h2>Not Yet Over...</h2><p style="font-size: 1.2rem; margin-top: 20px;">Prepare for Space Invaders</p>';
-    
-    // Add pulse animation if not already added
-    if (!document.getElementById('pulse-animation')) {
-        const style = document.createElement('style');
-        style.id = 'pulse-animation';
-        style.textContent = `
-            @keyframes pulse {
-                0% { opacity: 0.7; transform: scale(1); }
-                50% { opacity: 1; transform: scale(1.05); }
-                100% { opacity: 0.7; transform: scale(1); }
+        function completeMemoryGame() {
+            gameState.memoryGameCompleted = true;
+            
+            // Hide memory game
+            memoryGameDiv.style.display = 'none';
+            
+            // Show "not yet over" message
+            const notYetOverDiv = document.createElement('div');
+            notYetOverDiv.id = 'not-yet-over-message';
+            notYetOverDiv.style.cssText = `
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 100%;
+                font-size: 2rem;
+                color: var(--accent-2);
+                text-align: center;
+                animation: pulse 1s infinite;
+            `;
+            notYetOverDiv.innerHTML = '<h2>Not Yet Over...</h2><p style="font-size: 1.2rem; margin-top: 20px;">Prepare for Space Invaders</p>';
+            
+            // Add pulse animation if not already added
+            if (!document.getElementById('pulse-animation')) {
+                const style = document.createElement('style');
+                style.id = 'pulse-animation';
+                style.textContent = `
+                    @keyframes pulse {
+                        0% { opacity: 0.7; transform: scale(1); }
+                        50% { opacity: 1; transform: scale(1.05); }
+                        100% { opacity: 0.7; transform: scale(1); }
+                    }
+                `;
+                document.head.appendChild(style);
             }
-        `;
-        document.head.appendChild(style);
-    }
-    
-    // Show the message in the game panel
-    gameContainer.appendChild(notYetOverDiv);
-    
-    // After 3 seconds, remove message and start Space Invaders
-    setTimeout(() => {
-        notYetOverDiv.remove();
-        spaceInvaders.style.display = 'flex';
-        
-        // IMPORTANT: Reset canvas size
-        canvas.width = canvas.offsetWidth;
-        canvas.height = canvas.offsetHeight;
-        
-        // Reset lives and game state
-        lives = 3;
-        gameActive = false; // Ensure game is not active during setup
-        
-        // Reset lives display
-        document.querySelectorAll('.life').forEach((life, index) => {
-            life.style.opacity = index < lives ? '1' : '0.3';
-        });
-        
-        // Initialize Space Invaders
-        initSpaceInvaders();
-        
-        // Set gameActive to true AFTER initialization
-        gameActive = true;
-        
-        console.log('Starting Space Invaders...'); // Debug log
-        
-        // Start the game loop
-        lastFrameTime = performance.now();
-        requestAnimationFrame(gameLoop);
-    }, 3000); // Reduced from 5 to 3 seconds
-}
+            
+            // Show the message in the game panel
+            gameContainer.appendChild(notYetOverDiv);
+            
+            // After 3 seconds, remove message and start Space Invaders
+            setTimeout(() => {
+                notYetOverDiv.remove();
+                spaceInvaders.style.display = 'flex';
+                
+                // IMPORTANT: Reset canvas size
+                canvas.width = canvas.offsetWidth;
+                canvas.height = canvas.offsetHeight;
+                
+                // Reset lives and game state
+                lives = 3;
+                gameActive = false; // Ensure game is not active during setup
+                
+                // Reset lives display
+                document.querySelectorAll('.life').forEach((life, index) => {
+                    life.style.opacity = index < lives ? '1' : '0.3';
+                });
+                
+                // Recreate stars for new canvas size
+                createStars();
+                
+                // Initialize Space Invaders
+                initSpaceInvaders();
+                
+                // Set gameActive to true AFTER initialization
+                gameActive = true;
+                
+                console.log('Starting Space Invaders...');
+                
+                // Start the game loop
+                lastFrameTime = performance.now();
+                requestAnimationFrame(gameLoop);
+            }, 3000);
+        }
+
         function completeSpaceInvaders() {
             gameState.spaceInvadersCompleted = true;
 
@@ -1102,15 +1141,15 @@ function playBackgroundMedia() {
         }
 
         function gameOver() {
-    gameOverOverlay.style.display = 'flex';
-    gameActive = false;
-    
-    // Ensure the try again button works properly
-    tryAgainBtn.onclick = function() {
-        gameOverOverlay.style.display = 'none';
-        resetSpaceInvaders();
-    };
-}
+            gameOverOverlay.style.display = 'flex';
+            gameActive = false;
+            
+            // Ensure the try again button works properly
+            tryAgainBtn.onclick = function() {
+                gameOverOverlay.style.display = 'none';
+                resetSpaceInvaders();
+            };
+        }
 
         // ===== MEMORY GAME IMPLEMENTATION =====
         function initMemoryGame() {
@@ -1228,58 +1267,46 @@ function playBackgroundMedia() {
             }
         }
 
-       // ===== SPACE INVADERS IMPLEMENTATION =====
-// Helper function to safely play sounds
-function playSound(soundElement) {
-    if (soundElement && soundElement.play) {
-        try {
-            soundElement.currentTime = 0;
-            soundElement.play().catch(error => {
-                // Sound file not available, ignore silently
-            });
-        } catch (error) {
-            // Sound element doesn't exist, ignore
+        // ===== SPACE INVADERS IMPLEMENTATION =====
+        function initSpaceInvaders() {
+            console.log('Initializing Space Invaders');
+            // Initialize game state
+            player = {
+                x: canvas.width / 2 - 15,
+                y: canvas.height - 50,
+                width: 30,
+                height: 20,
+                speed: 7,
+                firing: false,
+                lastFireTime: 0,
+                fireCooldown: 150
+            };
+
+            // Clear all game objects
+            aliens = [];
+            bullets = [];
+            enemyBullets = [];
+            obstacles = [];
+            chaosObjects = [];
+            butterPellets = [];
+            shields = [];
+            chocolates = [];
+            
+            // Reset game state
+            currentLevel = 0;
+            chaosEffects = { invert: 0, tilt: 0, shake: 0, cash: 0, invisible: 0 };
+            levelButterHits = 0;
+            playerInvisible = false;
+            invisibleTimer = 0;
+
+            // Keyboard controls
+            window.addEventListener('keydown', handleKeyDown);
+            window.addEventListener('keyup', handleKeyUp);
+
+            // Start the first level
+            startLevel(0);
         }
-    }
-}
-     function initSpaceInvaders() {
-    console.log('Initializing Space Invaders');
-    // Initialize game state
-    player = {
-        x: canvas.width / 2 - 15,
-        y: canvas.height - 50,
-        width: 30,
-        height: 20,
-        speed: 7,
-        firing: false,
-        lastFireTime: 0,
-        fireCooldown: 150
-    };
 
-    // Clear all game objects
-    aliens = [];
-    bullets = [];
-    enemyBullets = [];
-    obstacles = [];
-    chaosObjects = [];
-    butterPellets = [];
-    shields = [];
-    chocolates = [];
-    
-    // Reset game state
-    currentLevel = 0;
-    chaosEffects = { invert: 0, tilt: 0, shake: 0, cash: 0, invisible: 0 };
-    levelButterHits = 0;
-    playerInvisible = false;
-    invisibleTimer = 0;
-
-    // Keyboard controls
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-
-    // Start the first level
-    startLevel(0);
-}
         function setupMobileControls() {
             // Left button
             leftBtn.addEventListener('touchstart', () => {
@@ -1371,68 +1398,69 @@ function playSound(soundElement) {
                 player.firing = false;
             }
         }
-function startLevel(levelIndex) {
-    console.log('Starting level:', levelIndex);
-    
-    // Remove this extra curly brace and fix the condition
-    if (levelIndex >= levelConfigs.length) {
-        completeSpaceInvaders();
-        return;
-    }
 
-    currentLevel = levelIndex;
-    const config = levelConfigs[levelIndex];
+        function startLevel(levelIndex) {
+            console.log('Starting level:', levelIndex);
+            
+            if (levelIndex >= levelConfigs.length) {
+                completeSpaceInvaders();
+                return;
+            }
 
-    // Update UI
-    levelNumber.textContent = levelIndex + 1;
-    levelName.textContent = config.name;
+            currentLevel = levelIndex;
+            const config = levelConfigs[levelIndex];
 
-    // Initialize game objects
-    aliens = [];
-    bullets = [];
-    enemyBullets = [];
-    obstacles = [];
-    chaosObjects = [];
-    butterPellets = [];
-    shields = [];
-    chocolates = [];
-    chaosEffects = { invert: 0, tilt: 0, shake: 0, cash: 0, invisible: 0 };
-    levelButterHits = 0;
-    playerInvisible = false;
+            // Update UI
+            levelNumber.textContent = levelIndex + 1;
+            levelName.textContent = config.name;
 
-    // Reset canvas styles
-    canvas.className = '';
+            // Initialize game objects
+            aliens = [];
+            bullets = [];
+            enemyBullets = [];
+            obstacles = [];
+            chaosObjects = [];
+            butterPellets = [];
+            shields = [];
+            chocolates = [];
+            chaosEffects = { invert: 0, tilt: 0, shake: 0, cash: 0, invisible: 0 };
+            levelButterHits = 0;
+            playerInvisible = false;
 
-    // Create aliens based on level config - CENTERED
-    const alienWidth = config.alienWidth;
-    const alienHeight = config.alienHeight;
-    const alienPadding = 10;
-    const totalWidth = config.cols * (alienWidth + alienPadding) - alienPadding;
-    const startX = (canvas.width - totalWidth) / 2;
+            // Reset canvas styles
+            canvas.className = '';
 
-    console.log('Creating', config.rows, 'rows x', config.cols, 'cols aliens');
-    
-    for (let row = 0; row < config.rows; row++) {
-        for (let col = 0; col < config.cols; col++) {
-            aliens.push({
-                x: startX + col * (alienWidth + alienPadding),
-                y: row * (alienHeight + alienPadding) + 40,
-                width: alienWidth,
-                height: alienHeight,
-                type: config.alienType,
-                originalX: startX + col * (alienWidth + alienPadding),
-                alive: true,
-                movePattern: config.movement === 'zigzag' ? Math.random() * Math.PI * 2 : 0
-            });
+            // Create aliens based on level config - CENTERED
+            const alienWidth = config.alienWidth;
+            const alienHeight = config.alienHeight;
+            const alienPadding = 10;
+            const totalWidth = config.cols * (alienWidth + alienPadding) - alienPadding;
+            const startX = (canvas.width - totalWidth) / 2;
+
+            console.log('Creating', config.rows, 'rows x', config.cols, 'cols aliens');
+            
+            for (let row = 0; row < config.rows; row++) {
+                for (let col = 0; col < config.cols; col++) {
+                    aliens.push({
+                        x: startX + col * (alienWidth + alienPadding),
+                        y: row * (alienHeight + alienPadding) + 40,
+                        width: alienWidth,
+                        height: alienHeight,
+                        type: config.alienType,
+                        originalX: startX + col * (alienWidth + alienPadding),
+                        alive: true,
+                        movePattern: config.movement === 'zigzag' ? Math.random() * Math.PI * 2 : 0
+                    });
+                }
+            }
+
+            console.log('Total aliens created:', aliens.length);
+            console.log('Alive aliens:', aliens.filter(a => a.alive).length);
+
+            // Show level start message
+            showInGameMessage(`Level ${levelIndex + 1}: ${config.name}`);
         }
-    }
 
-    console.log('Total aliens created:', aliens.length);
-    console.log('Alive aliens:', aliens.filter(a => a.alive).length);
-
-    // Show level start message
-    showInGameMessage(`Level ${levelIndex + 1}: ${config.name}`);
-}
         function fireBullet() {
             const currentTime = Date.now();
             if (currentTime - player.lastFireTime < player.fireCooldown) return;
@@ -1440,8 +1468,10 @@ function startLevel(levelIndex) {
             player.lastFireTime = currentTime;
             
             // Play shoot sound
-            shootSound.currentTime = 0;
-            shootSound.play();
+            if (shootSound) {
+                shootSound.currentTime = 0;
+                shootSound.play().catch(e => console.log("Audio play error:", e));
+            }
             
             const config = levelConfigs[currentLevel];
             let bulletProps;
@@ -1483,157 +1513,163 @@ function startLevel(levelIndex) {
             });
         }
 
-    function gameLoop(timestamp) {
-    if (!gameActive) {
-        console.log('Game not active, stopping loop');
-        return;
-    }
-    
-    // Calculate delta time for frame rate independence
-    deltaTime = timestamp - lastFrameTime;
-    lastFrameTime = timestamp;
-    
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+        function gameLoop(timestamp) {
+            if (!gameActive) {
+                console.log('Game not active, stopping loop');
+                return;
+            }
+            
+            // Calculate delta time for frame rate independence
+            deltaTime = timestamp - lastFrameTime;
+            lastFrameTime = timestamp;
+            
+            // Clear canvas with space background
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw stars
+            drawStars();
 
-    // Handle player movement
-    if (keys['ArrowLeft'] || keys['a']) {
-        player.x = Math.max(0, player.x - player.speed * (deltaTime / 16));
-    }
-    if (keys['ArrowRight'] || keys['d']) {
-        player.x = Math.min(canvas.width - player.width, player.x + player.speed * (deltaTime / 16));
-    }
+            // Handle player movement
+            if (keys['ArrowLeft'] || keys['a']) {
+                player.x = Math.max(0, player.x - player.speed * (deltaTime / 16));
+            }
+            if (keys['ArrowRight'] || keys['d']) {
+                player.x = Math.min(canvas.width - player.width, player.x + player.speed * (deltaTime / 16));
+            }
 
-    // Handle continuous firing
-    if (player.firing) {
-        fireBullet();
-    }
+            // Handle continuous firing
+            if (player.firing) {
+                fireBullet();
+            }
 
-    // Draw player (with invisibility effect if active)
-    ctx.globalAlpha = playerInvisible ? 0.3 : 1;
-    drawPlayer();
-    ctx.globalAlpha = 1;
+            // Draw player (with invisibility effect if active)
+            ctx.globalAlpha = playerInvisible ? 0.3 : 1;
+            drawPlayer();
+            ctx.globalAlpha = 1;
 
-    // Update invisibility timer
-    if (playerInvisible) {
-        invisibleTimer--;
-        if (invisibleTimer <= 0) {
-            playerInvisible = false;
-        }
-    }
+            // Update invisibility timer
+            if (playerInvisible) {
+                invisibleTimer--;
+                if (invisibleTimer <= 0) {
+                    playerInvisible = false;
+                }
+            }
 
-    // Update and draw aliens
-    let allAliensDead = true;
-    let directionChange = false;
-    let shouldLoseLife = false;
+            // Update and draw aliens
+            let allAliensDead = true;
+            let directionChange = false;
+            let shouldLoseLife = false;
 
-    aliens.forEach(alien => {
-        if (!alien.alive) return;
+            aliens.forEach(alien => {
+                if (!alien.alive) return;
 
-        allAliensDead = false;
+                allAliensDead = false;
 
-        // Update position based on alien movement type
-        updateAlienPosition(alien);
+                // Update position based on alien movement type
+                updateAlienPosition(alien);
 
-        // Check for wall collision
-        if (alien.x <= 0 || alien.x + alien.width >= canvas.width) {
-            directionChange = true;
-        }
+                // Check for wall collision
+                if (alien.x <= 0 || alien.x + alien.width >= canvas.width) {
+                    directionChange = true;
+                }
 
-        // Check if reached bottom
-        if (alien.y + alien.height >= player.y && !playerInvisible) {
-            shouldLoseLife = true;
-        }
+                // Check if reached bottom
+                if (alien.y + alien.height >= player.y && !playerInvisible) {
+                    shouldLoseLife = true;
+                }
 
-        // Draw alien based on type
-        drawAlien(alien);
-    });
-
-    // Handle life loss
-    if (shouldLoseLife) {
-        loseLife();
-    }
-
-    // Change direction if needed
-    if (directionChange) {
-        levelConfigs[currentLevel].speed *= -1;
-        aliens.forEach(alien => {
-            if (alien.alive) alien.y += 10;
-        });
-    }
-
-    // Check for level completion
-    if (allAliensDead) {
-        if (currentLevel < levelConfigs.length - 1) {
-            setTimeout(() => {
-                startLevel(currentLevel + 1);
-                gameActive = true;
-                lastFrameTime = performance.now();
-                requestAnimationFrame(gameLoop);
-            }, 1500);
-            gameActive = false;
-            return;
-        } else {
-            completeSpaceInvaders();
-            gameActive = false;
-            return;
-        }
-    }
-
-    // Update and draw bullets
-    updateBullets();
-
-    // Random enemy firing
-    const config = levelConfigs[currentLevel];
-    if (Math.random() < config.fireRate) {
-        const aliveAliens = aliens.filter(alien => alien.alive);
-        if (aliveAliens.length > 0) {
-            const shooter = aliveAliens[Math.floor(Math.random() * aliveAliens.length)];
-            enemyBullets.push({
-                x: shooter.x + shooter.width / 2 - 2,
-                y: shooter.y + shooter.height,
-                width: 4,
-                height: 10,
-                active: true,
-                color: '#ff6f61'
+                // Draw alien based on type
+                drawAlien(alien);
             });
+
+            // Handle life loss
+            if (shouldLoseLife) {
+                loseLife();
+                return; // Exit early to prevent further processing this frame
+            }
+
+            // Change direction if needed
+            if (directionChange) {
+                levelConfigs[currentLevel].speed *= -1;
+                aliens.forEach(alien => {
+                    if (alien.alive) alien.y += 10;
+                });
+            }
+
+            // Check for level completion
+            if (allAliensDead) {
+                if (currentLevel < levelConfigs.length - 1) {
+                    setTimeout(() => {
+                        startLevel(currentLevel + 1);
+                        gameActive = true;
+                        lastFrameTime = performance.now();
+                        requestAnimationFrame(gameLoop);
+                    }, 1500);
+                    gameActive = false;
+                    return;
+                } else {
+                    completeSpaceInvaders();
+                    gameActive = false;
+                    return;
+                }
+            }
+
+            // Update and draw bullets
+            updateBullets();
+
+            // Random enemy firing
+            const config = levelConfigs[currentLevel];
+            if (Math.random() < config.fireRate) {
+                const aliveAliens = aliens.filter(alien => alien.alive);
+                if (aliveAliens.length > 0) {
+                    const shooter = aliveAliens[Math.floor(Math.random() * aliveAliens.length)];
+                    enemyBullets.push({
+                        x: shooter.x + shooter.width / 2 - 2,
+                        y: shooter.y + shooter.height,
+                        width: 4,
+                        height: 10,
+                        active: true,
+                        color: '#ff6f61'
+                    });
+                }
+            }
+
+            // Update and draw enemy bullets
+            updateEnemyBullets();
+
+            // Spawn level-specific objects
+            spawnLevelObjects();
+
+            // Update and draw obstacles
+            updateObstacles();
+
+            // Update and draw butter pellets (Level 4)
+            updateButterPellets();
+
+            // Update and draw shields (Level 7)
+            updateShields();
+
+            // Update and draw chocolates (Level 6)
+            updateChocolates();
+
+            // Update chaos objects (Level 8)
+            updateChaosObjects();
+
+            // Update chaos effects
+            updateChaosEffects();
+
+            // Show random messages
+            if (gameTick % 300 === 0) {
+                showInGameMessage(messages[Math.floor(Math.random() * messages.length)]);
+            }
+
+            gameTick++;
+
+            // Continue the game loop
+            requestAnimationFrame(gameLoop);
         }
-    }
 
-    // Update and draw enemy bullets
-    updateEnemyBullets();
-
-    // Spawn level-specific objects
-    spawnLevelObjects();
-
-    // Update and draw obstacles
-    updateObstacles();
-
-    // Update and draw butter pellets (Level 4)
-    updateButterPellets();
-
-    // Update and draw shields (Level 7)
-    updateShields();
-
-    // Update and draw chocolates (Level 6)
-    updateChocolates();
-
-    // Update chaos objects (Level 8)
-    updateChaosObjects();
-
-    // Update chaos effects
-    updateChaosEffects();
-
-    // Show random messages
-    if (gameTick % 300 === 0) {
-        showInGameMessage(messages[Math.floor(Math.random() * messages.length)]);
-    }
-
-    gameTick++;
-
-    // Continue the game loop
-    requestAnimationFrame(gameLoop);
-}
         function drawPlayer() {
             // Draw spaceship body
             ctx.fillStyle = '#7cf3d6';
@@ -1689,8 +1725,6 @@ function startLevel(levelIndex) {
             // Handle invisibility effect
             ctx.globalAlpha = (chaosEffects.invisible > 0) ? 0.3 : 1;
 
-            ctx.fillStyle = '#aaffaa'; // Default color
-            
             // Apply different styles based on alien type
             switch(alien.type) {
                 case "car":
@@ -2046,8 +2080,10 @@ function startLevel(levelIndex) {
                         bullets[i].y + bullets[i].height > aliens[j].y
                     ) {
                         // Play explosion sound
-                        explosionSound.currentTime = 0;
-                        explosionSound.play();
+                        if (explosionSound) {
+                            explosionSound.currentTime = 0;
+                            explosionSound.play().catch(e => console.log("Audio play error:", e));
+                        }
                         
                         aliens[j].alive = false;
                         bullets[i].active = false;
@@ -2540,8 +2576,10 @@ function startLevel(levelIndex) {
                         break;
                     case 2:
                         // Glitch music
-                        glitchSound.currentTime = 0;
-                        glitchSound.play();
+                        if (glitchSound) {
+                            glitchSound.currentTime = 0;
+                            glitchSound.play().catch(e => console.log("Audio play error:", e));
+                        }
                         break;
                 }
             }
@@ -2550,95 +2588,97 @@ function startLevel(levelIndex) {
             canvas.className = canvasClasses.join(' ');
         }
 
-function showInGameMessage(text) {
-    const now = Date.now();
-    
-    // Cooldown protection - only show message every 2 seconds
-    if (now - lastMessageTime < 2000) {
-        return; // Skip if message was shown recently
-    }
-    
-    lastMessageTime = now; // Update last message time
-    
-    inGameMessage.textContent = text;
-    inGameMessage.style.opacity = '1';
-    
-    // Clear any existing timeout to prevent conflicts
-    if (window.messageTimeout) {
-        clearTimeout(window.messageTimeout);
-    }
-    
-    window.messageTimeout = setTimeout(() => {
-        inGameMessage.style.opacity = '0';
-    }, 2000);
-}
-       function loseLife() {
-    // Prevent multiple life loss in the same frame
-    if (lives <= 0) return;
-    
-    lives--;
-    console.log('Life lost! Lives remaining:', lives);
-    
-    // Update lives display
-    const lifeElements = document.querySelectorAll('.life');
-    for (let i = 0; i < lifeElements.length; i++) {
-        lifeElements[i].style.opacity = i < lives ? '1' : '0.3';
-    }
-    
-    if (lives <= 0) {
-        gameOver();
-        // Don't return here - let the gameOver function handle the state
-    } else {
-        // Reset player position
-        player.x = canvas.width / 2 - 15;
-        
-        // Clear bullets
-        bullets = [];
-        enemyBullets = [];
-        
-        // Show message that you lost a life
-        showInGameMessage(`Ouch! ${lives} lives remaining`);
-        
-        // Add a brief invincibility period
-        playerInvisible = true;
-        invisibleTimer = 60; // About 1 second at 60fps
-        
-        // IMPORTANT: Ensure game loop continues
-        if (!gameActive) {
+        function showInGameMessage(text) {
+            const now = Date.now();
+            
+            // Cooldown protection - only show message every 2 seconds
+            if (now - lastMessageTime < 2000) {
+                return; // Skip if message was shown recently
+            }
+            
+            lastMessageTime = now; // Update last message time
+            
+            inGameMessage.textContent = text;
+            inGameMessage.style.opacity = '1';
+            
+            // Clear any existing timeout to prevent conflicts
+            if (window.messageTimeout) {
+                clearTimeout(window.messageTimeout);
+            }
+            
+            window.messageTimeout = setTimeout(() => {
+                inGameMessage.style.opacity = '0';
+            }, 2000);
+        }
+
+        function loseLife() {
+            // Prevent multiple life loss in the same frame
+            if (lives <= 0) return;
+            
+            lives--;
+            console.log('Life lost! Lives remaining:', lives);
+            
+            // Update lives display
+            const lifeElements = document.querySelectorAll('.life');
+            for (let i = 0; i < lifeElements.length; i++) {
+                lifeElements[i].style.opacity = i < lives ? '1' : '0.3';
+            }
+            
+            if (lives <= 0) {
+                gameOver();
+                // Don't return here - let the gameOver function handle the state
+            } else {
+                // Reset player position
+                player.x = canvas.width / 2 - 15;
+                
+                // Clear bullets
+                bullets = [];
+                enemyBullets = [];
+                
+                // Show message that you lost a life
+                showInGameMessage(`Ouch! ${lives} lives remaining`);
+                
+                // Add a brief invincibility period
+                playerInvisible = true;
+                invisibleTimer = 60; // About 1 second at 60fps
+                
+                // IMPORTANT: Ensure game loop continues
+                if (!gameActive) {
+                    gameActive = true;
+                    lastFrameTime = performance.now();
+                    requestAnimationFrame(gameLoop);
+                }
+            }
+        }
+
+        function resetSpaceInvaders() {
+            // Reset to 3 lives
+            lives = 3;
+            
+            // Reset lives display
+            document.querySelectorAll('.life').forEach(life => {
+                life.style.opacity = '1';
+            });
+            
+            // ALWAYS restart from level 1 (index 0)
+            currentLevel = 0;
+            
+            // Reset player position
+            player.x = canvas.width / 2 - 15;
+            player.y = canvas.height - 50;
+            
+            // Clear all bullets
+            bullets = [];
+            enemyBullets = [];
+            
+            // Start from level 1 again
+            startLevel(0);
+            
+            // Restart game loop
             gameActive = true;
             lastFrameTime = performance.now();
             requestAnimationFrame(gameLoop);
         }
-    }
-}
-        function resetSpaceInvaders() {
-    // Reset to 3 lives
-    lives = 3;
-    
-    // Reset lives display
-    document.querySelectorAll('.life').forEach(life => {
-        life.style.opacity = '1';
-    });
-    
-    // ALWAYS restart from level 1 (index 0)
-    currentLevel = 0;
-    
-    // Reset player position
-    player.x = canvas.width / 2 - 15;
-    player.y = canvas.height - 50;
-    
-    // Clear all bullets
-    bullets = [];
-    enemyBullets = [];
-    
-    // Start from level 1 again
-    startLevel(0);
-    
-    // Restart game loop
-    gameActive = true;
-    lastFrameTime = performance.now();
-    requestAnimationFrame(gameLoop);
-}
     </script>
 </body>
 </html>
