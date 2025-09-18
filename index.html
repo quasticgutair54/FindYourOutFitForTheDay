@@ -270,6 +270,7 @@
             margin-bottom: 20px;
             line-height: 1.5;
             font-size: 1.1rem;
+            color: #fff;
         }
         
         .btn {
@@ -689,6 +690,7 @@
         let lastFrameTime = 0;
         let deltaTime = 0;
         let stars = [];
+        let respawning = false;
 
         // Create stars for space background
         function createStars() {
@@ -1181,7 +1183,7 @@
                         <div class="card-face card-back">N</div>
                         <div class="card-face card-front">
                             <div class="card-symbol">${card.symbol}</div>
-                            <div class="card-name">${card.name}</div>
+                            <div class="card-name">${card.name</div>
                             <div class="card-symbol bottom">${card.symbol}</div>
                         </div>
                     </div>
@@ -1203,8 +1205,10 @@
             if (card.classList.contains('matched')) return;
 
             // Play flip sound
-            flipSound.currentTime = 0;
-            flipSound.play();
+            if (flipSound) {
+                flipSound.currentTime = 0;
+                flipSound.play().catch(e => console.log("Audio play error:", e));
+            }
             
             card.classList.add('flip');
 
@@ -1237,8 +1241,10 @@
 
         function disableCards() {
             // Play match sound
-            matchSound.currentTime = 0;
-            matchSound.play();
+            if (matchSound) {
+                matchSound.currentTime = 0;
+                matchSound.play().catch(e => console.log("Audio play error:", e));
+            }
             
             firstCard.classList.add('matched');
             secondCard.classList.add('matched');
@@ -1298,6 +1304,7 @@
             levelButterHits = 0;
             playerInvisible = false;
             invisibleTimer = 0;
+            respawning = false;
 
             // Keyboard controls
             window.addEventListener('keydown', handleKeyDown);
@@ -1328,7 +1335,7 @@
             
             // Fire button
             fireBtn.addEventListener('touchstart', () => {
-                if (gameActive && !player.firing) {
+                if (gameActive && !player.firing && !respawning) {
                     player.firing = true;
                     fireBullet();
                 }
@@ -1345,14 +1352,14 @@
         }
 
         function handleTouchStart(e) {
-            if (touchId !== null) return;
+            if (touchId !== null || respawning) return;
             
             touchId = e.changedTouches[0].identifier;
             touchStartX = e.changedTouches[0].clientX;
         }
 
         function handleTouchMove(e) {
-            if (touchId === null) return;
+            if (touchId === null || respawning) return;
             
             for (let i = 0; i < e.changedTouches.length; i++) {
                 if (e.changedTouches[i].identifier === touchId) {
@@ -1384,7 +1391,7 @@
             keys[e.key] = true;
 
             // Start continuous firing when space is pressed
-            if (e.key === ' ' && gameActive && !player.firing) {
+            if (e.key === ' ' && gameActive && !player.firing && !respawning) {
                 player.firing = true;
                 fireBullet();
             }
@@ -1426,6 +1433,7 @@
             chaosEffects = { invert: 0, tilt: 0, shake: 0, cash: 0, invisible: 0 };
             levelButterHits = 0;
             playerInvisible = false;
+            respawning = false;
 
             // Reset canvas styles
             canvas.className = '';
@@ -1530,17 +1538,19 @@
             // Draw stars
             drawStars();
 
-            // Handle player movement
-            if (keys['ArrowLeft'] || keys['a']) {
-                player.x = Math.max(0, player.x - player.speed * (deltaTime / 16));
-            }
-            if (keys['ArrowRight'] || keys['d']) {
-                player.x = Math.min(canvas.width - player.width, player.x + player.speed * (deltaTime / 16));
-            }
+            // Handle player movement if not respawning
+            if (!respawning) {
+                if (keys['ArrowLeft'] || keys['a']) {
+                    player.x = Math.max(0, player.x - player.speed * (deltaTime / 16));
+                }
+                if (keys['ArrowRight'] || keys['d']) {
+                    player.x = Math.min(canvas.width - player.width, player.x + player.speed * (deltaTime / 16));
+                }
 
-            // Handle continuous firing
-            if (player.firing) {
-                fireBullet();
+                // Handle continuous firing
+                if (player.firing) {
+                    fireBullet();
+                }
             }
 
             // Draw player (with invisibility effect if active)
@@ -1575,7 +1585,7 @@
                 }
 
                 // Check if reached bottom
-                if (alien.y + alien.height >= player.y && !playerInvisible) {
+                if (alien.y + alien.height >= player.y && !playerInvisible && !respawning) {
                     shouldLoseLife = true;
                 }
 
@@ -1620,7 +1630,7 @@
 
             // Random enemy firing
             const config = levelConfigs[currentLevel];
-            if (Math.random() < config.fireRate) {
+            if (Math.random() < config.fireRate && !respawning) {
                 const aliveAliens = aliens.filter(alien => alien.alive);
                 if (aliveAliens.length > 0) {
                     const shooter = aliveAliens[Math.floor(Math.random() * aliveAliens.length)];
@@ -1639,7 +1649,9 @@
             updateEnemyBullets();
 
             // Spawn level-specific objects
-            spawnLevelObjects();
+            if (!respawning) {
+                spawnLevelObjects();
+            }
 
             // Update and draw obstacles
             updateObstacles();
@@ -2235,7 +2247,7 @@
                     enemyBullets[i].x + enemyBullets[i].width > player.x &&
                     enemyBullets[i].y < player.y + player.height &&
                     enemyBullets[i].y + enemyBullets[i].height > player.y &&
-                    !playerInvisible
+                    !playerInvisible && !respawning
                 ) {
                     loseLife();
                     enemyBullets[i].active = false;
@@ -2267,8 +2279,7 @@
                     type: 'lemon'
                 });
             }
-            
-            // Level 6: Chocolate converters
+                        // Level 6: Chocolate converters
             if (currentLevel === 5 && Math.random() < config.chocolateSpawnRate) {
                 chocolates.push({
                     x: Math.random() * (canvas.width - 20),
@@ -2613,7 +2624,7 @@
 
         function loseLife() {
             // Prevent multiple life loss in the same frame
-            if (lives <= 0) return;
+            if (lives <= 0 || respawning) return;
             
             lives--;
             console.log('Life lost! Lives remaining:', lives);
@@ -2628,8 +2639,8 @@
                 gameOver();
                 // Don't return here - let the gameOver function handle the state
             } else {
-                // Reset player position
-                player.x = canvas.width / 2 - 15;
+                // Set respawning state
+                respawning = true;
                 
                 // Clear bullets
                 bullets = [];
@@ -2640,7 +2651,15 @@
                 
                 // Add a brief invincibility period
                 playerInvisible = true;
-                invisibleTimer = 60; // About 1 second at 60fps
+                invisibleTimer = 180; // 3 seconds at 60fps
+                
+                // Reset player position
+                player.x = canvas.width / 2 - 15;
+                
+                // After a short delay, allow playing again
+                setTimeout(() => {
+                    respawning = false;
+                }, 2000);
                 
                 // IMPORTANT: Ensure game loop continues
                 if (!gameActive) {
@@ -2671,6 +2690,9 @@
             bullets = [];
             enemyBullets = [];
             
+            // Reset respawning state
+            respawning = false;
+            
             // Start from level 1 again
             startLevel(0);
             
@@ -2682,3 +2704,4 @@
     </script>
 </body>
 </html>
+           
