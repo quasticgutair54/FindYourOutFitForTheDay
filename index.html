@@ -623,15 +623,15 @@
     </div>
 
     <script>
-        // ===== GAME STATE MANAGEMENT =====
-        const gameState = {
-            initialized: false,
-            outsideClicks: 0,
-            memoryGameCompleted: false,
-            spaceInvadersCompleted: false,
-            pathSelected: false
-        };
-
+       // ===== GAME STATE MANAGEMENT =====
+const gameState = {
+    initialized: false,
+    outsideClicks: 0,
+    memoryGameCompleted: false,
+    spaceInvadersCompleted: false,
+    pathSelected: false,
+    attempts: 1 // Add this line. It starts at 1 for the first playthrough.
+};
         // ===== ELEMENT REFERENCES =====
         const welcomeOverlay = document.getElementById('welcome-overlay');
         const startBtn = document.getElementById('start-btn');
@@ -1608,22 +1608,43 @@
     }
 
     // Check for level completion
-    if (allAliensDead) {
-        if (currentLevel < levelConfigs.length - 1) {
-            setTimeout(() => {
-                startLevel(currentLevel + 1);
-                gameActive = true;
-                lastFrameTime = performance.now();
-                requestAnimationFrame(gameLoop);
-            }, 1500);
-            gameActive = false;
-            return;
-        } else {
-            completeSpaceInvaders();
-            gameActive = false;
-            return;
-        }
+if (allAliensDead) {
+    gameActive = false; // Pause the game loop while we transition
+
+    // Check for the special shortcut condition:
+    // We check for currentLevel === 1 (which is Level 2, because of 0-indexing)
+    // and if the attempt count is between 8 and 11.
+    if (currentLevel === 1 && gameState.attempts >= 8 && gameState.attempts <= 11) {
+        
+        // --- THIS IS THE SHORTCUT PATH ---
+        showInGameMessage("You’ve earned a special chance! You’re now at the final level.");
+        
+        setTimeout(() => {
+            // Jump to Level 8 (which is at index 7)
+            startLevel(7); 
+            gameActive = true;
+            lastFrameTime = performance.now();
+            requestAnimationFrame(gameLoop);
+        }, 3000); // Give the player 3 seconds to read the message
+
+    } else if (currentLevel < levelConfigs.length - 1) {
+        
+        // --- THIS IS THE NORMAL PATH (GO TO NEXT LEVEL) ---
+        setTimeout(() => {
+            startLevel(currentLevel + 1);
+            gameActive = true;
+            lastFrameTime = performance.now();
+            requestAnimationFrame(gameLoop);
+        }, 1500);
+
+    } else {
+        
+        // --- THIS IS THE "GAME COMPLETED" PATH ---
+        completeSpaceInvaders();
+        return; // End the loop
     }
+    return; // This is important to wait for the setTimeout to finish
+}
 
     // Update and draw bullets
     updateBullets();
@@ -2666,36 +2687,58 @@
     }
 }
         function resetSpaceInvaders() {
-            // Reset to 3 lives
-            lives = 3;
-            
-            // Reset lives display
-            document.querySelectorAll('.life').forEach(life => {
-                life.style.opacity = '1';
-            });
-            
-            // ALWAYS restart from level 1 (index 0)
-            currentLevel = 0;
-            
-            // Reset player position
-            player.x = canvas.width / 2 - 15;
-            player.y = canvas.height - 50;
-            
-            // Clear all bullets
-            bullets = [];
-            enemyBullets = [];
-            
-            // Reset respawning state
-            respawning = false;
-            
-            // Start from level 1 again
-            startLevel(0);
-            
-            // Restart game loop
-            gameActive = true;
-            lastFrameTime = performance.now();
-            requestAnimationFrame(gameLoop);
-        }
+    // Increment the attempt counter each time the player retries.
+    gameState.attempts++;
+
+    // Check if the player is on their 12th attempt or more.
+    if (gameState.attempts >= 12) {
+        gameOverOverlay.style.display = 'none'; // Hide the "Game Over" screen
+        
+        // Prepare and show the final message using your existing win overlay
+        winMessage.innerHTML = "You’ve had many tries, but time has run out. We’re sorry you’ve struggled to complete the game. To support you, we’re unlocking the ending now. You can directly explore the Personality Path without finishing all the levels.";
+        glitchMessage.style.display = 'none';
+        winMessage.style.display = 'block';
+        winOverlay.style.display = 'flex';
+
+        // Unlock the paths panel after a short delay
+        setTimeout(() => {
+            pathsPanel.classList.remove('locked');
+        }, 4000); 
+
+        return; // Stop the function here so the game doesn't restart
+    }
+
+    // --- The rest of the function continues as normal for attempts 2-11 ---
+    // Reset to 3 lives
+    lives = 3;
+    
+    // Reset lives display
+    document.querySelectorAll('.life').forEach(life => {
+        life.style.opacity = '1';
+    });
+    
+    // ALWAYS restart from level 1 (index 0)
+    currentLevel = 0;
+    
+    // Reset player position
+    player.x = canvas.width / 2 - 15;
+    player.y = canvas.height - 50;
+    
+    // Clear all bullets
+    bullets = [];
+    enemyBullets = [];
+    
+    // Reset respawning state
+    respawning = false;
+    
+    // Start from level 1 again
+    startLevel(0);
+    
+    // Restart game loop
+    gameActive = true;
+    lastFrameTime = performance.now();
+    requestAnimationFrame(gameLoop);
+}
     </script>
 </body>
 </html>
