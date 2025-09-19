@@ -186,13 +186,13 @@
         }
         
         #si-canvas {
-            width: 100%;
-            height: 400px;
-            background: #000;
-            border-radius: 10px;
-            margin: 10px 0;
-            border: 2px solid var(--accent-2);
-        }
+    width: 100%;
+    height: 480px; /* Changed from 400px to make it taller */
+    background: #000;
+    border-radius: 10px;
+    margin: 10px 0;
+    border: 2px solid var(--accent-2);
+}
         
         .game-ui {
             display: flex;
@@ -552,7 +552,13 @@
             <button id="try-again-btn" class="btn">Try Again</button>
         </div>
     </div>
-
+<div id="pause-overlay" class="overlay" style="display: none;">
+    <div class="modal">
+        <h2>PAUSED</h2>
+        <p>Take a break. Click "Resume" to continue.</p>
+        <button id="resume-btn" class="btn">Resume</button>
+    </div>
+</div>
     <!-- Win Modal -->
     <div id="win-overlay" class="overlay" style="display: none;">
         <div class="modal">
@@ -577,13 +583,16 @@
                     <div class="in-game-message" id="in-game-message"></div>
                 </div>
                 <div class="game-ui">
-                    <div class="level-indicator">Level: <span id="level-number">1</span> - <span id="level-name">Notthebest OG</span></div>
-                    <div class="lives-indicator">
-                        <div class="life"></div>
-                        <div class="life"></div>
-                        <div class="life"></div>
-                    </div>
-                </div>
+    <div class="level-indicator">Level: <span id="level-number">1</span> - <span id="level-name">Notthebest OG</span></div>
+    
+    <button id="pause-btn" class="btn">Pause</button>
+    
+    <div class="lives-indicator">
+        <div class="life"></div>
+        <div class="life"></div>
+        <div class="life"></div>
+    </div>
+</div>
                 <div class="mobile-controls">
                     <div class="control-btn" id="left-btn">←</div>
                     <div class="control-btn fire-btn" id="fire-btn">🔥</div>
@@ -658,7 +667,9 @@ const gameState = {
         const leftBtn = document.getElementById('left-btn');
         const rightBtn = document.getElementById('right-btn');
         const fireBtn = document.getElementById('fire-btn');
-        
+        const pauseBtn = document.getElementById('pause-btn');
+        const resumeBtn = document.getElementById('resume-btn');
+        const pauseOverlay = document.getElementById('pause-overlay');
         // Sound effects
         const shootSound = document.getElementById('shoot-sound');
         const explosionSound = document.getElementById('explosion-sound');
@@ -854,63 +865,78 @@ const gameState = {
         ];
 
         // ===== INITIALIZATION =====
-        document.addEventListener('DOMContentLoaded', () => {
-            // Initialize memory game
-            initMemoryGame();
-            
-            // Set up event listeners
-            startBtn.addEventListener('click', startExperience);
-            closeWarning.addEventListener('click', () => {
-                outerClickMessage.style.display = 'none';
-            });
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize memory game
+    initMemoryGame();
+    
+    // Set up event listeners
+    startBtn.addEventListener('click', startExperience);
+    closeWarning.addEventListener('click', () => {
+        outerClickMessage.style.display = 'none';
+    });
 
-            tryAgainBtn.addEventListener('click', () => {
-                gameOverOverlay.style.display = 'none';
-                resetSpaceInvaders();
-            });
+    tryAgainBtn.addEventListener('click', () => {
+        gameOverOverlay.style.display = 'none';
+        resetSpaceInvaders();
+    });
 
-            // Prevent path selection until game is completed
-            document.querySelectorAll('.path-item').forEach(path => {
-                path.addEventListener('click', (e) => {
-                    if (pathsPanel.classList.contains('locked')) {
-                        e.preventDefault();
-                        // Visual feedback that paths are locked
-                        pathsPanel.animate([
-                            { transform: 'translateX(0px)' },
-                            { transform: 'translateX(10px)' },
-                            { transform: 'translateX(-10px)' },
-                            { transform: 'translateX(0px)' }
-                        ], {
-                            duration: 300,
-                            iterations: 1
-                        });
-                    } else {
-                        gameState.pathSelected = true;
-                    }
+    // ADD THESE TWO LINES FOR THE PAUSE FEATURE
+    pauseBtn.addEventListener('click', togglePause);
+    resumeBtn.addEventListener('click', togglePause);
+
+    // Prevent path selection until game is completed
+    document.querySelectorAll('.path-item').forEach(path => {
+        path.addEventListener('click', (e) => {
+            if (pathsPanel.classList.contains('locked')) {
+                e.preventDefault();
+                // Visual feedback that paths are locked
+                pathsPanel.animate([
+                    { transform: 'translateX(0px)' },
+                    { transform: 'translateX(10px)' },
+                    { transform: 'translateX(-10px)' },
+                    { transform: 'translateX(0px)' }
+                ], {
+                    duration: 300,
+                    iterations: 1
                 });
-            });
+            } else {
+                gameState.pathSelected = true;
+            }
+        });
+    });
 
-            // Outside click handler
-            document.addEventListener('click', (e) => {
-                if (!gameState.initialized) return;
+    // Outside click handler
+    document.addEventListener('click', (e) => {
+        if (!gameState.initialized) return;
 
-                const isInGamePanel = gameContainer.contains(e.target);
-                const isInPathsPanel = pathsPanel.contains(e.target);
-                const isInOverlay = e.target.closest('.overlay') !== null;
+        const isInGamePanel = gameContainer.contains(e.target);
+        const isInPathsPanel = pathsPanel.contains(e.target);
+        const isInOverlay = e.target.closest('.overlay') !== null;
 
-                if (!isInGamePanel && !isInPathsPanel && !isInOverlay) {
-                    handleOutsideClick();
-                }
-            });
+        if (!isInGamePanel && !isInPathsPanel && !isInOverlay) {
+            handleOutsideClick();
+        }
+    });
 
-            // Handle beforeunload for exit message
-            window.addEventListener('beforeunload', (e) => {
-                if (!gameState.pathSelected && gameState.spaceInvadersCompleted) {
-                    e.preventDefault();
-                    e.returnValue = "Not so fast internet warrior, complete what you started";
-                    return "Not so fast internet warrior, complete what you started";
-                }
-            });
+    // Handle beforeunload for exit message
+    window.addEventListener('beforeunload', (e) => {
+        if (!gameState.pathSelected && gameState.spaceInvadersCompleted) {
+            e.preventDefault();
+            e.returnValue = "Not so fast internet warrior, complete what you started";
+            return "Not so fast internet warrior, complete what you started";
+        }
+    });
+
+    // Set canvas size
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+
+    // Create stars for space background
+    createStars();
+
+    // Mobile controls
+    setupMobileControls();
+});
 
             // Set canvas size
             canvas.width = canvas.offsetWidth;
@@ -1006,6 +1032,24 @@ const gameState = {
                 }, 10000);
             });
         }
+        function togglePause() {
+    // If the game is running, pause it
+    if (gameActive) {
+        gameActive = false;
+        pauseOverlay.style.display = 'flex';
+        pauseBtn.innerText = 'Resume';
+    } 
+    // If the game is paused, resume it
+    else {
+        gameActive = true;
+        pauseOverlay.style.display = 'none';
+        pauseBtn.innerText = 'Pause';
+        
+        // IMPORTANT: We must restart the animation loop
+        lastFrameTime = performance.now(); // Reset timer to avoid jumps
+        requestAnimationFrame(gameLoop);
+    }
+}
 
         function handleOutsideClick() {
             gameState.outsideClicks++;
