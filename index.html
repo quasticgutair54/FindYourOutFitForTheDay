@@ -937,17 +937,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // Mobile controls
     setupMobileControls();
 });
+document.addEventListener("DOMContentLoaded", () => {
+    // Set canvas size
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
 
-            // Set canvas size
-            canvas.width = canvas.offsetWidth;
-            canvas.height = canvas.offsetHeight;
+    // Create stars for space background
+    createStars();
 
-            // Create stars for space background
-            createStars();
+    // Mobile controls
+    setupMobileControls();
+}); // ✅ Now it makes sense
 
-            // Mobile controls
-            setupMobileControls();
-        });
 
         function startExperience() {
             welcomeOverlay.style.display = 'none';
