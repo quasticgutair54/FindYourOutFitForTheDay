@@ -1654,27 +1654,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Check for level completion
 if (allAliensDead) {
-    gameActive = false; // Pause the game loop while we transition
+    gameActive = false; // Pause the game loop
 
-    // Check for the special shortcut condition:
-    // We check for currentLevel === 1 (which is Level 2, because of 0-indexing)
-    // and if the attempt count is between 8 and 11.
+    // NEW: Checks for the shortcut condition (Level 2 complete on attempts 8-11)
     if (currentLevel === 1 && gameState.attempts >= 8 && gameState.attempts <= 11) {
         
-        // --- THIS IS THE SHORTCUT PATH ---
         showInGameMessage("You’ve earned a special chance! You’re now at the final level.");
         
         setTimeout(() => {
-            // Jump to Level 8 (which is at index 7)
-            startLevel(7); 
+            startLevel(7); // Jump to Level 8
             gameActive = true;
             lastFrameTime = performance.now();
             requestAnimationFrame(gameLoop);
-        }, 3000); // Give the player 3 seconds to read the message
+        }, 3000);
 
     } else if (currentLevel < levelConfigs.length - 1) {
         
-        // --- THIS IS THE NORMAL PATH (GO TO NEXT LEVEL) ---
+        // This is the normal path to the next level
         setTimeout(() => {
             startLevel(currentLevel + 1);
             gameActive = true;
@@ -1683,12 +1679,11 @@ if (allAliensDead) {
         }, 1500);
 
     } else {
-        
-        // --- THIS IS THE "GAME COMPLETED" PATH ---
+        // This is what happens when the final level is beaten
         completeSpaceInvaders();
-        return; // End the loop
+        return;
     }
-    return; // This is important to wait for the setTimeout to finish
+    return;
 }
 
     // Update and draw bullets
