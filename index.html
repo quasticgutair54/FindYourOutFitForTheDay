@@ -831,7 +831,7 @@ const gameState = {
                 name: "RANDOMODIUM",
                 rows: 5,
                 cols: 7,
-                speed: 0.1,
+                speed: 0.2,
                 fireRate: 0.015,
                 alienType: "chaos",
                 alienWidth: 24,
@@ -1657,7 +1657,7 @@ if (allAliensDead) {
     gameActive = false; // Pause the game loop
 
     // NEW: Checks for the shortcut condition (Level 2 complete on attempts 8-11)
-    if (currentLevel === 1 && gameState.attempts >= 8 && gameState.attempts <= 15) {
+    if (currentLevel === 1 && gameState.attempts >= 8 && gameState.attempts <= 18) {
         
         showInGameMessage("You’ve earned a special chance! You’re now at the final level.");
         
@@ -2731,7 +2731,7 @@ if (allAliensDead) {
     gameState.attempts++;
 
     // Check if the player is on their 12th attempt or more.
-    if (gameState.attempts >= 16) {
+    if (gameState.attempts >= 20) {
         gameOverOverlay.style.display = 'none'; // Hide the "Game Over" screen
         
         // Prepare and show the final message using your existing win overlay
