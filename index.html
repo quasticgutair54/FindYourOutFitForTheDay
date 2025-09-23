@@ -1169,24 +1169,23 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         function completeSpaceInvaders() {
-            gameState.spaceInvadersCompleted = true;
+    gameState.spaceInvadersCompleted = true;
 
-            // Show glitch message first
-            winOverlay.style.display = 'flex';
+    // Show glitch message first
+    winOverlay.style.display = 'flex';
 
-            // After delay, show the full win message
-            setTimeout(() => {
-                glitchMessage.style.display = 'none';
-                winMessage.style.display = 'block';
+    // After delay, show the full win message
+    setTimeout(() => {
+        glitchMessage.style.display = 'none';
+        winMessage.style.display = 'block';
 
-                // Unlock the paths panel after another delay
-                setTimeout(() => {
-                    winOverlay.style.display = 'none';
-                    pathsPanel.classList.remove('locked');
-                }, 5000);
-            }, 3000);
-        }
-
+        // Unlock the paths panel after another delay
+        setTimeout(() => {
+            winOverlay.style.display = 'none';
+            unlockPaths(); // Use our new, reliable function here too
+        }, 5000);
+    }, 3000);
+}
         function gameOver() {
             gameOverOverlay.style.display = 'flex';
             gameActive = false;
@@ -1565,6 +1564,21 @@ document.addEventListener("DOMContentLoaded", () => {
                 type: lastBulletType
             });
         }
+        function unlockPaths() {
+    // Find the lock message inside the paths panel
+    const lockMessage = document.querySelector('.paths-panel .lock-message');
+    
+    // Hide the lock message
+    if (lockMessage) {
+        lockMessage.style.display = 'none';
+    }
+    
+    // Remove the 'locked' class to remove the blur and enable clicks
+    pathsPanel.classList.remove('locked');
+    
+    // A message for you to see in the console to confirm it's working
+    console.log("Personality Path Unlocked!");
+}
 
        function gameLoop(timestamp) {
     if (!gameActive) {
@@ -2730,51 +2744,44 @@ if (allAliensDead) {
     // Increment the attempt counter each time the player retries.
     gameState.attempts++;
 
-    // Check if the player is on their 12th attempt or more.
-    if (gameState.attempts >= 20) {
+    // Check if the player is on their 13th attempt or more.
+    if (gameState.attempts >= 13) { // Using 13 as per your last request
         gameOverOverlay.style.display = 'none'; // Hide the "Game Over" screen
         
-        // Prepare and show the final message using your existing win overlay
+        // Prepare and show the final message
         winMessage.innerHTML = "You’ve had many tries, but time has run out. We’re sorry you’ve struggled to complete the game. To support you, we’re unlocking the ending now. You can directly explore the Personality Path without finishing all the levels.";
         glitchMessage.style.display = 'none';
         winMessage.style.display = 'block';
         winOverlay.style.display = 'flex';
 
-        // Unlock the paths panel after a short delay
+        // THIS IS THE FIX: Unlock the paths AND hide the message after 6 seconds
         setTimeout(() => {
-            pathsPanel.classList.remove('locked');
-        }, 4000); 
+            unlockPaths(); // Use our new, reliable function
+            winOverlay.style.display = 'none'; // Hide the message so you can click
+        }, 6000); // 6 seconds to read the message
 
         return; // Stop the function here so the game doesn't restart
     }
 
-    // --- The rest of the function continues as normal for attempts 2-11 ---
-    // Reset to 3 lives
+    // --- The rest of the function continues as normal ---
     lives = 3;
     
-    // Reset lives display
     document.querySelectorAll('.life').forEach(life => {
         life.style.opacity = '1';
     });
     
-    // ALWAYS restart from level 1 (index 0)
     currentLevel = 0;
     
-    // Reset player position
     player.x = canvas.width / 2 - 15;
     player.y = canvas.height - 50;
     
-    // Clear all bullets
     bullets = [];
     enemyBullets = [];
     
-    // Reset respawning state
     respawning = false;
     
-    // Start from level 1 again
     startLevel(0);
     
-    // Restart game loop
     gameActive = true;
     lastFrameTime = performance.now();
     requestAnimationFrame(gameLoop);
