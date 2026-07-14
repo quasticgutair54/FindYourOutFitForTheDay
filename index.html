@@ -653,34 +653,54 @@
             color: #fff;
         }
 
-        /* ===== Visual mode: swaps the app chrome to match the canvas retint ===== */
+        /* ===== Visual mode: swaps the Space Invaders chrome to match the
+           canvas retint. Deliberately scoped to #space-invaders and its own
+           gameplay overlays (ship select / pause / game over / win / slow-mo
+           unlock) only - NOT body, NOT the generic .modal/.btn used
+           everywhere else, so picking a mode never touches the memory game,
+           the welcome screen, or the path selector. ===== */
 
         /* Light: warm off-white to soft yellow, deep-toned text/accents -
            never a stark white page, never low-contrast light-on-light text */
-        :root[data-visual-mode="light"] {
+        :root[data-visual-mode="light"] #space-invaders,
+        :root[data-visual-mode="light"] #ship-select-overlay,
+        :root[data-visual-mode="light"] #pause-overlay,
+        :root[data-visual-mode="light"] #game-over-overlay,
+        :root[data-visual-mode="light"] #win-overlay,
+        :root[data-visual-mode="light"] #unlock-overlay {
             --accent: #b8860b;
             --accent-2: #0e6b52;
-            --glass: rgba(255, 252, 240, 0.9);
-            --glass-strong: rgba(255, 250, 230, 0.97);
         }
 
-        :root[data-visual-mode="light"] body {
+        :root[data-visual-mode="light"] #space-invaders {
             background: linear-gradient(180deg, #fdf8ec 0%, #fdf3d8 45%, #fbedc0 100%);
             color: #3a2f18;
         }
 
-        :root[data-visual-mode="light"] .modal {
+        :root[data-visual-mode="light"] #ship-select-overlay .modal,
+        :root[data-visual-mode="light"] #pause-overlay .modal,
+        :root[data-visual-mode="light"] #game-over-overlay .modal,
+        :root[data-visual-mode="light"] #win-overlay .modal,
+        :root[data-visual-mode="light"] #unlock-overlay .modal {
             background: rgba(255, 253, 244, 0.97);
             border-color: rgba(184, 134, 11, 0.35);
             box-shadow: 0 0 30px rgba(184, 134, 11, 0.18);
             color: #3a2f18;
         }
 
-        :root[data-visual-mode="light"] .modal h2 {
+        :root[data-visual-mode="light"] #ship-select-overlay .modal h2,
+        :root[data-visual-mode="light"] #pause-overlay .modal h2,
+        :root[data-visual-mode="light"] #game-over-overlay .modal h2,
+        :root[data-visual-mode="light"] #win-overlay .modal h2,
+        :root[data-visual-mode="light"] #unlock-overlay .modal h2 {
             color: #8a5a00;
         }
 
-        :root[data-visual-mode="light"] .modal p {
+        :root[data-visual-mode="light"] #ship-select-overlay .modal p,
+        :root[data-visual-mode="light"] #pause-overlay .modal p,
+        :root[data-visual-mode="light"] #game-over-overlay .modal p,
+        :root[data-visual-mode="light"] #win-overlay .modal p,
+        :root[data-visual-mode="light"] #unlock-overlay .modal p {
             color: #4a4030;
         }
 
@@ -699,19 +719,26 @@
 
         /* Overly Colorful: full cyberpunk - gradient chrome, layered glow,
            a slow pulsing border instead of a flat neon-tinted panel */
-        :root[data-visual-mode="neon"] {
+        :root[data-visual-mode="neon"] #space-invaders,
+        :root[data-visual-mode="neon"] #ship-select-overlay,
+        :root[data-visual-mode="neon"] #pause-overlay,
+        :root[data-visual-mode="neon"] #game-over-overlay,
+        :root[data-visual-mode="neon"] #win-overlay,
+        :root[data-visual-mode="neon"] #unlock-overlay {
             --accent: #ff00e6;
             --accent-2: #00fff2;
-            --glass: rgba(20, 0, 30, 0.85);
-            --glass-strong: rgba(10, 0, 20, 0.96);
         }
 
-        :root[data-visual-mode="neon"] body {
+        :root[data-visual-mode="neon"] #space-invaders {
             background: linear-gradient(135deg, #10001f 0%, #1a0033 35%, #001a2e 70%, #1f0026 100%);
             color: #fdff00;
         }
 
-        :root[data-visual-mode="neon"] .modal {
+        :root[data-visual-mode="neon"] #ship-select-overlay .modal,
+        :root[data-visual-mode="neon"] #pause-overlay .modal,
+        :root[data-visual-mode="neon"] #game-over-overlay .modal,
+        :root[data-visual-mode="neon"] #win-overlay .modal,
+        :root[data-visual-mode="neon"] #unlock-overlay .modal {
             background: linear-gradient(160deg, rgba(30, 0, 50, 0.95), rgba(0, 20, 40, 0.95));
             border-color: rgba(255, 0, 230, 0.6);
             box-shadow: 0 0 25px rgba(255, 0, 230, 0.45), 0 0 55px rgba(0, 255, 242, 0.3);
@@ -723,64 +750,101 @@
             50% { box-shadow: 0 0 40px rgba(255, 0, 230, 0.7), 0 0 80px rgba(0, 255, 242, 0.55); }
         }
 
-        :root[data-visual-mode="neon"] .modal h2 {
+        :root[data-visual-mode="neon"] #ship-select-overlay .modal h2,
+        :root[data-visual-mode="neon"] #pause-overlay .modal h2,
+        :root[data-visual-mode="neon"] #game-over-overlay .modal h2,
+        :root[data-visual-mode="neon"] #win-overlay .modal h2,
+        :root[data-visual-mode="neon"] #unlock-overlay .modal h2 {
             text-shadow: 0 0 10px rgba(255, 0, 230, 0.8), 0 0 20px rgba(0, 255, 242, 0.5);
         }
 
-        :root[data-visual-mode="neon"] .btn {
+        :root[data-visual-mode="neon"] #space-invaders .btn,
+        :root[data-visual-mode="neon"] #ship-select-overlay .btn,
+        :root[data-visual-mode="neon"] #pause-overlay .btn,
+        :root[data-visual-mode="neon"] #game-over-overlay .btn,
+        :root[data-visual-mode="neon"] #win-overlay .btn,
+        :root[data-visual-mode="neon"] #unlock-overlay .btn {
             background: linear-gradient(90deg, #ff00e6, #00fff2);
             box-shadow: 0 0 14px rgba(255, 0, 230, 0.6);
         }
 
         /* Monochrome: pure black/white/gray noir, high contrast */
-        :root[data-visual-mode="mono"] {
+        :root[data-visual-mode="mono"] #space-invaders,
+        :root[data-visual-mode="mono"] #ship-select-overlay,
+        :root[data-visual-mode="mono"] #pause-overlay,
+        :root[data-visual-mode="mono"] #game-over-overlay,
+        :root[data-visual-mode="mono"] #win-overlay,
+        :root[data-visual-mode="mono"] #unlock-overlay {
             --accent: #cfcfcf;
             --accent-2: #ffffff;
-            --glass: rgba(15, 15, 15, 0.85);
-            --glass-strong: rgba(5, 5, 5, 0.96);
         }
 
-        :root[data-visual-mode="mono"] body {
+        :root[data-visual-mode="mono"] #space-invaders {
             background: linear-gradient(180deg, #050505 0%, #1c1c1c 100%);
             color: #eaeaea;
         }
 
-        :root[data-visual-mode="mono"] .modal {
+        :root[data-visual-mode="mono"] #ship-select-overlay .modal,
+        :root[data-visual-mode="mono"] #pause-overlay .modal,
+        :root[data-visual-mode="mono"] #game-over-overlay .modal,
+        :root[data-visual-mode="mono"] #win-overlay .modal,
+        :root[data-visual-mode="mono"] #unlock-overlay .modal {
             background: rgba(15, 15, 15, 0.95);
             border-color: rgba(255, 255, 255, 0.3);
             box-shadow: 0 0 30px rgba(255, 255, 255, 0.12);
             color: #eaeaea;
         }
 
-        :root[data-visual-mode="mono"] .btn {
+        :root[data-visual-mode="mono"] #space-invaders .btn,
+        :root[data-visual-mode="mono"] #ship-select-overlay .btn,
+        :root[data-visual-mode="mono"] #pause-overlay .btn,
+        :root[data-visual-mode="mono"] #game-over-overlay .btn,
+        :root[data-visual-mode="mono"] #win-overlay .btn,
+        :root[data-visual-mode="mono"] #unlock-overlay .btn {
             background: linear-gradient(90deg, #4a4a4a, #d8d8d8);
             color: #111;
         }
 
         /* Synthwave: retro 80s sunset - hot pink + gold on deep purple/navy */
-        :root[data-visual-mode="synth"] {
+        :root[data-visual-mode="synth"] #space-invaders,
+        :root[data-visual-mode="synth"] #ship-select-overlay,
+        :root[data-visual-mode="synth"] #pause-overlay,
+        :root[data-visual-mode="synth"] #game-over-overlay,
+        :root[data-visual-mode="synth"] #win-overlay,
+        :root[data-visual-mode="synth"] #unlock-overlay {
             --accent: #ff2d95;
             --accent-2: #ffae00;
-            --glass: rgba(26, 0, 51, 0.85);
-            --glass-strong: rgba(13, 0, 30, 0.96);
         }
 
-        :root[data-visual-mode="synth"] body {
+        :root[data-visual-mode="synth"] #space-invaders {
             background: linear-gradient(180deg, #1a0033 0%, #2d0a4e 45%, #0d1b3a 100%);
             color: #ffd9f0;
         }
 
-        :root[data-visual-mode="synth"] .modal {
+        :root[data-visual-mode="synth"] #ship-select-overlay .modal,
+        :root[data-visual-mode="synth"] #pause-overlay .modal,
+        :root[data-visual-mode="synth"] #game-over-overlay .modal,
+        :root[data-visual-mode="synth"] #win-overlay .modal,
+        :root[data-visual-mode="synth"] #unlock-overlay .modal {
             background: linear-gradient(160deg, rgba(40, 0, 70, 0.95), rgba(10, 15, 45, 0.95));
             border-color: rgba(255, 45, 149, 0.5);
             box-shadow: 0 0 25px rgba(255, 45, 149, 0.4), 0 0 45px rgba(255, 174, 0, 0.25);
         }
 
-        :root[data-visual-mode="synth"] .modal h2 {
+        :root[data-visual-mode="synth"] #ship-select-overlay .modal h2,
+        :root[data-visual-mode="synth"] #pause-overlay .modal h2,
+        :root[data-visual-mode="synth"] #game-over-overlay .modal h2,
+        :root[data-visual-mode="synth"] #win-overlay .modal h2,
+        :root[data-visual-mode="synth"] #unlock-overlay .modal h2 {
             text-shadow: 0 0 10px rgba(255, 45, 149, 0.7), 0 0 20px rgba(255, 174, 0, 0.4);
         }
 
-        :root[data-visual-mode="synth"] .btn {
+        :root[data-visual-mode="synth"] #space-invaders .btn,
+        :root[data-visual-mode="synth"] #ship-select-overlay .btn,
+        :root[data-visual-mode="synth"] #pause-overlay .btn,
+        :root[data-visual-mode="synth"] #game-over-overlay .btn,
+        :root[data-visual-mode="synth"] #win-overlay .btn,
+        :root[data-visual-mode="synth"] #unlock-overlay .btn {
             background: linear-gradient(90deg, #ff2d95, #ffae00);
         }
 
@@ -1846,17 +1910,18 @@ const gameState = {
         // deep-on-bright, neon mode pushes saturation/contrast hard and adds
         // a stacked glow halo for an ultra-lit cyberpunk look.
         function getEntityCanvasFilter() {
+            // NOTE: deliberately no drop-shadow() here. ctx.filter re-runs
+            // on every individual shape drawn each frame (every alien,
+            // particle, bullet - 100+ draw calls/frame), and drop-shadow's
+            // blur convolution at that call volume was severe enough to
+            // make gameplay unplayable. saturate/contrast/brightness/hue-
+            // rotate are cheap single-pass ops; the existing per-shape
+            // shadowBlur glow already baked into drawAlien/drawShipBody
+            // covers the "glow" look without needing a second expensive layer.
             if (visualMode === 'light') return 'invert(1) hue-rotate(180deg) saturate(1.3)';
-            if (visualMode === 'neon') {
-                return 'saturate(4.5) contrast(1.5) brightness(1.3) ' +
-                    'drop-shadow(0 0 5px rgba(255,0,230,0.65)) ' +
-                    'drop-shadow(0 0 12px rgba(0,255,242,0.5))';
-            }
+            if (visualMode === 'neon') return 'saturate(4.5) contrast(1.5) brightness(1.3)';
             if (visualMode === 'mono') return 'grayscale(1) contrast(1.3) brightness(1.08)';
-            if (visualMode === 'synth') {
-                return 'saturate(1.9) hue-rotate(-15deg) contrast(1.15) ' +
-                    'drop-shadow(0 0 6px rgba(255,60,180,0.55))';
-            }
+            if (visualMode === 'synth') return 'saturate(1.9) hue-rotate(-15deg) contrast(1.15)';
             return 'none';
         }
 
@@ -1899,9 +1964,13 @@ const gameState = {
                 return gradient;
             }
 
-            // Synthwave: a fixed retro sunset (purple -> magenta -> orange),
-            // static rather than drifting, with a small per-level hue wobble
-            // so levels still feel distinct from each other
+            // Synthwave is a fixed retro sunset (purple -> magenta -> orange)
+            // with a small per-level hue wobble - unlike neon it never
+            // animates, so it's safe (and much cheaper) to cache exactly
+            // like the normal path below instead of rebuilding it every frame
+            const key = `${currentLevel}-${canvas.width}-${canvas.height}-${visualMode}`;
+            if (bgGradientCache && bgGradientCacheKey === key) return bgGradientCache;
+
             if (visualMode === 'synth') {
                 const topHsla = parseColorToHsla(bg.top) || { h: 280 };
                 const wobble = (topHsla.h % 60) - 30;
@@ -1909,11 +1978,10 @@ const gameState = {
                 gradient.addColorStop(0, `hsl(${(255 + wobble + 360) % 360}, 65%, 18%)`);
                 gradient.addColorStop(0.55, `hsl(${(320 + wobble + 360) % 360}, 85%, 38%)`);
                 gradient.addColorStop(1, `hsl(${(25 + wobble + 360) % 360}, 90%, 55%)`);
+                bgGradientCache = gradient;
+                bgGradientCacheKey = key;
                 return gradient;
             }
-
-            const key = `${currentLevel}-${canvas.width}-${canvas.height}-${visualMode}`;
-            if (bgGradientCache && bgGradientCacheKey === key) return bgGradientCache;
 
             const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
             gradient.addColorStop(0, modeBackground(bg.top, 0));
