@@ -36,15 +36,23 @@ html, body {
    --bg-photo on question pages only), blurred and dimmed behind everything.
    Scaled up slightly so the blur never shows a hard edge at the viewport
    border. Falls back to nothing (just the animated gradient) if --bg-photo
-   isn't set, which is exactly what happens on result pages. */
+   isn't set, which is exactly what happens on result pages.
+
+   Tinted duotone via the path's own --grad-1/--grad-2 (background-blend-mode:
+   color keeps the photo's own light/dark shape but replaces its actual hue
+   with the gradient's) - this is a deliberate brand-safety choice, not just
+   a look: it's a stock/reference photo of someone else's actual product, not
+   ours, so it's styled to read as "the vibe of this result" rather than a
+   recognizable garment someone could go search for and buy elsewhere. */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
   z-index: 1;
-  background-image: var(--bg-photo, none);
+  background-image: linear-gradient(135deg, var(--grad-1), var(--grad-2)), var(--bg-photo, none);
   background-size: cover;
   background-position: center 20%;
+  background-blend-mode: color;
   filter: blur(8px) brightness(0.5) saturate(1.15);
   transform: scale(1.12);
   opacity: 0;
@@ -310,6 +318,8 @@ h1 {
 }
 
 .reveal-photo-frame {
+  position: relative;
+  isolation: isolate;
   width: min(300px, 74vw);
   border-radius: 22px;
   overflow: hidden;
@@ -325,6 +335,19 @@ h1 {
   display: block;
   width: 100%;
   height: auto;
+}
+
+/* Same brand-safety duotone tint as the question-page backdrop, applied to
+   the reveal photo via a blended overlay instead of filtering the <img>
+   directly - isolation: isolate above keeps the blend contained to this
+   card so it never bleeds into the (protected, untouched) page background. */
+.reveal-photo-frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--grad-1, #333), var(--grad-2, #999));
+  mix-blend-mode: color;
+  pointer-events: none;
 }
 
 @keyframes reveal-photo-in {

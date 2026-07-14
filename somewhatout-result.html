@@ -7,6 +7,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Tan+Nimbus&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="quiz-common.css">
   <style>
+    /* Same accent colors as this path's question pages, used only for the
+       reveal-photo duotone tint (see .reveal-photo-frame::after) - the core
+       background below never uses these. */
+    :root { --grad-1: #00ffcc; --grad-2: #00ff00; }
+
     /* Core background stays exactly what it was before any of this editing -
        the same shared image, same static (non-animated) treatment. The
        outfit photo below is a separate floating element on top of it. */
