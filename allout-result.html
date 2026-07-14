@@ -9,11 +9,17 @@
   <style>
     /* Core background stays exactly what it was before any of this editing -
        the same shared image, same static (non-animated) treatment. The
-       outfit photo below is a separate floating element on top of it. */
+       outfit photo below is a separate floating element on top of it.
+       Explicitly opts out of the premium full-bleed photo + dark scrim
+       layer added in quiz-common.css for question pages - this background
+       is protected and must render completely untouched. */
     html, body {
       background: url('Untitled Design (1).png') no-repeat center center fixed;
       background-size: cover;
       animation: none;
+    }
+    body::before, body::after {
+      content: none;
     }
   </style>
 </head>
