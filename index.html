@@ -18,6 +18,10 @@
             --glass-strong: rgba(0, 0, 0, 0.9);
         }
         
+        html {
+            overscroll-behavior: none;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #000;
@@ -26,6 +30,8 @@
             height: 100vh;
             width: 100vw;
             position: fixed;
+            overscroll-behavior: none;
+            touch-action: pan-y;
         }
         
         #bg-video {
@@ -47,7 +53,37 @@
             background: linear-gradient(to bottom, var(--glass-strong), rgba(0, 0, 0, 0.45));
             z-index: -1;
         }
-        
+
+        .ambient-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .ambient-particles span {
+            position: absolute;
+            bottom: -20px;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--accent-2);
+            box-shadow: 0 0 8px 2px rgba(124, 243, 214, 0.7);
+            opacity: 0;
+            animation: ambient-drift linear infinite;
+        }
+
+        @keyframes ambient-drift {
+            0% { transform: translateY(0) translateX(0); opacity: 0; }
+            10% { opacity: 0.8; }
+            90% { opacity: 0.5; }
+            100% { transform: translateY(-110vh) translateX(20px); opacity: 0; }
+        }
+
         .container {
             display: flex;
             flex-direction: column;
@@ -61,14 +97,53 @@
         .game-panel {
             flex: 5;
             background: var(--glass);
-            border-radius: 15px;
+            border-radius: 18px;
             padding: 15px;
             display: flex;
             flex-direction: column;
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(124, 243, 214, 0.3);
             overflow: auto;
             min-height: 0;
+            position: relative;
+            box-shadow: 0 0 20px rgba(124, 243, 214, 0.2), inset 0 0 25px rgba(124, 243, 214, 0.05);
+        }
+
+        .game-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 40%;
+            height: 100%;
+            background: linear-gradient(115deg, transparent 0%, rgba(255, 255, 255, 0.08) 45%, rgba(255, 255, 255, 0.16) 50%, rgba(255, 255, 255, 0.08) 55%, transparent 100%);
+            transform: translate3d(-160%, 0, 0) skewX(-15deg);
+            pointer-events: none;
+            animation: panel-sheen-sweep 7s ease-in-out infinite;
+            will-change: transform;
+            z-index: 1;
+        }
+
+        .game-panel::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            box-shadow: 0 0 34px rgba(124, 243, 214, 0.4), inset 0 0 35px rgba(124, 243, 214, 0.09);
+            opacity: 0.4;
+            animation: panel-glow-pulse 4s ease-in-out infinite;
+            will-change: opacity;
+        }
+
+        @keyframes panel-glow-pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.9; }
+        }
+
+        @keyframes panel-sheen-sweep {
+            0%, 15% { transform: translate3d(-160%, 0, 0) skewX(-15deg); }
+            50%, 100% { transform: translate3d(340%, 0, 0) skewX(-15deg); }
         }
         
         .paths-panel {
@@ -95,7 +170,46 @@
             align-items: center;
             width: 100%;
         }
+
+        .memory-game-container h2 {
+            background: linear-gradient(90deg, var(--accent-2), #a8f7ff, var(--accent-2));
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: title-glow-shift 4s linear infinite;
+            text-align: center;
+            margin-bottom: 6px;
+            filter: drop-shadow(0 0 12px rgba(124, 243, 214, 0.5));
+        }
+
+        @keyframes title-glow-shift {
+            0% { background-position: 0% center; }
+            100% { background-position: 200% center; }
+        }
         
+        .progress-pips {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin: 4px 0 14px;
+        }
+
+        .progress-pips .pip {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(124, 243, 214, 0.4);
+            transition: background 0.4s ease, box-shadow 0.4s ease, transform 0.4s ease;
+        }
+
+        .progress-pips .pip.filled {
+            background: var(--accent-2);
+            box-shadow: 0 0 10px 2px rgba(124, 243, 214, 0.8);
+            transform: scale(1.2);
+        }
+
         .memory-board {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -104,30 +218,96 @@
             max-width: 400px;
             margin: 0 auto;
         }
-        
+
         .card {
             aspect-ratio: 1/1;
             perspective: 1000px;
             cursor: pointer;
+            transition: transform 0.25s ease;
+            position: relative;
         }
-        
+
+        .card:not(.flip):not(.matched):hover {
+            transform: translateY(-6px) scale(1.04);
+        }
+
+        .card:not(.flip):not(.matched) .card-inner {
+            animation: card-idle-float 3.4s ease-in-out infinite;
+        }
+
+        .card:nth-child(2n):not(.flip):not(.matched) .card-inner {
+            animation-delay: -1.1s;
+        }
+
+        .card:nth-child(3n):not(.flip):not(.matched) .card-inner {
+            animation-delay: -2.2s;
+        }
+
+        @keyframes card-idle-float {
+            0%, 100% { transform: rotateY(0deg) rotateX(0deg) rotateZ(0deg); }
+            50% { transform: rotateY(4deg) rotateX(3deg) rotateZ(-1deg); }
+        }
+
         .card-inner {
             position: relative;
             width: 100%;
             height: 100%;
-            transition: transform 0.6s;
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             transform-style: preserve-3d;
         }
-        
+
+        .card-inner::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 40%;
+            height: 100%;
+            background: linear-gradient(115deg, transparent 0%, rgba(255, 255, 255, 0.75) 50%, transparent 100%);
+            transform: translate3d(-200%, 0, 0) skewX(-20deg);
+            pointer-events: none;
+            opacity: 0;
+            z-index: 6;
+        }
+
         .card.flip .card-inner {
             transform: rotateY(180deg);
+            animation: none;
         }
-        
+
+        .card.flip .card-inner::after {
+            animation: card-glint-sweep 0.7s ease-out;
+        }
+
+        @keyframes card-glint-sweep {
+            0% { transform: translate3d(-200%, 0, 0) skewX(-20deg); opacity: 0; }
+            35% { opacity: 1; }
+            100% { transform: translate3d(340%, 0, 0) skewX(-20deg); opacity: 0; }
+        }
+
         .card.matched {
-            opacity: 0.5;
+            opacity: 0.65;
             pointer-events: none;
         }
-        
+
+        .sparkle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #ffffff, var(--accent-2));
+            pointer-events: none;
+            z-index: 30;
+            top: 50%;
+            left: 50%;
+            animation: sparkle-pop 0.8s ease-out forwards;
+        }
+
+        @keyframes sparkle-pop {
+            0% { transform: translate(-50%, -50%) scale(0.6); opacity: 1; }
+            100% { transform: translate(calc(-50% + var(--sx)), calc(-50% + var(--sy))) scale(0); opacity: 0; }
+        }
+
         .card-face {
             position: absolute;
             width: 100%;
@@ -139,12 +319,32 @@
             align-items: center;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
-        
+
         .card-back {
             background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
             font-size: 2.5rem;
             font-weight: 900;
             color: rgba(255, 255, 255, 0.9);
+            overflow: hidden;
+        }
+
+        @keyframes card-match-celebrate {
+            0% { transform: scale(1); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); filter: brightness(1); }
+            40% { transform: scale(1.1); box-shadow: 0 0 25px 8px rgba(124, 243, 214, 0.8); filter: brightness(1.3); }
+            100% { transform: scale(1); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); filter: brightness(1); }
+        }
+
+        .card.matched .card-front {
+            animation: card-match-celebrate 0.6s ease-out;
+        }
+
+        @keyframes card-mismatch-pulse {
+            0%, 100% { filter: brightness(1) saturate(1); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); }
+            50% { filter: brightness(0.85) saturate(1.4); box-shadow: 0 4px 20px rgba(255, 80, 80, 0.7); }
+        }
+
+        .card.mismatch .card-front {
+            animation: card-mismatch-pulse 0.5s ease-in-out;
         }
         
         .card-front {
@@ -215,12 +415,42 @@
         }
         
         .life {
-            width: 20px;
-            height: 20px;
-            background: var(--accent);
+            width: 16px;
+            height: 16px;
+            background: radial-gradient(circle at 35% 30%, #ffd9d2, var(--accent) 70%);
             border-radius: 50%;
+            box-shadow: 0 0 8px 2px rgba(255, 111, 97, 0.7);
+            transition: opacity 0.3s ease, transform 0.3s ease;
         }
-        
+
+        .life.lost {
+            animation: life-lost-pop 0.5s ease-out forwards;
+        }
+
+        @keyframes life-lost-pop {
+            0% { transform: scale(1.4); opacity: 1; filter: brightness(2); }
+            100% { transform: scale(0.3); opacity: 0.3; filter: brightness(1); }
+        }
+
+        .hud-modal {
+            animation: welcome-modal-in 0.4s ease-out;
+            box-shadow: 0 0 30px rgba(124, 243, 214, 0.35), inset 0 0 20px rgba(124, 243, 214, 0.08);
+        }
+
+        .hud-modal.hud-modal-danger {
+            box-shadow: 0 0 30px rgba(255, 90, 90, 0.4), inset 0 0 20px rgba(255, 90, 90, 0.1);
+            border-color: rgba(255, 90, 90, 0.4);
+        }
+
+        .low-lives {
+            animation: low-lives-pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes low-lives-pulse {
+            0%, 100% { box-shadow: 0 0 0 rgba(255, 40, 40, 0); }
+            50% { box-shadow: 0 0 30px 8px rgba(255, 40, 40, 0.6); }
+        }
+
         .in-game-message {
             position: absolute;
             bottom: 20px;
@@ -233,6 +463,52 @@
             transition: opacity 0.5s ease-in-out;
             pointer-events: none;
             text-shadow: 0 0 10px var(--accent-2);
+        }
+
+        .floating-prompt {
+            position: absolute;
+            top: 0;
+            left: 0;
+            white-space: nowrap;
+            text-align: center;
+            font-size: 1rem;
+            font-style: italic;
+            color: rgba(255, 255, 255, 0.92);
+            text-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 20;
+            transition: opacity 0.8s ease-in-out;
+            will-change: transform;
+        }
+
+        :root[data-visual-mode="light"] .floating-prompt {
+            color: rgba(58, 47, 24, 0.92);
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.9);
+        }
+
+        :root[data-visual-mode="neon"] .floating-prompt {
+            color: #fdff00;
+            text-shadow: 0 0 6px rgba(255, 0, 230, 0.8), 0 0 14px rgba(0, 255, 242, 0.6);
+        }
+
+        .floating-prompt.visible {
+            opacity: 1;
+        }
+
+        .floating-prompt .unlock-word {
+            color: #ff5c5c;
+            font-weight: bold;
+            font-style: normal;
+            cursor: pointer;
+            pointer-events: auto;
+            text-shadow: 0 0 6px rgba(255, 60, 60, 0.6);
+            animation: unlock-word-pulse 1.4s ease-in-out infinite;
+        }
+
+        @keyframes unlock-word-pulse {
+            0%, 100% { text-shadow: 0 0 4px rgba(255, 60, 60, 0.5); }
+            50% { text-shadow: 0 0 8px rgba(255, 60, 60, 0.75); }
         }
         
         .overlay {
@@ -272,7 +548,184 @@
             font-size: 1.1rem;
             color: #fff;
         }
-        
+
+        .ship-select-modal {
+            max-width: 480px;
+            max-height: 88vh;
+            overflow-y: auto;
+        }
+
+        .ship-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 4px 0 20px;
+        }
+
+        .ship-tile {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(124, 243, 214, 0.25);
+            border-radius: 12px;
+            padding: 8px 4px 6px;
+            cursor: pointer;
+            transition: transform 0.15s ease, border-color 0.2s ease, background 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .ship-tile:hover {
+            transform: translateY(-2px);
+            border-color: rgba(124, 243, 214, 0.5);
+        }
+
+        .ship-tile.selected {
+            border-color: var(--accent-2);
+            background: rgba(124, 243, 214, 0.12);
+            box-shadow: 0 0 12px rgba(124, 243, 214, 0.35);
+        }
+
+        .ship-tile canvas {
+            display: block;
+        }
+
+        .ship-tile span {
+            font-size: 0.7rem;
+            color: #ddd;
+            text-align: center;
+        }
+
+        :root[data-visual-mode="light"] .ship-tile span {
+            color: #4a4030;
+        }
+
+        :root[data-visual-mode="light"] .ship-tile {
+            border-color: rgba(180, 140, 30, 0.3);
+            background: rgba(180, 140, 30, 0.05);
+        }
+
+        :root[data-visual-mode="light"] .ship-tile.selected {
+            border-color: #b8860b;
+            background: rgba(184, 134, 11, 0.12);
+            box-shadow: 0 0 12px rgba(184, 134, 11, 0.3);
+        }
+
+        :root[data-visual-mode="neon"] .ship-tile span {
+            color: #fff2ff;
+            text-shadow: 0 0 4px rgba(255, 0, 230, 0.6);
+        }
+
+        .mode-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(124, 243, 214, 0.25);
+            border-radius: 10px;
+            color: #ddd;
+            padding: 8px 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.15s ease, border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .mode-btn:hover {
+            transform: translateY(-2px);
+            border-color: rgba(124, 243, 214, 0.5);
+        }
+
+        .mode-btn.selected {
+            border-color: var(--accent-2);
+            background: rgba(124, 243, 214, 0.12);
+            box-shadow: 0 0 12px rgba(124, 243, 214, 0.35);
+            color: #fff;
+        }
+
+        /* ===== Visual mode: swaps the app chrome to match the canvas retint ===== */
+
+        /* Light: warm off-white to soft yellow, deep-toned text/accents -
+           never a stark white page, never low-contrast light-on-light text */
+        :root[data-visual-mode="light"] {
+            --accent: #b8860b;
+            --accent-2: #0e6b52;
+            --glass: rgba(255, 252, 240, 0.9);
+            --glass-strong: rgba(255, 250, 230, 0.97);
+        }
+
+        :root[data-visual-mode="light"] body {
+            background: linear-gradient(180deg, #fdf8ec 0%, #fdf3d8 45%, #fbedc0 100%);
+            color: #3a2f18;
+        }
+
+        :root[data-visual-mode="light"] .modal {
+            background: rgba(255, 253, 244, 0.97);
+            border-color: rgba(184, 134, 11, 0.35);
+            box-shadow: 0 0 30px rgba(184, 134, 11, 0.18);
+            color: #3a2f18;
+        }
+
+        :root[data-visual-mode="light"] .modal h2 {
+            color: #8a5a00;
+        }
+
+        :root[data-visual-mode="light"] .modal p {
+            color: #4a4030;
+        }
+
+        :root[data-visual-mode="light"] .mode-btn {
+            color: #4a4030;
+            border-color: rgba(184, 134, 11, 0.3);
+            background: rgba(184, 134, 11, 0.05);
+        }
+
+        :root[data-visual-mode="light"] .mode-btn.selected {
+            color: #3a2f18;
+            border-color: #b8860b;
+            background: rgba(184, 134, 11, 0.15);
+            box-shadow: 0 0 12px rgba(184, 134, 11, 0.3);
+        }
+
+        /* Overly Colorful: full cyberpunk - gradient chrome, layered glow,
+           a slow pulsing border instead of a flat neon-tinted panel */
+        :root[data-visual-mode="neon"] {
+            --accent: #ff00e6;
+            --accent-2: #00fff2;
+            --glass: rgba(20, 0, 30, 0.85);
+            --glass-strong: rgba(10, 0, 20, 0.96);
+        }
+
+        :root[data-visual-mode="neon"] body {
+            background: linear-gradient(135deg, #10001f 0%, #1a0033 35%, #001a2e 70%, #1f0026 100%);
+            color: #fdff00;
+        }
+
+        :root[data-visual-mode="neon"] .modal {
+            background: linear-gradient(160deg, rgba(30, 0, 50, 0.95), rgba(0, 20, 40, 0.95));
+            border-color: rgba(255, 0, 230, 0.6);
+            box-shadow: 0 0 25px rgba(255, 0, 230, 0.45), 0 0 55px rgba(0, 255, 242, 0.3);
+            animation: neon-modal-pulse 2.4s ease-in-out infinite;
+        }
+
+        @keyframes neon-modal-pulse {
+            0%, 100% { box-shadow: 0 0 25px rgba(255, 0, 230, 0.45), 0 0 55px rgba(0, 255, 242, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(255, 0, 230, 0.7), 0 0 80px rgba(0, 255, 242, 0.55); }
+        }
+
+        :root[data-visual-mode="neon"] .modal h2 {
+            text-shadow: 0 0 10px rgba(255, 0, 230, 0.8), 0 0 20px rgba(0, 255, 242, 0.5);
+        }
+
+        :root[data-visual-mode="neon"] .btn {
+            background: linear-gradient(90deg, #ff00e6, #00fff2);
+            box-shadow: 0 0 14px rgba(255, 0, 230, 0.6);
+        }
+
         .btn {
             background: var(--accent);
             color: white;
@@ -289,7 +742,185 @@
             transform: scale(1.05);
             box-shadow: 0 0 15px rgba(255, 111, 97, 0.5);
         }
-        
+
+        .slowmo-btn {
+            background: linear-gradient(135deg, #7c3aed, #2563eb);
+            font-size: 1.2rem;
+            padding: 10px 16px;
+            animation: slowmo-btn-pulse 1.6s ease-in-out infinite;
+        }
+
+        @keyframes slowmo-btn-pulse {
+            0%, 100% { box-shadow: 0 0 10px rgba(124, 58, 237, 0.5); }
+            50% { box-shadow: 0 0 22px 4px rgba(124, 58, 237, 0.9); }
+        }
+
+        .slowmo-btn:disabled {
+            opacity: 0.35;
+            animation: none;
+            cursor: not-allowed;
+            filter: grayscale(1);
+        }
+
+        /* ===== Welcome modal: HUD boot-up entrance ===== */
+        #welcome-overlay {
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        .welcome-modal {
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transform: scale(0.9);
+            animation: welcome-modal-in 0.5s ease-out forwards;
+        }
+
+        @keyframes welcome-modal-in {
+            0% { opacity: 0; transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .scanline-sweep {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 200%;
+            pointer-events: none;
+            background: repeating-linear-gradient(
+                to bottom,
+                rgba(124, 243, 214, 0.06) 0px,
+                rgba(124, 243, 214, 0.06) 1px,
+                transparent 2px,
+                transparent 4px
+            );
+            animation: scanline-drift 6s linear infinite;
+            will-change: transform;
+        }
+
+        @keyframes scanline-drift {
+            0% { transform: translateY(-50%); }
+            100% { transform: translateY(0%); }
+        }
+
+        .status-dot {
+            position: absolute;
+            top: 12px;
+            left: 14px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-2);
+            box-shadow: 0 0 8px 2px rgba(124, 243, 214, 0.8);
+            opacity: 0;
+            animation: welcome-fade-in 0.3s ease-out 1s forwards, status-blink 1.6s ease-in-out 1.3s infinite;
+        }
+
+        @keyframes welcome-fade-in {
+            to { opacity: 1; }
+        }
+
+        @keyframes status-blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .hud-corner {
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            border: 2px solid var(--accent-2);
+            opacity: 0;
+            transform: scale(1.5);
+            animation: hud-corner-in 0.35s ease-out forwards;
+        }
+
+        .hud-corner.tl { top: -2px; left: -2px; border-right: none; border-bottom: none; border-radius: 6px 0 0 0; animation-delay: 0.05s; }
+        .hud-corner.tr { top: -2px; right: -2px; border-left: none; border-bottom: none; border-radius: 0 6px 0 0; animation-delay: 0.15s; }
+        .hud-corner.bl { bottom: -2px; left: -2px; border-right: none; border-top: none; border-radius: 0 0 0 6px; animation-delay: 0.25s; }
+        .hud-corner.br { bottom: -2px; right: -2px; border-left: none; border-top: none; border-radius: 0 0 6px 0; animation-delay: 0.35s; }
+
+        @keyframes hud-corner-in {
+            0% { opacity: 0; transform: scale(1.5); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        #welcome-title {
+            background: linear-gradient(90deg, var(--accent-2), #a8f7ff, var(--accent-2));
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            filter: drop-shadow(0 0 12px rgba(124, 243, 214, 0.5));
+            opacity: 0;
+            animation: title-glitch-in 0.45s steps(3, end) 0.4s forwards,
+                       title-glow-shift 4s linear 0.85s infinite;
+        }
+
+        @keyframes title-glitch-in {
+            0% { opacity: 0; transform: translate(0, 0); }
+            15% { opacity: 1; transform: translate(-3px, 2px); }
+            35% { transform: translate(3px, -2px); }
+            55% { transform: translate(-2px, 0); }
+            75% { transform: translate(2px, 1px); }
+            100% { opacity: 1; transform: translate(0, 0); }
+        }
+
+        .welcome-text {
+            opacity: 0;
+            transform: translateY(10px);
+            animation: welcome-fade-up 0.5s ease-out 0.95s forwards;
+        }
+
+        .beacon-btn {
+            position: relative;
+            opacity: 0;
+            transform: translateY(10px) scale(0.9);
+            animation: welcome-fade-up-btn 0.5s ease-out 1.35s forwards;
+        }
+
+        .beacon-btn::before {
+            content: '';
+            position: absolute;
+            inset: -6px;
+            border-radius: 14px;
+            border: 2px solid var(--accent);
+            pointer-events: none;
+            opacity: 0;
+            animation: beacon-breathe 2.2s ease-in-out 1.9s infinite;
+        }
+
+        @keyframes welcome-fade-up {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes welcome-fade-up-btn {
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @keyframes beacon-breathe {
+            0%, 100% { opacity: 0.25; transform: scale(1); }
+            50% { opacity: 0.75; transform: scale(1.06); }
+        }
+
+        .beacon-burst {
+            position: fixed;
+            width: 60px;
+            height: 60px;
+            margin: -30px 0 0 -30px;
+            border: 2px solid var(--accent-2);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 200;
+            transform: scale(0.3);
+            opacity: 1;
+            animation: beacon-burst-pop 0.6s ease-out forwards;
+        }
+
+        @keyframes beacon-burst-pop {
+            to { transform: scale(3); opacity: 0; }
+        }
+
         .paths-title {
             text-align: center;
             margin-bottom: 15px;
@@ -340,33 +971,15 @@
             font-size: 0.9rem;
         }
         
-        /* Chaos effects for Level 8 */
-        .chaos-invert {
-            filter: invert(1);
+        /* Chaos effects for Level 8 - transform/filter values are now composed
+           and applied via inline style in updateChaosEffects() so multiple
+           simultaneous effects stack instead of one CSS class silently
+           overriding another's transform/filter declaration. */
+
+        .hud-hidden {
+            visibility: hidden !important;
         }
-        
-        .chaos-tilt {
-            transform: rotate(5deg);
-        }
-        
-        .chaos-shake {
-            animation: chaos-shake 0.1s infinite;
-        }
-        
-        @keyframes chaos-shake {
-            0% { transform: translate(1px, 1px); }
-            10% { transform: translate(-1px, -2px); }
-            20% { transform: translate(-2px, 0px); }
-            30% { transform: translate(2px, 2px); }
-            40% { transform: translate(1px, -1px); }
-            50% { transform: translate(-1px, 2px); }
-            60% { transform: translate(-2px, 1px); }
-            70% { transform: translate(2px, 1px); }
-            80% { transform: translate(-1px, -1px); }
-            90% { transform: translate(1px, 2px); }
-            100% { transform: translate(0, 0); }
-        }
-        
+
         .cash-effect {
             position: absolute;
             top: 0;
@@ -386,6 +999,41 @@
             animation: glitch 1s infinite;
             color: var(--accent-2);
             text-shadow: 2px 2px var(--accent), -2px -2px #00ff00;
+        }
+
+        .transition-flash {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle, rgba(124, 243, 214, 0.9), rgba(124, 243, 214, 0) 70%);
+            z-index: 50;
+            pointer-events: none;
+            animation: transition-flash-pop 0.5s ease-out forwards;
+        }
+
+        @keyframes transition-flash-pop {
+            0% { opacity: 0; }
+            15% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .transition-progress-track {
+            width: 200px;
+            max-width: 70%;
+            height: 6px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.15);
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .transition-progress-fill {
+            display: block;
+            height: 100%;
+            width: 0%;
+            background: var(--accent-2);
+            box-shadow: 0 0 10px 2px rgba(124, 243, 214, 0.8);
+            border-radius: 999px;
+            transition: width 3s linear;
         }
         
         @keyframes glitch {
@@ -439,51 +1087,89 @@
             font-size: 24px;
             color: white;
             user-select: none;
-            touch-action: manipulation;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            touch-action: none;
+            transition: transform 0.08s ease, background 0.08s ease;
         }
-        
+
+        .control-btn.pressed {
+            transform: scale(0.88);
+            background: rgba(124, 243, 214, 0.55);
+        }
+
         .fire-btn {
             background: rgba(255, 111, 97, 0.3);
             border: 2px solid var(--accent);
+        }
+
+        .fire-btn.pressed {
+            transform: scale(0.88);
+            background: rgba(255, 111, 97, 0.6);
+            box-shadow: 0 0 20px rgba(255, 111, 97, 0.7);
         }
         
         @media (max-width: 768px) {
             .container {
                 flex-direction: column;
+                padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
             }
-            
+
             .mobile-controls {
                 display: flex;
             }
-            
+
             #si-canvas {
                 height: 350px;
             }
-            
-            .memory-board {
-                grid-template-columns: repeat(3, 1fr);
+
+            .game-panel,
+            .paths-panel {
+                border-radius: 22px;
+                padding: 18px 14px;
             }
-            
+
+            .memory-board {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 6px;
+            }
+
             .card-name {
                 font-size: 0.6rem;
             }
-            
+
             .card-symbol {
                 font-size: 1.2rem;
             }
-            
+
             .card-back {
                 font-size: 2rem;
             }
         }
-        
+
         @media (max-width: 480px) {
             #si-canvas {
                 height: 300px;
             }
-            
+
             .paths-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .memory-board {
+                gap: 4px;
+            }
+
+            .card-name {
+                font-size: 0.5rem;
+            }
+
+            .card-symbol {
+                font-size: 1rem;
+            }
+
+            .card-back {
+                font-size: 1.6rem;
             }
             
             .modal {
@@ -517,6 +1203,7 @@
         Your browser does not support the video tag.
     </video>
     <div class="bg-overlay"></div>
+    <div class="ambient-particles" id="ambient-particles"></div>
     <audio id="bg-music" loop>
         <source src="Hlp Me.mp3" type="audio/mp3">
         Your browser does not support the audio element.
@@ -529,10 +1216,16 @@
     
     <!-- Welcome Modal -->
     <div id="welcome-overlay" class="overlay">
-        <div class="modal">
-            <h2>Hey, hi, hello!</h2>
-            <p>How are you doing? Finish the games, unlock the path , and send us your personality end message.</p>
-            <button id="start-btn" class="btn">Begin Exploring</button>
+        <div class="modal welcome-modal">
+            <div class="hud-corner tl"></div>
+            <div class="hud-corner tr"></div>
+            <div class="hud-corner bl"></div>
+            <div class="hud-corner br"></div>
+            <div class="status-dot"></div>
+            <div class="scanline-sweep"></div>
+            <h2 id="welcome-title">Hey, hi, hello!</h2>
+            <p class="welcome-text">How are you doing? Finish the games, unlock the path , and send us your personality end message.</p>
+            <button id="start-btn" class="btn beacon-btn">Begin Exploring</button>
         </div>
     </div>
 
@@ -544,16 +1237,34 @@
         </div>
     </div>
 
+    <!-- Ship Select: shown once between the memory game and Space Invaders -->
+    <div id="ship-select-overlay" class="overlay" style="display: none;">
+        <div class="modal ship-select-modal">
+            <h2>Choose Your Ship</h2>
+            <p>Pick the ship you'll fly into Space Invaders.</p>
+            <div class="ship-grid" id="ship-grid"></div>
+
+            <p style="margin-bottom: 8px;">Visual mode</p>
+            <div class="mode-row" id="mode-row">
+                <button class="mode-btn" data-mode="dark">Dark</button>
+                <button class="mode-btn" data-mode="light">Light</button>
+                <button class="mode-btn" data-mode="neon">Overly Colorful</button>
+            </div>
+
+            <button id="ship-launch-btn" class="btn">Launch</button>
+        </div>
+    </div>
+
     <!-- Game Over Modal -->
     <div id="game-over-overlay" class="overlay" style="display: none;">
-        <div class="modal">
+        <div class="modal hud-modal hud-modal-danger">
             <h2>GAME OVER</h2>
             <p>You've run out of lives. Try again from the beginning.</p>
             <button id="try-again-btn" class="btn">Try Again</button>
         </div>
     </div>
 <div id="pause-overlay" class="overlay" style="display: none;">
-    <div class="modal">
+    <div class="modal hud-modal">
         <h2>PAUSED</h2>
         <p>Take a break. Click "Resume" to continue.</p>
         <button id="resume-btn" class="btn">Resume</button>
@@ -573,6 +1284,7 @@
         <div class="game-panel" id="game-container">
             <div class="memory-game-container" id="memory-game">
                 <h2>Memory Challenge</h2>
+                <div class="progress-pips" id="progress-pips"></div>
                 <div class="memory-board" id="memory-board"></div>
             </div>
 
@@ -581,12 +1293,23 @@
                 <div class="canvas-wrapper">
                     <canvas id="si-canvas"></canvas>
                     <div class="in-game-message" id="in-game-message"></div>
+                    <div class="floating-prompt" id="floating-prompt" style="display: none;"></div>
+                </div>
+
+                <!-- Slow-mo unlock reveal -->
+                <div id="unlock-overlay" class="overlay" style="display: none;">
+                    <div class="modal hud-modal">
+                        <h2>Special Feature Unlocked</h2>
+                        <p>You've unlocked <strong>Slow-Mo</strong> — for the hardest level of all. Once you reach the final level, everything else will crawl. You won't.</p>
+                        <button id="unlock-close-btn" class="btn">Got it</button>
+                    </div>
                 </div>
                 <div class="game-ui">
     <div class="level-indicator">Level: <span id="level-number">1</span> - <span id="level-name">Notthebest OG</span></div>
     
     <button id="pause-btn" class="btn">Pause</button>
-    
+    <button id="slowmo-btn" class="btn slowmo-btn" style="display: none;" title="Slow-mo: everything but you slows down for 30s">🐌</button>
+
     <div class="lives-indicator">
         <div class="life"></div>
         <div class="life"></div>
@@ -644,6 +1367,8 @@ const gameState = {
         // ===== ELEMENT REFERENCES =====
         const welcomeOverlay = document.getElementById('welcome-overlay');
         const startBtn = document.getElementById('start-btn');
+        const shipSelectOverlay = document.getElementById('ship-select-overlay');
+        const shipLaunchBtn = document.getElementById('ship-launch-btn');
         const outerClickMessage = document.getElementById('outer-click-message');
         const warningText = document.getElementById('warning-text');
         const closeWarning = document.getElementById('close-warning');
@@ -664,18 +1389,42 @@ const gameState = {
         const levelName = document.getElementById('level-name');
         const canvas = document.getElementById('si-canvas');
         const ctx = canvas.getContext('2d');
+        const mainCtx = ctx; // stable alias so drawShipBody can default to it while still accepting other contexts (ship-select tile previews)
         const leftBtn = document.getElementById('left-btn');
         const rightBtn = document.getElementById('right-btn');
         const fireBtn = document.getElementById('fire-btn');
         const pauseBtn = document.getElementById('pause-btn');
         const resumeBtn = document.getElementById('resume-btn');
         const pauseOverlay = document.getElementById('pause-overlay');
+        const slowmoBtn = document.getElementById('slowmo-btn');
+        const floatingPrompt = document.getElementById('floating-prompt');
+        const unlockOverlay = document.getElementById('unlock-overlay');
+        const unlockCloseBtn = document.getElementById('unlock-close-btn');
         // Sound effects
         const shootSound = document.getElementById('shoot-sound');
         const explosionSound = document.getElementById('explosion-sound');
         const flipSound = document.getElementById('flip-sound');
         const matchSound = document.getElementById('match-sound');
         const glitchSound = document.getElementById('glitch-sound');
+
+        // Plays a sound via a cloned node instead of restarting the shared
+        // <audio> element. Reusing one element for rapid-fire sounds (lots of
+        // explosions/shots landing close together, worst on the final level
+        // with 35 aliens and constant chaos) cuts earlier plays off before
+        // they finish - which is why sounds seemed to silently stop working
+        // there. Cloning re-uses the already-loaded audio data (no re-fetch).
+        function playSound(audioEl, { volume = 1, rate = 1 } = {}) {
+            if (!audioEl) return;
+            try {
+                const instance = audioEl.cloneNode(true);
+                instance.volume = volume;
+                instance.playbackRate = rate;
+                instance.play().catch(e => console.log('Audio play error:', e));
+                instance.addEventListener('ended', () => instance.remove());
+            } catch (e) {
+                console.log('Audio play error:', e);
+            }
+        }
 
         // ===== SPACE INVADERS IMPLEMENTATION =====
         let player, aliens, bullets, enemyBullets, obstacles, chaosObjects, butterPellets, shields, chocolates;
@@ -689,7 +1438,15 @@ const gameState = {
             tilt: 0,
             shake: 0,
             cash: 0,
-            invisible: 0
+            invisible: 0,
+            thermal: 0,
+            neon: 0,
+            staticNoise: 0,
+            controlsInvert: 0,
+            hudHidden: 0,
+            zoom: 0,
+            shift: 0,
+            shield: 0
         };
         let lastMessageTime = 0;
         let levelButterHits = 0;
@@ -702,36 +1459,382 @@ const gameState = {
         let deltaTime = 0;
         let stars = [];
         let respawning = false;
+        let bgGradientCache = null;
+        let bgGradientCacheKey = '';
+        let explosions = [];
+        let warpTimer = 0;
+
+        function alienExplosionColor(type) {
+            switch (type) {
+                case 'car': return '#ff5c5c';
+                case 'latin': return '#c084fc';
+                case 'toaster': return '#ffcf7a';
+                case 'grapefruit': return '#ff6b81';
+                case 'cupcake': return '#ffb6d9';
+                case 'armor': return '#ff8a3d';
+                case 'chaos': return `hsl(${gameTick % 360}, 100%, 60%)`;
+                default: return '#8affc1';
+            }
+        }
+
+        function spawnExplosion(x, y, color) {
+            const particles = [];
+            const count = 10;
+            for (let i = 0; i < count; i++) {
+                const angle = (i / count) * Math.PI * 2 + Math.random() * 0.4;
+                const speed = 1.5 + Math.random() * 2.5;
+                particles.push({
+                    x, y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    size: 1.5 + Math.random() * 2
+                });
+            }
+            explosions.push({ x, y, color, life: 1, particles });
+        }
+
+        function updateExplosions() {
+            for (let e = explosions.length - 1; e >= 0; e--) {
+                const exp = explosions[e];
+                exp.life -= 0.05;
+                if (exp.life <= 0) {
+                    explosions.splice(e, 1);
+                    continue;
+                }
+
+                // Flash ring
+                ctx.globalAlpha = Math.max(exp.life, 0);
+                ctx.strokeStyle = exp.color;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(exp.x, exp.y, (1 - exp.life) * 18, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // Debris particles
+                exp.particles.forEach(p => {
+                    p.x += p.vx * (deltaTime / 16);
+                    p.y += p.vy * (deltaTime / 16);
+                    p.vy += 0.05 * (deltaTime / 16);
+                    ctx.fillStyle = exp.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size * exp.life, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+                ctx.globalAlpha = 1;
+            }
+        }
 
         // Create stars for space background
         function createStars() {
+            const config = levelConfigs[currentLevel] || levelConfigs[0];
+            const mode = config.bg ? config.bg.mode : 'twinkle';
+            const count = mode === 'grid' ? 70 : (mode === 'glitch' ? 22 : (mode === 'bokeh' ? 26 : 100));
+
             stars = [];
-            for (let i = 0; i < 100; i++) {
-                stars.push({
+            for (let i = 0; i < count; i++) {
+                const p = {
                     x: Math.random() * canvas.width,
                     y: Math.random() * canvas.height,
                     size: Math.random() * 2 + 1,
                     speed: Math.random() * 0.5 + 0.2
-                });
+                };
+
+                switch (mode) {
+                    case 'streak':
+                        p.length = 10 + Math.random() * 22;
+                        p.speed = 1.6 + Math.random() * 2.2;
+                        break;
+                    case 'ember':
+                        p.speed = -(0.3 + Math.random() * 0.7);
+                        p.size = Math.random() * 2.5 + 1;
+                        p.flicker = Math.random() * Math.PI * 2;
+                        break;
+                    case 'grid': {
+                        const gridSize = 42;
+                        p.x = Math.floor(p.x / gridSize) * gridSize + gridSize / 2;
+                        p.y = Math.floor(p.y / gridSize) * gridSize + gridSize / 2;
+                        p.speed = 0.04;
+                        break;
+                    }
+                    case 'bokeh':
+                        p.size = Math.random() * 12 + 8;
+                        p.speed = Math.random() * 0.3 + 0.1;
+                        break;
+                    case 'confetti':
+                        p.size = Math.random() * 3 + 2;
+                        p.speed = Math.random() * 1 + 0.5;
+                        p.sway = Math.random() * Math.PI * 2;
+                        break;
+                    case 'glitch':
+                        p.size = Math.random() * 22 + 6;
+                        break;
+                }
+
+                // Parallax depth: far/mid/near layers so the backdrop has real depth
+                // instead of one flat plane of particles all moving at the same rate
+                const depthTier = [0.6, 1, 1.6][Math.floor(Math.random() * 3)];
+                p.depth = depthTier;
+                p.size *= depthTier;
+                p.speed *= depthTier;
+
+                stars.push(p);
             }
         }
 
-        // Draw stars for space background
-        function drawStars() {
-            ctx.fillStyle = '#ffffff';
+        // Draw ambient background particles, themed per level
+        function drawWarpStreaks() {
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            const progress = warpTimer / 25; // 1 -> 0 as the jump settles
+            const k = progress * 0.5;
+            ctx.lineWidth = 1.5;
             for (let i = 0; i < stars.length; i++) {
-                const star = stars[i];
+                const p = stars[i];
+                const dx = p.x - cx;
+                const dy = p.y - cy;
+                ctx.strokeStyle = `rgba(255, 255, 255, ${0.3 + progress * 0.5})`;
                 ctx.beginPath();
-                ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Move stars
-                star.y += star.speed * (deltaTime / 16);
-                if (star.y > canvas.height) {
-                    star.y = 0;
-                    star.x = Math.random() * canvas.width;
+                ctx.moveTo(p.x - dx * k, p.y - dy * k);
+                ctx.lineTo(p.x + dx * k, p.y + dy * k);
+                ctx.stroke();
+            }
+            warpTimer--;
+        }
+
+        function drawStars() {
+            if (warpTimer > 0) {
+                drawWarpStreaks();
+                return;
+            }
+
+            const config = levelConfigs[currentLevel] || levelConfigs[0];
+            const bg = (config && config.bg) || { particleColor: '#ffffff', mode: 'twinkle' };
+            const mode = bg.mode;
+
+            for (let i = 0; i < stars.length; i++) {
+                const p = stars[i];
+                const altColor = bg.particleColor2 || bg.particleColor;
+                const color = (i % 2 === 0) ? bg.particleColor : altColor;
+
+                switch (mode) {
+                    case 'streak':
+                        ctx.strokeStyle = color;
+                        ctx.lineWidth = Math.max(1, p.size * 0.6);
+                        ctx.globalAlpha = 0.7;
+                        ctx.beginPath();
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(p.x, p.y - p.length);
+                        ctx.stroke();
+                        ctx.globalAlpha = 1;
+                        p.y += p.speed * (deltaTime / 16);
+                        if (p.y - p.length > canvas.height) {
+                            p.y = -p.length;
+                            p.x = Math.random() * canvas.width;
+                        }
+                        break;
+
+                    case 'ember': {
+                        const flick = 0.5 + Math.sin(gameTick / 8 + p.flicker) * 0.5;
+                        ctx.globalAlpha = 0.35 + flick * 0.5;
+                        ctx.fillStyle = bg.particleColor;
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.globalAlpha = 1;
+                        p.y += p.speed * (deltaTime / 16);
+                        p.x += Math.sin(gameTick / 20 + i) * 0.2;
+                        if (p.y < -10) {
+                            p.y = canvas.height + 10;
+                            p.x = Math.random() * canvas.width;
+                        }
+                        break;
+                    }
+
+                    case 'grid':
+                        ctx.fillStyle = bg.particleColor;
+                        ctx.globalAlpha = 0.6;
+                        ctx.fillRect(p.x, p.y, 2, 2);
+                        ctx.globalAlpha = 1;
+                        break;
+
+                    case 'bokeh': {
+                        const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
+                        grad.addColorStop(0, color);
+                        grad.addColorStop(1, 'rgba(0,0,0,0)');
+                        ctx.fillStyle = grad;
+                        ctx.globalAlpha = 0.35;
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.globalAlpha = 1;
+                        p.y += p.speed * (deltaTime / 16);
+                        if (p.y - p.size > canvas.height) {
+                            p.y = -p.size;
+                            p.x = Math.random() * canvas.width;
+                        }
+                        break;
+                    }
+
+                    case 'confetti':
+                        ctx.fillStyle = color;
+                        ctx.globalAlpha = 0.8;
+                        ctx.fillRect(p.x, p.y, p.size, p.size);
+                        ctx.globalAlpha = 1;
+                        p.y += p.speed * (deltaTime / 16);
+                        p.x += Math.sin(gameTick / 15 + p.sway) * 0.3;
+                        if (p.y > canvas.height) {
+                            p.y = -5;
+                            p.x = Math.random() * canvas.width;
+                        }
+                        break;
+
+                    case 'glitch':
+                        if (Math.random() < 0.06) {
+                            ctx.globalAlpha = 0.25;
+                            ctx.fillStyle = `hsl(${Math.random() * 360}, 90%, 60%)`;
+                            ctx.fillRect(p.x, p.y, p.size, p.size / 4);
+                            ctx.globalAlpha = 1;
+                        }
+                        p.x = Math.random() * canvas.width;
+                        p.y = Math.random() * canvas.height;
+                        break;
+
+                    default:
+                        ctx.fillStyle = bg.particleColor || '#ffffff';
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                        ctx.fill();
+                        p.y += p.speed * (deltaTime / 16);
+                        if (p.y > canvas.height) {
+                            p.y = 0;
+                            p.x = Math.random() * canvas.width;
+                        }
                 }
             }
+        }
+
+        // ===== Visual mode: dark (default, existing look) / light / neon =====
+        let visualMode = localStorage.getItem('visual-mode') || 'dark';
+        document.documentElement.setAttribute('data-visual-mode', visualMode);
+
+        // Parses '#rrggbb', '#rgb', 'rgb(...)' or 'rgba(...)' into HSL(+alpha)
+        // so background/entity colors can be retinted per mode without hand
+        // -redefining every palette three times over.
+        function parseColorToHsla(input) {
+            let r, g, b, a = 1;
+            if (input[0] === '#') {
+                let hex = input.slice(1);
+                if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+                r = parseInt(hex.substring(0, 2), 16);
+                g = parseInt(hex.substring(2, 4), 16);
+                b = parseInt(hex.substring(4, 6), 16);
+            } else {
+                const m = input.match(/rgba?\(([^)]+)\)/);
+                if (!m) return null;
+                const parts = m[1].split(',').map(s => parseFloat(s));
+                [r, g, b] = parts;
+                if (parts.length > 3) a = parts[3];
+            }
+            r /= 255; g /= 255; b /= 255;
+            const max = Math.max(r, g, b), min = Math.min(r, g, b);
+            let h, s, l = (max + min) / 2;
+            if (max === min) {
+                h = s = 0;
+            } else {
+                const d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                switch (max) {
+                    case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                    case g: h = (b - r) / d + 2; break;
+                    default: h = (r - g) / d + 4;
+                }
+                h /= 6;
+            }
+            return { h: h * 360, s: s * 100, l: l * 100, a };
+        }
+
+        // Level background gradients: light mode goes warm off-white/soft
+        // yellow (not a pale wash of the level's own dark space palette),
+        // neon mode is handled separately in getBackgroundStyle() with a
+        // proper drifting multi-stop gradient, dark mode is untouched.
+        function modeBackground(color, stopPosition = 0) {
+            if (visualMode === 'dark') return color;
+            const hsla = parseColorToHsla(color) || { h: 45, s: 30, l: 50, a: 1 };
+            if (visualMode === 'light') {
+                // Warm cream/off-white base with just a whisper of the
+                // level's own hue blended in, so levels stay distinguishable
+                // without ever reading as a cold pastel version of space
+                const warmHue = 46;
+                const hue = warmHue + (hsla.h - warmHue) * 0.15;
+                const lightness = stopPosition === 0 ? 96 : 89;
+                const saturation = stopPosition === 0 ? 22 : 42;
+                return `hsla(${hue}, ${saturation}%, ${lightness}%, ${hsla.a})`;
+            }
+            return `hsla(${hsla.h}, 100%, 62%, ${hsla.a})`;
+        }
+
+        // Everything drawn on the canvas AFTER the background fill (ship,
+        // aliens, bullets, particles, chaos effects) goes through this one
+        // filter instead of retinting every individual color literal by
+        // hand - light mode inverts+un-rotates hue so bright-on-dark becomes
+        // deep-on-bright, neon mode pushes saturation/contrast hard and adds
+        // a stacked glow halo for an ultra-lit cyberpunk look.
+        function getEntityCanvasFilter() {
+            if (visualMode === 'light') return 'invert(1) hue-rotate(180deg) saturate(1.3)';
+            if (visualMode === 'neon') {
+                return 'saturate(4.5) contrast(1.5) brightness(1.3) ' +
+                    'drop-shadow(0 0 5px rgba(255,0,230,0.65)) ' +
+                    'drop-shadow(0 0 12px rgba(0,255,242,0.5))';
+            }
+            return 'none';
+        }
+
+        function setVisualMode(mode) {
+            visualMode = mode;
+            localStorage.setItem('visual-mode', mode);
+            document.documentElement.setAttribute('data-visual-mode', mode);
+            bgGradientCache = null;
+            bgGradientCacheKey = '';
+        }
+
+        // Cached per-level background gradient (rebuilt on level change / resize / mode change)
+        function getBackgroundStyle(config) {
+            const bg = (config && config.bg) || { top: '#000000', bottom: '#000000', mode: 'twinkle' };
+
+            if (bg.mode === 'glitch') {
+                const hue = (gameTick * 1.4) % 360;
+                let s1 = 55, l1 = 7, s2 = 65, l2 = 13;
+                if (visualMode === 'light') { s1 = 35; l1 = 92; s2 = 40; l2 = 86; }
+                else if (visualMode === 'neon') { s1 = 100; l1 = 55; s2 = 100; l2 = 62; }
+                const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                gradient.addColorStop(0, `hsl(${hue}, ${s1}%, ${l1}%)`);
+                gradient.addColorStop(1, `hsl(${(hue + 80) % 360}, ${s2}%, ${l2}%)`);
+                return gradient;
+            }
+
+            // Overly Colorful: never cached - a slow-drifting 3-stop
+            // cyberpunk gradient instead of a flat brightened fill, so the
+            // backdrop itself feels alive and glowing rather than static
+            if (visualMode === 'neon') {
+                const topHsla = parseColorToHsla(bg.top) || { h: 280, s: 60, l: 50 };
+                const bottomHsla = parseColorToHsla(bg.bottom) || { h: 320, s: 60, l: 50 };
+                const drift = (gameTick * 0.5) % 360;
+                const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                gradient.addColorStop(0, `hsl(${(topHsla.h + drift) % 360}, 100%, 58%)`);
+                gradient.addColorStop(0.5, `hsl(${(topHsla.h + drift + 90) % 360}, 100%, 42%)`);
+                gradient.addColorStop(1, `hsl(${(bottomHsla.h + drift + 200) % 360}, 100%, 55%)`);
+                return gradient;
+            }
+
+            const key = `${currentLevel}-${canvas.width}-${canvas.height}-${visualMode}`;
+            if (bgGradientCache && bgGradientCacheKey === key) return bgGradientCache;
+
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, modeBackground(bg.top, 0));
+            gradient.addColorStop(1, modeBackground(bg.bottom, 1));
+            bgGradientCache = gradient;
+            bgGradientCacheKey = key;
+            return gradient;
         }
 
         const levelConfigs = [
@@ -740,106 +1843,122 @@ const gameState = {
                 rows: 2,
                 cols: 7,
                 speed: 0.15,
-                fireRate: 0.002,
+                fireRate: 0.0020,
+                enemyBulletSpeed: 4.0,
                 alienType: 'normal',
                 alienWidth: 24,
                 alienHeight: 18,
                 description: "Intro, simple enemies, chill",
-                movement: "straight"
+                movement: "straight",
+                bg: { top: '#050814', bottom: '#0b1c34', particleColor: '#ffffff', mode: 'twinkle' }
             },
             {
                 name: "Initial D",
                 rows: 2,
                 cols: 7,
-                speed: 0.25,
-                fireRate: 0.003,
+                speed: 0.20,
+                fireRate: 0.0030,
+                enemyBulletSpeed: 4.3,
                 alienType: "car",
                 alienWidth: 24,
                 alienHeight: 14,
                 description: "Mini cars drifting in zig-zag motion",
-                movement: "zigzag"
+                movement: "zigzag",
+                bg: { top: '#0d0018', bottom: '#2a0140', particleColor: '#ff2fd0', particleColor2: '#2fe0ff', mode: 'streak' }
             },
             {
                 name: "Lorem Ipsum",
                 rows: 3,
                 cols: 7,
-                speed: 0.35,
-                fireRate: 0.004,
+                speed: 0.24,
+                fireRate: 0.0042,
+                enemyBulletSpeed: 4.6,
                 alienType: "latin",
-                alienWidth: 24,
+                alienWidth: 26,
                 alienHeight: 18,
                 description: "Enemies spawn with weird random Latin-like text sprites",
-                movement: "straight"
+                movement: "straight",
+                bg: { top: '#12131c', bottom: '#1d2130', particleColor: 'rgba(124,243,214,0.4)', mode: 'grid' }
             },
             {
                 name: "Your Toast",
                 rows: 3,
                 cols: 7,
-                speed: 0.25,
-                fireRate: 0.005,
+                speed: 0.28,
+                fireRate: 0.0055,
+                enemyBulletSpeed: 4.9,
                 alienType: "toaster",
                 alienWidth: 24,
                 alienHeight: 20,
                 special: "bread-bullets",
                 description: "Toaster enemies, bread bullets, butter pellet blockers",
                 movement: "straight",
-                butterSpawnRate: 0.01
+                butterSpawnRate: 0.01,
+                bg: { top: '#2b1200', bottom: '#552800', particleColor: '#ffcf7a', mode: 'ember' }
             },
             {
                 name: "Grapefruit x Lime",
                 rows: 3,
                 cols: 7,
-                speed: 0.19,
-                fireRate: 0.006,
+                speed: 0.32,
+                fireRate: 0.0068,
+                enemyBulletSpeed: 5.2,
                 alienType: "grapefruit",
                 alienWidth: 22,
                 alienHeight: 22,
                 special: "lime-bullets",
                 description: "Grapefruit enemies, lime bullets, lemon blockers",
                 movement: "straight",
-                obstacleSpawnRate: 0.005
+                obstacleSpawnRate: 0.005,
+                bg: { top: '#2a0022', bottom: '#123300', particleColor: '#ff6b81', particleColor2: '#8aff65', mode: 'bokeh' }
             },
             {
                 name: "Cake Was A Lie",
-                rows: 3,
+                rows: 4,
                 cols: 7,
-                speed: 0.41,
-                fireRate: 0.007,
+                speed: 0.36,
+                fireRate: 0.0082,
+                enemyBulletSpeed: 5.6,
                 alienType: "cupcake",
                 alienWidth: 24,
                 alienHeight: 24,
                 special: "frosting-laser",
                 description: "Cupcake enemies, frosting lasers, chocolate converters",
                 movement: "straight",
-                chocolateSpawnRate: 0.003
+                chocolateSpawnRate: 0.003,
+                bg: { top: '#2a0a1f', bottom: '#4a1030', particleColor: '#ffb6d9', particleColor2: '#fff2a8', mode: 'confetti' }
             },
             {
                 name: "Berserk",
                 rows: 4,
                 cols: 7,
-                speed: 0.31,
-                fireRate: 0.01,
+                speed: 0.42,
+                fireRate: 0.0100,
+                enemyBulletSpeed: 6.0,
                 alienType: "armor",
                 alienWidth: 22,
                 alienHeight: 22,
                 special: "sword-bullets",
                 description: "Armor enemies, sword bullets, shield blockers",
                 movement: "straight",
-                shieldSpawnRate: 0.004
+                shieldSpawnRate: 0.004,
+                bg: { top: '#0a0505', bottom: '#3a0a0a', particleColor: '#ff8a3d', mode: 'ember' }
             },
             {
                 name: "RANDOMODIUM",
                 rows: 5,
                 cols: 7,
-                speed: 0.19,
-                fireRate: 0.015,
+                speed: 0.50,
+                fireRate: 0.0140,
+                enemyBulletSpeed: 6.6,
                 alienType: "chaos",
                 alienWidth: 24,
                 alienHeight: 18,
                 special: "chaos-bullets",
                 description: "Final chaos boss level with floating chaos objects",
                 movement: "chaotic",
-                chaosSpawnRate: 0.02
+                chaosSpawnRate: 0.032,
+                bg: { top: '#000000', bottom: '#000000', particleColor: '#ffffff', mode: 'glitch' }
             }
         ];
 
@@ -861,16 +1980,76 @@ const gameState = {
             { type: 'question', emoji: '❓', effect: 'shake' },
             { type: 'donut', emoji: '🍩', effect: 'shield' },
             { type: 'glasses', emoji: '🕶️', effect: 'invisible' },
-            { type: 'blob', emoji: '🫧', effect: 'grow' }
+            { type: 'blob', emoji: '🫧', effect: 'grow' },
+            { type: 'swirl', emoji: '🌀', effect: 'swirl' },
+            { type: 'bolt', emoji: '⚡', effect: 'shock' },
+            { type: 'sparkle', emoji: '💫', effect: 'lucky' }
         ];
+        let berserkRage = 0;
+        let slowMoUnlocked = false;
+        let slowMoTimer = 0;
+        let slowMoAvailable = true;
+        let worldSpeedFactor = 1;
+        let promptActive = false;
+        let promptTimeout = null;
+        let promptScheduleTimeouts = [];
+        let promptPos = null;
+        let promptTypeTimeout = null;
+
+        // Witty narrator prompts that drift across the screen during
+        // gameplay, 3-4 scheduled per level, text-only (typewriter reveal,
+        // no voiceover). Almost all of them are just flavor text with no
+        // interaction. Only two lines (picked below) carry the special red
+        // clickable word that unlocks slow-mo, so it reads as a rare,
+        // discoverable secret rather than something that could be triggered
+        // from literally any prompt on screen.
+        const promptLines = [
+            { text: "So, how's the shirt treating you so far?" },
+            { text: 'Be honest, you just wanted the free stuff, right?' },
+            { text: 'This shirt is judging your outfit too.' },
+            { text: "You've stared at this longer than your ex deserved." },
+            { text: 'Somewhere, a marketing team is proud of you right now.' },
+            { text: "Nobody's watching... except, well, this." },
+            { text: 'Scientists would call this behavior concerning.' },
+            { text: 'Your phone battery is dying for this?' },
+            { text: 'You could be doing literally anything else right now.' },
+            { text: 'Quick question: are you even good at this game?' },
+            { text: 'Your thumbs must be tired by now.' },
+            { text: 'Somewhere, a dev is actually watching you play this.' },
+            { text: 'Be real, did you scan this out of pure boredom?' },
+            { text: 'This is either genius marketing or a cry for help.' },
+            { text: 'You do know this is just a shirt, right?' },
+            { text: "Weirdly invested in this, aren't you?" },
+            { text: 'Your snacks are getting cold. Just saying.' },
+            { text: 'Not to alarm you, but this game is judging your reflexes.' },
+            { text: 'Would you tell your friends about this? Be honest.' },
+            { text: "This level's basically a personality test in disguise." },
+            { before: "Blink and you'll miss the next ", red: 'surprise', after: '.' },
+            { text: "Statistically, most people quit by now. You didn't." },
+            { text: 'Are you scared of a few pixels, or nah?' },
+            { text: 'This shirt has more charisma than your last outfit.' },
+            { text: "You're doing great. Probably. We don't actually track that." },
+            { text: "Somewhere, someone's genuinely impressed you got this far." },
+            { text: 'This message means nothing. Or does it?' },
+            { text: 'You ever wonder who wrote all this dialogue?' },
+            { text: 'Careful, this level bites back.' },
+            { before: "You're one click away from something ", red: 'interesting', after: '.' },
+            { text: 'This whole thing was designed to mess with you. Working?' },
+            { text: "Almost feels like we're having a real conversation, doesn't it?" }
+        ];
+        let playerTrail = [];
 
         // ===== INITIALIZATION =====
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize memory game
     initMemoryGame();
-    
+    createAmbientParticles();
+
     // Set up event listeners
-    startBtn.addEventListener('click', startExperience);
+    startBtn.addEventListener('click', (e) => {
+        startExperience();
+        spawnBeaconBurst(e.clientX, e.clientY);
+    });
     closeWarning.addEventListener('click', () => {
         outerClickMessage.style.display = 'none';
     });
@@ -883,6 +2062,26 @@ document.addEventListener('DOMContentLoaded', () => {
     // ADD THESE TWO LINES FOR THE PAUSE FEATURE
     pauseBtn.addEventListener('click', togglePause);
     resumeBtn.addEventListener('click', togglePause);
+    slowmoBtn.addEventListener('click', activateSlowMo);
+    shipLaunchBtn.addEventListener('click', () => {
+        shipSelectOverlay.style.display = 'none';
+        beginSpaceInvadersMatch();
+    });
+    unlockCloseBtn.addEventListener('click', () => {
+        unlockOverlay.style.display = 'none';
+        if (!gameActive && gameState.spaceInvadersCompleted !== true) {
+            gameActive = true;
+            lastFrameTime = performance.now();
+            requestAnimationFrame(gameLoop);
+        }
+    });
+
+    // Safety net: never let a control get stuck "held down" if focus is
+    // lost mid-touch (app switch, alt-tab, notification, etc.)
+    window.addEventListener('blur', resetControlState);
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) resetControlState();
+    });
 
     // Prevent path selection until game is completed
     document.querySelectorAll('.path-item').forEach(path => {
@@ -953,17 +2152,36 @@ document.addEventListener("DOMContentLoaded", () => {
         function startExperience() {
             welcomeOverlay.style.display = 'none';
             gameState.initialized = true;
-            
+
             // Start background media
             playBackgroundMedia();
         }
 
+        function spawnBeaconBurst(x, y) {
+            const burst = document.createElement('div');
+            burst.className = 'beacon-burst';
+            burst.style.left = `${x}px`;
+            burst.style.top = `${y}px`;
+            document.body.appendChild(burst);
+            setTimeout(() => burst.remove(), 600);
+        }
+
         function playBackgroundMedia() {
+            // Safety net: nothing in this experience ever intentionally pauses
+            // the music, so if it ever stops (some mobile browsers briefly
+            // steal audio focus when another clip tries to play), resume it
+            // automatically instead of leaving it silent.
+            bgMusic.addEventListener('pause', () => {
+                if (gameState.initialized) {
+                    bgMusic.play().catch(() => {});
+                }
+            });
+
             // Play video (usually has fewer restrictions when muted)
             bgVideo.play().catch(err => {
                 console.warn('Video play failed:', err);
             });
-            
+
             // Try to play music
             bgMusic.play().then(() => {
                 console.log('Background music started successfully');
@@ -1033,13 +2251,23 @@ document.addEventListener("DOMContentLoaded", () => {
                 }, 10000);
             });
         }
+        function resetControlState() {
+            keys = {};
+            if (player) player.firing = false;
+            if (leftBtn) leftBtn.classList.remove('pressed');
+            if (rightBtn) rightBtn.classList.remove('pressed');
+            if (fireBtn) fireBtn.classList.remove('pressed');
+            touchId = null;
+        }
+
         function togglePause() {
     // If the game is running, pause it
     if (gameActive) {
         gameActive = false;
+        resetControlState();
         pauseOverlay.style.display = 'flex';
         pauseBtn.innerText = 'Resume';
-    } 
+    }
     // If the game is paused, resume it
     else {
         gameActive = true;
@@ -1051,6 +2279,165 @@ document.addEventListener("DOMContentLoaded", () => {
         requestAnimationFrame(gameLoop);
     }
 }
+
+        function updateSlowMoButtonVisibility() {
+            const showButton = currentLevel === 7 && slowMoUnlocked;
+            slowmoBtn.style.display = showButton ? 'inline-block' : 'none';
+            slowmoBtn.disabled = !slowMoAvailable || slowMoTimer > 0;
+        }
+
+        function activateSlowMo() {
+            if (currentLevel !== 7 || !slowMoUnlocked || !slowMoAvailable || slowMoTimer > 0) return;
+            slowMoTimer = 1800; // 30 seconds of real time at 60fps
+            slowMoAvailable = false;
+            slowmoBtn.disabled = true;
+            showInGameMessage('Slow-mo engaged! Everything else just got slower.');
+        }
+
+        function showFloatingPrompt() {
+            if (promptActive || slowMoUnlocked || !gameActive) return;
+            promptActive = true;
+
+            const lineIndex = Math.floor(Math.random() * promptLines.length);
+            const line = promptLines[lineIndex];
+            const hasUnlockWord = !!line.red;
+            const fullText = hasUnlockWord ? (line.before + line.red + line.after) : line.text;
+
+            // Measure the fully-typed width up front so the DVD-bounce drift
+            // bounds are correct from frame one, instead of being based on
+            // the empty box the typewriter effect starts from.
+            floatingPrompt.textContent = fullText;
+            floatingPrompt.style.display = 'block';
+            const wrapperWidth = canvas.width || 300;
+            const wrapperHeight = canvas.height || 300;
+            const promptWidth = Math.min(floatingPrompt.offsetWidth || 200, wrapperWidth - 20);
+            floatingPrompt.innerHTML = '';
+
+            requestAnimationFrame(() => floatingPrompt.classList.add('visible'));
+            typeFloatingPrompt(line, hasUnlockWord);
+
+            // DVD-screensaver style drift, starting from a random spot/angle
+            const angle = Math.random() * Math.PI * 2;
+            promptPos = {
+                x: Math.random() * Math.max(1, wrapperWidth - promptWidth),
+                y: Math.random() * Math.max(1, wrapperHeight - 30),
+                vx: Math.cos(angle) * 0.9,
+                vy: Math.sin(angle) * 0.9,
+                width: promptWidth
+            };
+            floatingPrompt.style.left = `${promptPos.x}px`;
+            floatingPrompt.style.top = `${promptPos.y}px`;
+
+            // Fades itself out if never clicked - it's a chance, not a guarantee
+            promptTimeout = setTimeout(() => {
+                dismissFloatingPrompt();
+            }, 6500);
+        }
+
+        // Reveals a prompt line character-by-character instead of slamming
+        // the whole sentence in at once - reads more like it's being said
+        // live rather than just appearing.
+        function typeFloatingPrompt(line, hasUnlockWord) {
+            const beforeText = hasUnlockWord ? line.before : line.text;
+            const redText = hasUnlockWord ? line.red : '';
+            const afterText = hasUnlockWord ? line.after : '';
+            const totalLen = beforeText.length + redText.length + afterText.length;
+
+            let redSpan = null;
+            let i = 0;
+
+            function typeChar() {
+                if (i < beforeText.length) {
+                    floatingPrompt.appendChild(document.createTextNode(beforeText[i]));
+                } else if (i < beforeText.length + redText.length) {
+                    if (!redSpan) {
+                        redSpan = document.createElement('span');
+                        redSpan.className = 'unlock-word';
+                        redSpan.addEventListener('click', unlockSlowMo);
+                        floatingPrompt.appendChild(redSpan);
+                    }
+                    redSpan.textContent += redText[i - beforeText.length];
+                } else if (i < totalLen) {
+                    floatingPrompt.appendChild(document.createTextNode(afterText[i - beforeText.length - redText.length]));
+                } else {
+                    return;
+                }
+                i++;
+                promptTypeTimeout = setTimeout(typeChar, 26);
+            }
+            typeChar();
+        }
+
+        function updateFloatingPromptPosition() {
+            if (!promptActive || !promptPos) return;
+
+            const maxX = Math.max(1, canvas.width - promptPos.width);
+            const maxY = Math.max(1, canvas.height - 30);
+
+            promptPos.x += promptPos.vx * (deltaTime / 16);
+            promptPos.y += promptPos.vy * (deltaTime / 16);
+
+            if (promptPos.x <= 0 || promptPos.x >= maxX) {
+                promptPos.vx *= -1;
+                promptPos.x = Math.max(0, Math.min(maxX, promptPos.x));
+            }
+            if (promptPos.y <= 0 || promptPos.y >= maxY) {
+                promptPos.vy *= -1;
+                promptPos.y = Math.max(0, Math.min(maxY, promptPos.y));
+            }
+
+            floatingPrompt.style.left = `${promptPos.x}px`;
+            floatingPrompt.style.top = `${promptPos.y}px`;
+        }
+
+        function dismissFloatingPrompt() {
+            clearTimeout(promptTypeTimeout);
+            floatingPrompt.classList.remove('visible');
+            clearTimeout(promptTimeout);
+            setTimeout(() => {
+                floatingPrompt.style.display = 'none';
+                floatingPrompt.innerHTML = '';
+                promptActive = false;
+                promptPos = null;
+            }, 1000);
+        }
+
+        function unlockSlowMo() {
+            if (slowMoUnlocked) return;
+            slowMoUnlocked = true;
+            dismissFloatingPrompt();
+            if (window.speechSynthesis) window.speechSynthesis.cancel();
+
+            // A satisfying "confirmed" chime rather than the usual game SFX
+            if (matchSound) {
+                matchSound.currentTime = 0;
+                matchSound.play().catch(e => console.log("Audio play error:", e));
+            }
+
+            unlockOverlay.style.display = 'flex';
+            updateSlowMoButtonVisibility();
+            // Briefly pause so the reveal isn't fought over by advancing enemies
+            gameActive = false;
+        }
+
+        function schedulePromptsForLevel(levelIndex) {
+            promptScheduleTimeouts.forEach(id => clearTimeout(id));
+            promptScheduleTimeouts = [];
+            if (slowMoUnlocked) return;
+
+            // 3-4 guaranteed appearances per level, packed closer together
+            // so they feel like an ongoing back-and-forth, not a rare event
+            const count = 3 + Math.floor(Math.random() * 2);
+            for (let i = 0; i < count; i++) {
+                const delay = 1500 + i * 4000 + Math.random() * 2000;
+                const id = setTimeout(() => {
+                    if (currentLevel === levelIndex && gameActive && !slowMoUnlocked) {
+                        showFloatingPrompt();
+                    }
+                }, delay);
+                promptScheduleTimeouts.push(id);
+            }
+        }
 
         function handleOutsideClick() {
             gameState.outsideClicks++;
@@ -1096,10 +2483,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
         function completeMemoryGame() {
             gameState.memoryGameCompleted = true;
-            
+
+            // Impact flash + shake
+            gameContainer.classList.add('chaos-shake');
+            const flash = document.createElement('div');
+            flash.className = 'transition-flash';
+            gameContainer.appendChild(flash);
+            setTimeout(() => {
+                gameContainer.classList.remove('chaos-shake');
+                flash.remove();
+            }, 400);
+
+            // Transition sound sting
+            playSound(glitchSound);
+
             // Hide memory game
             memoryGameDiv.style.display = 'none';
-            
+
             // Show "not yet over" message
             const notYetOverDiv = document.createElement('div');
             notYetOverDiv.id = 'not-yet-over-message';
@@ -1114,8 +2514,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 text-align: center;
                 animation: pulse 1s infinite;
             `;
-            notYetOverDiv.innerHTML = '<h2>Not Yet Over...</h2><p style="font-size: 1.2rem; margin-top: 20px;">Prepare for Space Invaders</p>';
-            
+            notYetOverDiv.innerHTML = '<h2 class="glitch-text">Not Yet Over...</h2><p style="font-size: 1.2rem; margin-top: 20px;">Prepare for Space Invaders</p><div class="transition-progress-track"><div class="transition-progress-fill" id="transition-progress-fill"></div></div>';
+
             // Add pulse animation if not already added
             if (!document.getElementById('pulse-animation')) {
                 const style = document.createElement('style');
@@ -1129,43 +2529,146 @@ document.addEventListener("DOMContentLoaded", () => {
                 `;
                 document.head.appendChild(style);
             }
-            
+
             // Show the message in the game panel
             gameContainer.appendChild(notYetOverDiv);
-            
-            // After 3 seconds, remove message and start Space Invaders
+
+            // Kick off the loading bar fill to match the 3s wait below
+            requestAnimationFrame(() => {
+                const fill = document.getElementById('transition-progress-fill');
+                if (fill) fill.style.width = '100%';
+            });
+
+            // After 3 seconds, remove the message and let the player pick a
+            // ship before Space Invaders actually begins
             setTimeout(() => {
                 notYetOverDiv.remove();
-                spaceInvaders.style.display = 'flex';
-                
-                // IMPORTANT: Reset canvas size
-                canvas.width = canvas.offsetWidth;
-                canvas.height = canvas.offsetHeight;
-                
-                // Reset lives and game state
-                lives = 3;
-                gameActive = false; // Ensure game is not active during setup
-                
-                // Reset lives display
-                document.querySelectorAll('.life').forEach((life, index) => {
-                    life.style.opacity = index < lives ? '1' : '0.3';
-                });
-                
-                // Recreate stars for new canvas size
-                createStars();
-                
-                // Initialize Space Invaders
-                initSpaceInvaders();
-                
-                // Set gameActive to true AFTER initialization
-                gameActive = true;
-                
-                console.log('Starting Space Invaders...');
-                
-                // Start the game loop
-                lastFrameTime = performance.now();
-                requestAnimationFrame(gameLoop);
+                showShipSelect();
             }, 3000);
+        }
+
+        // The actual "start the match" logic, now triggered by the ship
+        // select screen's Launch button instead of firing automatically
+        function beginSpaceInvadersMatch() {
+            spaceInvaders.style.display = 'flex';
+
+            // IMPORTANT: Reset canvas size
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+
+            // Reset lives and game state
+            lives = 3;
+            gameActive = false; // Ensure game is not active during setup
+
+            // Reset lives display
+            document.querySelectorAll('.life').forEach((life, index) => {
+                life.style.opacity = index < lives ? '1' : '0.3';
+                life.classList.remove('lost');
+            });
+
+            // Recreate stars for new canvas size
+            createStars();
+
+            // Initialize Space Invaders
+            initSpaceInvaders();
+
+            // Set gameActive to true AFTER initialization
+            gameActive = true;
+
+            console.log('Starting Space Invaders...');
+
+            // Start the game loop
+            lastFrameTime = performance.now();
+            requestAnimationFrame(gameLoop);
+        }
+
+        let shipGridBuilt = false;
+
+        function renderShipTilePreview(tileCanvas, skinId) {
+            const tileCtx = tileCanvas.getContext('2d');
+            const paint = () => {
+                tileCtx.clearRect(0, 0, tileCanvas.width, tileCanvas.height);
+                tileCtx.filter = getEntityCanvasFilter();
+                drawShipBody(skinId, 14, 4, 28, 32, 28, 20, tileCtx);
+                tileCtx.filter = 'none';
+            };
+            // Double rAF so this always lands in a real paint frame instead
+            // of a frame that got coalesced/skipped right after a mode swap
+            requestAnimationFrame(() => requestAnimationFrame(paint));
+        }
+
+        function refreshShipTilePreviews() {
+            document.querySelectorAll('.ship-tile').forEach(tile => {
+                const c = tile.querySelector('canvas');
+                if (c) renderShipTilePreview(c, tile.dataset.skin);
+            });
+        }
+
+        function buildShipGrid() {
+            const grid = document.getElementById('ship-grid');
+            if (!grid || shipGridBuilt) return;
+            shipGridBuilt = true;
+
+            shipSkins.forEach(skin => {
+                const tile = document.createElement('div');
+                tile.className = 'ship-tile';
+                tile.dataset.skin = skin.id;
+
+                const tileCanvas = document.createElement('canvas');
+                tileCanvas.width = 56;
+                tileCanvas.height = 44;
+                tile.appendChild(tileCanvas);
+
+                const label = document.createElement('span');
+                label.textContent = skin.name;
+                tile.appendChild(label);
+
+                renderShipTilePreview(tileCanvas, skin.id);
+
+                tile.addEventListener('click', () => {
+                    selectedShipSkin = skin.id;
+                    localStorage.setItem('selected-ship-skin', skin.id);
+                    updateShipGridSelection();
+                });
+
+                grid.appendChild(tile);
+            });
+
+            updateShipGridSelection();
+        }
+
+        function updateShipGridSelection() {
+            document.querySelectorAll('.ship-tile').forEach(tile => {
+                tile.classList.toggle('selected', tile.dataset.skin === selectedShipSkin);
+            });
+        }
+
+        let modeRowBuilt = false;
+
+        function buildModeRow() {
+            if (modeRowBuilt) return;
+            modeRowBuilt = true;
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    setVisualMode(btn.dataset.mode);
+                    updateModeRowSelection();
+                    refreshShipTilePreviews();
+                });
+            });
+        }
+
+        function updateModeRowSelection() {
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.toggle('selected', btn.dataset.mode === visualMode);
+            });
+        }
+
+        function showShipSelect() {
+            buildShipGrid();
+            updateShipGridSelection();
+            buildModeRow();
+            updateModeRowSelection();
+            shipSelectOverlay.style.display = 'flex';
         }
 
         function completeSpaceInvaders() {
@@ -1236,6 +2739,53 @@ document.addEventListener("DOMContentLoaded", () => {
                 cardElement.addEventListener('click', () => flipCard(cardElement));
                 memoryBoard.appendChild(cardElement);
             });
+
+            initProgressPips();
+        }
+
+        function initProgressPips() {
+            const pipsContainer = document.getElementById('progress-pips');
+            if (!pipsContainer) return;
+            pipsContainer.innerHTML = '';
+            for (let i = 0; i < 8; i++) {
+                const pip = document.createElement('div');
+                pip.className = 'pip';
+                pipsContainer.appendChild(pip);
+            }
+        }
+
+        function updateProgressPips(count) {
+            const pips = document.querySelectorAll('#progress-pips .pip');
+            pips.forEach((pip, index) => {
+                pip.classList.toggle('filled', index < count);
+            });
+        }
+
+        function spawnSparkles(cardEl) {
+            const sparkleCount = 6;
+            for (let i = 0; i < sparkleCount; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                const angle = (i / sparkleCount) * Math.PI * 2;
+                const distance = 30 + Math.random() * 20;
+                sparkle.style.setProperty('--sx', `${Math.cos(angle) * distance}px`);
+                sparkle.style.setProperty('--sy', `${Math.sin(angle) * distance}px`);
+                cardEl.appendChild(sparkle);
+                setTimeout(() => sparkle.remove(), 800);
+            }
+        }
+
+        function createAmbientParticles() {
+            const container = document.getElementById('ambient-particles');
+            if (!container) return;
+            const count = 18;
+            for (let i = 0; i < count; i++) {
+                const particle = document.createElement('span');
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.animationDuration = `${10 + Math.random() * 12}s`;
+                particle.style.animationDelay = `${Math.random() * 12}s`;
+                container.appendChild(particle);
+            }
         }
 
         let hasFlippedCard = false;
@@ -1289,18 +2839,24 @@ document.addEventListener("DOMContentLoaded", () => {
                 matchSound.currentTime = 0;
                 matchSound.play().catch(e => console.log("Audio play error:", e));
             }
-            
+
             firstCard.classList.add('matched');
             secondCard.classList.add('matched');
+            spawnSparkles(firstCard);
+            spawnSparkles(secondCard);
+            updateProgressPips(matchedPairs + 1);
             resetBoard();
         }
 
         function unflipCards() {
             lockBoard = true;
 
+            firstCard.classList.add('mismatch');
+            secondCard.classList.add('mismatch');
+
             setTimeout(() => {
-                firstCard.classList.remove('flip');
-                secondCard.classList.remove('flip');
+                firstCard.classList.remove('flip', 'mismatch');
+                secondCard.classList.remove('flip', 'mismatch');
                 resetBoard();
             }, 1000);
         }
@@ -1329,7 +2885,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 speed: 7,
                 firing: false,
                 lastFireTime: 0,
-                fireCooldown: 150
+                fireCooldown: 110,
+                tilt: 0
             };
 
             // Clear all game objects
@@ -1344,7 +2901,9 @@ document.addEventListener("DOMContentLoaded", () => {
             
             // Reset game state
             currentLevel = 0;
-            chaosEffects = { invert: 0, tilt: 0, shake: 0, cash: 0, invisible: 0 };
+            chaosEffects = { invert: 0, tilt: 0, shake: 0, cash: 0, invisible: 0, thermal: 0, neon: 0, staticNoise: 0, controlsInvert: 0, hudHidden: 0, zoom: 0, shift: 0, shield: 0 };
+            berserkRage = 0;
+            playerTrail = [];
             levelButterHits = 0;
             playerInvisible = false;
             invisibleTimer = 0;
@@ -1360,39 +2919,58 @@ document.addEventListener("DOMContentLoaded", () => {
 
         function setupMobileControls() {
             // Left button
-            leftBtn.addEventListener('touchstart', () => {
+            leftBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
                 keys['ArrowLeft'] = true;
-            });
-            
-            leftBtn.addEventListener('touchend', () => {
+                leftBtn.classList.add('pressed');
+            }, { passive: false });
+
+            const releaseLeft = (e) => {
+                if (e) e.preventDefault();
                 keys['ArrowLeft'] = false;
-            });
-            
+                leftBtn.classList.remove('pressed');
+            };
+            leftBtn.addEventListener('touchend', releaseLeft);
+            leftBtn.addEventListener('touchcancel', releaseLeft);
+
             // Right button
-            rightBtn.addEventListener('touchstart', () => {
+            rightBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
                 keys['ArrowRight'] = true;
-            });
-            
-            rightBtn.addEventListener('touchend', () => {
+                rightBtn.classList.add('pressed');
+            }, { passive: false });
+
+            const releaseRight = (e) => {
+                if (e) e.preventDefault();
                 keys['ArrowRight'] = false;
-            });
-            
+                rightBtn.classList.remove('pressed');
+            };
+            rightBtn.addEventListener('touchend', releaseRight);
+            rightBtn.addEventListener('touchcancel', releaseRight);
+
             // Fire button
-            fireBtn.addEventListener('touchstart', () => {
+            fireBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                fireBtn.classList.add('pressed');
                 if (gameActive && !player.firing && !respawning) {
                     player.firing = true;
                     fireBullet();
                 }
-            });
-            
-            fireBtn.addEventListener('touchend', () => {
+            }, { passive: false });
+
+            const releaseFire = (e) => {
+                if (e) e.preventDefault();
                 player.firing = false;
-            });
-            
+                fireBtn.classList.remove('pressed');
+            };
+            fireBtn.addEventListener('touchend', releaseFire);
+            fireBtn.addEventListener('touchcancel', releaseFire);
+
             // Touch controls for moving the ship
             canvas.addEventListener('touchstart', handleTouchStart);
             canvas.addEventListener('touchmove', handleTouchMove);
             canvas.addEventListener('touchend', handleTouchEnd);
+            canvas.addEventListener('touchcancel', handleTouchEnd);
         }
 
         function handleTouchStart(e) {
@@ -1432,6 +3010,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         function handleKeyDown(e) {
+            if (gameActive && [' ', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
+                e.preventDefault();
+            }
+
             keys[e.key] = true;
 
             // Start continuous firing when space is pressed
@@ -1461,9 +3043,24 @@ document.addEventListener("DOMContentLoaded", () => {
             currentLevel = levelIndex;
             const config = levelConfigs[levelIndex];
 
+            // Refresh themed ambient background particles for this level
+            createStars();
+
+            // Hyperspace-jump flourish into the new level's environment
+            warpTimer = 25;
+
+            // Guarantee 3-4 witty narrator prompts across this level
+            schedulePromptsForLevel(levelIndex);
+
             // Update UI
             levelNumber.textContent = levelIndex + 1;
             levelName.textContent = config.name;
+
+            // Slow-mo is exclusive to the final level, and resets availability
+            // each time the player reaches it fresh
+            slowMoTimer = 0;
+            slowMoAvailable = true;
+            updateSlowMoButtonVisibility();
 
             // Initialize game objects
             aliens = [];
@@ -1474,13 +3071,17 @@ document.addEventListener("DOMContentLoaded", () => {
             butterPellets = [];
             shields = [];
             chocolates = [];
-            chaosEffects = { invert: 0, tilt: 0, shake: 0, cash: 0, invisible: 0 };
+            chaosEffects = { invert: 0, tilt: 0, shake: 0, cash: 0, invisible: 0, thermal: 0, neon: 0, staticNoise: 0, controlsInvert: 0, hudHidden: 0, zoom: 0, shift: 0, shield: 0 };
+            berserkRage = 0;
+            playerTrail = [];
             levelButterHits = 0;
             playerInvisible = false;
             respawning = false;
 
             // Reset canvas styles
             canvas.className = '';
+            canvas.style.transform = '';
+            canvas.style.filter = '';
 
             // Create aliens based on level config - CENTERED
             const alienWidth = config.alienWidth;
@@ -1501,7 +3102,12 @@ document.addEventListener("DOMContentLoaded", () => {
                         type: config.alienType,
                         originalX: startX + col * (alienWidth + alienPadding),
                         alive: true,
-                        movePattern: config.movement === 'zigzag' ? Math.random() * Math.PI * 2 : 0
+                        movePattern: config.movement === 'zigzag' ? Math.random() * Math.PI * 2 : 0,
+                        driftSpeed: config.movement === 'zigzag' ? (0.85 + Math.random() * 0.4) : 1,
+                        word: config.alienType === 'latin' ? latinChars[Math.floor(Math.random() * latinChars.length)] : null,
+                        wordFlickerAt: Math.random() * 200,
+                        bobSeed: Math.random() * Math.PI * 2,
+                        isFlickering: false
                     });
                 }
             }
@@ -1516,18 +3122,17 @@ document.addEventListener("DOMContentLoaded", () => {
         function fireBullet() {
             const currentTime = Date.now();
             if (currentTime - player.lastFireTime < player.fireCooldown) return;
-            
+
             player.lastFireTime = currentTime;
-            
-            // Play shoot sound
-            if (shootSound) {
-                shootSound.currentTime = 0;
-                shootSound.play().catch(e => console.log("Audio play error:", e));
-            }
-            
+
+            const shipProfile = shipBulletProfiles[selectedShipSkin] || shipBulletProfiles.classic;
+
+            // Play shoot sound - pitched per ship so each one has its own voice
+            playSound(shootSound, { volume: 0.9, rate: shipProfile.rate });
+
             const config = levelConfigs[currentLevel];
             let bulletProps;
-            
+
             switch(config.special) {
                 case "bread-bullets":
                     bulletProps = { width: 20, height: 10, color: '#a0522d' };
@@ -1550,10 +3155,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     lastBulletType = 'chaos';
                     break;
                 default:
-                    bulletProps = { width: 4, height: 10, color: '#7cf3d6' };
+                    // No level-special bullet on this level - use the
+                    // selected ship's own signature bullet color instead
+                    bulletProps = { width: 4, height: 10, color: shipProfile.color };
                     lastBulletType = 'normal';
             }
-            
+
             bullets.push({
                 x: player.x + player.width / 2 - bulletProps.width / 2,
                 y: player.y,
@@ -1589,27 +3196,74 @@ document.addEventListener("DOMContentLoaded", () => {
     // Calculate delta time for frame rate independence
     deltaTime = timestamp - lastFrameTime;
     lastFrameTime = timestamp;
-    
-    // Clear canvas with space background
-    ctx.fillStyle = '#000';
+
+    // Slow-mo (final level only): the world slows down, but the player's own
+    // movement/firing keeps running on realDeltaTime so the ship never feels
+    // sluggish - only everything else does.
+    const realDeltaTime = deltaTime;
+    const slowMoOn = currentLevel === 7 && slowMoTimer > 0;
+    worldSpeedFactor = slowMoOn ? 0.3 : 1;
+    const worldDeltaTime = realDeltaTime * worldSpeedFactor;
+
+    // Clear canvas with the current level's themed background
+    ctx.filter = 'none';
+    ctx.fillStyle = getBackgroundStyle(levelConfigs[currentLevel]);
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw stars
+
+    // Everything drawn from here on (particles, ship, aliens, bullets,
+    // chaos effects) goes through the current visual mode's filter
+    ctx.filter = getEntityCanvasFilter();
+
+    // Draw ambient background particles
     drawStars();
+
+    // Drift the floating narrator prompt around the screen, DVD-logo style
+    updateFloatingPromptPosition();
 
     // Handle player movement if not respawning
     if (!respawning) {
-        if (keys['ArrowLeft'] || keys['a']) {
+        // RANDOMODIUM: controls can get flipped for a stretch - the ship never
+        // stops responding, it just responds to the opposite key
+        const controlsFlipped = chaosEffects.controlsInvert > 0;
+        const leftHeld = controlsFlipped ? (keys['ArrowRight'] || keys['d']) : (keys['ArrowLeft'] || keys['a']);
+        const rightHeld = controlsFlipped ? (keys['ArrowLeft'] || keys['a']) : (keys['ArrowRight'] || keys['d']);
+
+        let tiltTarget = 0;
+        if (leftHeld) {
             player.x = Math.max(0, player.x - player.speed * (deltaTime / 16));
+            tiltTarget = -0.35;
         }
-        if (keys['ArrowRight'] || keys['d']) {
+        if (rightHeld) {
             player.x = Math.min(canvas.width - player.width, player.x + player.speed * (deltaTime / 16));
+            tiltTarget = 0.35;
         }
+        // Ease the banking tilt toward its target instead of snapping
+        player.tilt += (tiltTarget - player.tilt) * Math.min(1, 0.2 * (deltaTime / 16));
 
         // Handle continuous firing
         if (player.firing) {
             fireBullet();
         }
+    } else if (player) {
+        player.tilt *= 0.9;
+    }
+
+    // RANDOMODIUM: faint ghost trail behind the ship for extra visual noise
+    if (currentLevel === 7) {
+        playerTrail.push({ x: player.x, y: player.y });
+        if (playerTrail.length > 6) playerTrail.shift();
+        const realX = player.x, realY = player.y;
+        playerTrail.forEach((pos, i) => {
+            ctx.globalAlpha = (i / playerTrail.length) * 0.2;
+            player.x = pos.x;
+            player.y = pos.y;
+            drawPlayer();
+        });
+        player.x = realX;
+        player.y = realY;
+        ctx.globalAlpha = 1;
+    } else if (playerTrail.length) {
+        playerTrail = [];
     }
 
     // Draw player (with invisibility effect if active)
@@ -1624,6 +3278,9 @@ document.addEventListener("DOMContentLoaded", () => {
             playerInvisible = false;
         }
     }
+
+    // From here on, enemy-side systems run on the (possibly slowed) world time
+    deltaTime = worldDeltaTime;
 
     // Update and draw aliens
     let allAliensDead = true;
@@ -1651,6 +3308,9 @@ document.addEventListener("DOMContentLoaded", () => {
         // Draw alien based on type
         drawAlien(alien);
     });
+
+    // Draw explosion particles on top of aliens
+    updateExplosions();
 
     // Handle life loss
     if (shouldLoseLife) {
@@ -1700,25 +3360,60 @@ if (allAliensDead) {
     return;
 }
 
-    // Update and draw bullets
+    // Your own bullets stay at real speed even during slow-mo
+    deltaTime = realDeltaTime;
     updateBullets();
+    deltaTime = worldDeltaTime;
 
     // Random enemy firing
     const config = levelConfigs[currentLevel];
-    if (Math.random() < config.fireRate && !respawning) {
+    // Berserk: enemies periodically fly into a rage and fire much faster.
+    // Slow-mo also thins out how often enemies fire, same as everything else.
+    const effectiveFireRate = config.fireRate * (berserkRage > 0 ? 3 : 1) * worldSpeedFactor;
+    if (Math.random() < effectiveFireRate && !respawning) {
         const aliveAliens = aliens.filter(alien => alien.alive);
         if (aliveAliens.length > 0) {
             const shooter = aliveAliens[Math.floor(Math.random() * aliveAliens.length)];
-            enemyBullets.push({
-                x: shooter.x + shooter.width / 2 - 2,
-                y: shooter.y + shooter.height,
-                width: 4,
-                height: 10,
-                active: true,
-                color: '#ff6f61'
-            });
+
+            // Enemy fire needed its own sound - previously enemies fired
+            // completely silently, only the player's own shots made noise
+            playSound(shootSound, { volume: 0.35, rate: 0.55 });
+
+            // Your Toast: toasters occasionally "pop" a 3-bullet crumb spread
+            if (shooter.type === 'toaster' && Math.random() < 0.18) {
+                [-4, 0, 4].forEach(offset => {
+                    enemyBullets.push({
+                        x: shooter.x + shooter.width / 2 - 2 + offset,
+                        y: shooter.y + shooter.height,
+                        width: 4,
+                        height: 10,
+                        active: true,
+                        color: '#ff6f61',
+                        vx: offset * 0.15
+                    });
+                });
+            } else {
+                // Initial D: cars fire bullets that drift sideways like a skid
+                const vx = shooter.type === 'car' ? (Math.random() - 0.5) * 3 : 0;
+                enemyBullets.push({
+                    x: shooter.x + shooter.width / 2 - 2,
+                    y: shooter.y + shooter.height,
+                    width: 4,
+                    height: 10,
+                    active: true,
+                    color: '#ff6f61',
+                    vx
+                });
+            }
         }
     }
+
+    // Berserk rage trigger - a periodic telegraphed aggression spike
+    if (currentLevel === 6 && berserkRage <= 0 && gameTick % 300 === 0) {
+        berserkRage = 120;
+        showInGameMessage('Enemies enraged!');
+    }
+    if (berserkRage > 0) berserkRage--;
 
     // Update and draw enemy bullets
     updateEnemyBullets();
@@ -1746,9 +3441,22 @@ if (allAliensDead) {
     // Update chaos effects
     updateChaosEffects();
 
+    // RANDOMODIUM: TV-static overlay drawn on top of everything else
+    drawStaticNoise();
+
     // Show random messages
     if (gameTick % 300 === 0) {
         showInGameMessage(messages[Math.floor(Math.random() * messages.length)]);
+    }
+
+    // Slow-mo always counts down in real time, never in the slowed world time
+    if (slowMoTimer > 0) {
+        slowMoTimer -= realDeltaTime / 16;
+        if (slowMoTimer <= 0) {
+            slowMoTimer = 0;
+            updateSlowMoButtonVisibility();
+            showInGameMessage('Slow-mo wore off!');
+        }
     }
 
     gameTick++;
@@ -1757,272 +3465,843 @@ if (allAliensDead) {
     requestAnimationFrame(gameLoop);
 }
 
+        // Six selectable ship skins, all drawn the same vector way as the
+        // enemies (canvas paths + gradients + glow), so a chosen skin never
+        // depends on an external image loading. 'classic' is the original,
+        // default ship; the other five are picked from the ship-select screen.
+        let selectedShipSkin = localStorage.getItem('selected-ship-skin') || 'classic';
+
+        const shipSkins = [
+            { id: 'classic', name: 'Classic' },
+            { id: 'crimson', name: 'Crimson Interceptor' },
+            { id: 'saucer', name: 'Violet Saucer' },
+            { id: 'falcon', name: 'Gold Falcon' },
+            { id: 'comet', name: 'Cyan Comet' },
+            { id: 'wasp', name: 'Toxic Wasp' },
+            { id: 'stealth', name: 'Silver Stealth' },
+            { id: 'blade', name: 'Magenta Blade' },
+            { id: 'beetle', name: 'Emerald Beetle' },
+            { id: 'sunset', name: 'Sunset Voyager' },
+            { id: 'phantom', name: 'Ghost Phantom' }
+        ];
+
+        // Per-ship "voice": a signature bullet color (used whenever the
+        // level itself doesn't force a special bullet type, e.g. bread/lime/
+        // sword bullets still win on their own levels) and a shoot-sound
+        // playback rate so every ship's shot sounds distinct even though
+        // they all share the one recorded sound effect.
+        const shipBulletProfiles = {
+            classic: { color: '#7cf3d6', rate: 1.0 },
+            crimson: { color: '#ff5c3d', rate: 0.85 },
+            saucer: { color: '#b26bff', rate: 1.15 },
+            falcon: { color: '#ffce3d', rate: 1.05 },
+            comet: { color: '#8be9ff', rate: 1.25 },
+            wasp: { color: '#a6e600', rate: 0.95 },
+            stealth: { color: '#c7ccd1', rate: 0.75 },
+            blade: { color: '#ff3fc4', rate: 1.3 },
+            beetle: { color: '#1fae5c', rate: 0.9 },
+            sunset: { color: '#ff6f9c', rate: 1.1 },
+            phantom: { color: '#cfe8ff', rate: 1.4 }
+        };
+
+        function drawShipBody(skin, x, y, w, h, cx, cy, ctx = mainCtx) {
+            switch (skin) {
+                case 'crimson': {
+                    const grad = ctx.createLinearGradient(x, y, x, y + h);
+                    grad.addColorStop(0, '#ffcc80');
+                    grad.addColorStop(0.5, '#ff5c3d');
+                    grad.addColorStop(1, '#8f1900');
+                    ctx.shadowColor = 'rgba(255, 92, 61, 0.6)';
+                    ctx.shadowBlur = 7;
+                    ctx.fillStyle = grad;
+                    ctx.beginPath();
+                    ctx.moveTo(cx, y - 2);
+                    ctx.lineTo(x + w, y + h * 0.7);
+                    ctx.lineTo(x + w * 0.62, y + h);
+                    ctx.lineTo(x + w * 0.38, y + h);
+                    ctx.lineTo(x, y + h * 0.7);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+
+                    ctx.fillStyle = '#3a0b00';
+                    ctx.beginPath();
+                    ctx.moveTo(cx, y + 3);
+                    ctx.lineTo(cx + 3, y + h * 0.42);
+                    ctx.lineTo(cx - 3, y + h * 0.42);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    ctx.fillStyle = '#ffb300';
+                    ctx.beginPath();
+                    ctx.moveTo(x, y + h * 0.62);
+                    ctx.lineTo(x - 4, y + h);
+                    ctx.lineTo(x + w * 0.3, y + h);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.moveTo(x + w, y + h * 0.62);
+                    ctx.lineTo(x + w + 4, y + h);
+                    ctx.lineTo(x + w * 0.7, y + h);
+                    ctx.closePath();
+                    ctx.fill();
+                    break;
+                }
+
+                case 'saucer': {
+                    const domeGrad = ctx.createRadialGradient(cx, y + h * 0.25, 1, cx, y + h * 0.25, w * 0.32);
+                    domeGrad.addColorStop(0, '#f3d9ff');
+                    domeGrad.addColorStop(1, '#b26bff');
+                    ctx.fillStyle = domeGrad;
+                    ctx.beginPath();
+                    ctx.ellipse(cx, y + h * 0.32, w * 0.28, h * 0.28, 0, Math.PI, 0);
+                    ctx.fill();
+
+                    const discGrad = ctx.createLinearGradient(x, y + h * 0.4, x, y + h);
+                    discGrad.addColorStop(0, '#c48bff');
+                    discGrad.addColorStop(1, '#5b1e99');
+                    ctx.shadowColor = 'rgba(178, 107, 255, 0.7)';
+                    ctx.shadowBlur = 8;
+                    ctx.fillStyle = discGrad;
+                    ctx.beginPath();
+                    ctx.ellipse(cx, y + h * 0.62, w * 0.55, h * 0.28, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+
+                    ctx.strokeStyle = `rgba(230, 190, 255, ${0.5 + Math.sin(gameTick / 6) * 0.3})`;
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.ellipse(cx, y + h * 0.78, w * 0.4, h * 0.14, 0, 0, Math.PI * 2);
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#fff2c2';
+                    for (let i = 0; i < 3; i++) {
+                        const lx = x + w * (0.22 + i * 0.28);
+                        ctx.beginPath();
+                        ctx.arc(lx, y + h * 0.66, 1.3, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    break;
+                }
+
+                case 'falcon': {
+                    const grad = ctx.createLinearGradient(x, y, x, y + h);
+                    grad.addColorStop(0, '#fff3c4');
+                    grad.addColorStop(0.5, '#ffce3d');
+                    grad.addColorStop(1, '#a66a00');
+                    ctx.shadowColor = 'rgba(255, 206, 61, 0.6)';
+                    ctx.shadowBlur = 7;
+                    ctx.fillStyle = grad;
+                    ctx.beginPath();
+                    ctx.moveTo(cx, y);
+                    ctx.lineTo(x + w * 0.58, y + h * 0.85);
+                    ctx.lineTo(x + w * 0.5, y + h);
+                    ctx.lineTo(x + w * 0.42, y + h * 0.85);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+
+                    ctx.fillStyle = '#e0a500';
+                    ctx.beginPath();
+                    ctx.moveTo(cx, y + h * 0.3);
+                    ctx.lineTo(x, y + h);
+                    ctx.lineTo(x + w * 0.4, y + h * 0.78);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.moveTo(cx, y + h * 0.3);
+                    ctx.lineTo(x + w, y + h);
+                    ctx.lineTo(x + w * 0.6, y + h * 0.78);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    ctx.fillStyle = '#ff3b3b';
+                    ctx.beginPath();
+                    ctx.arc(x + 1, y + h - 1, 1.2, 0, Math.PI * 2);
+                    ctx.arc(x + w - 1, y + h - 1, 1.2, 0, Math.PI * 2);
+                    ctx.fill();
+                    break;
+                }
+
+                case 'comet': {
+                    const grad = ctx.createLinearGradient(x, y, x, y + h);
+                    grad.addColorStop(0, '#ffffff');
+                    grad.addColorStop(0.5, '#8be9ff');
+                    grad.addColorStop(1, '#1a7fa8');
+                    ctx.shadowColor = 'rgba(139, 233, 255, 0.7)';
+                    ctx.shadowBlur = 8;
+                    ctx.fillStyle = grad;
+                    ctx.beginPath();
+                    ctx.moveTo(cx, y - 1);
+                    ctx.lineTo(x + w, y + h * 0.45);
+                    ctx.lineTo(x + w * 0.7, y + h);
+                    ctx.lineTo(x + w * 0.3, y + h);
+                    ctx.lineTo(x, y + h * 0.45);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+
+                    ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(cx, y);
+                    ctx.lineTo(cx, y + h);
+                    ctx.stroke();
+
+                    ctx.fillStyle = 'rgba(200,245,255,0.85)';
+                    for (let i = 0; i < 2; i++) {
+                        const sx = cx + Math.sin(gameTick / 8 + i * 2) * (w * 0.35);
+                        const sy = y + h + 3 + i * 4;
+                        ctx.beginPath();
+                        ctx.arc(sx, sy, 1, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    break;
+                }
+
+                case 'wasp': {
+                    const grad = ctx.createLinearGradient(x, y, x, y + h);
+                    grad.addColorStop(0, '#eaff7a');
+                    grad.addColorStop(0.5, '#a6e600');
+                    grad.addColorStop(1, '#3d5900');
+                    ctx.shadowColor = 'rgba(166, 230, 0, 0.6)';
+                    ctx.shadowBlur = 7;
+                    ctx.fillStyle = grad;
+                    ctx.beginPath();
+                    ctx.moveTo(cx, y);
+                    ctx.lineTo(x + w * 0.85, y + h * 0.55);
+                    ctx.lineTo(x + w * 0.6, y + h);
+                    ctx.lineTo(x + w * 0.4, y + h);
+                    ctx.lineTo(x + w * 0.15, y + h * 0.55);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+
+                    ctx.strokeStyle = 'rgba(20,20,0,0.75)';
+                    ctx.lineWidth = 1.5;
+                    for (let i = 0; i < 3; i++) {
+                        const sy = y + h * (0.35 + i * 0.18);
+                        ctx.beginPath();
+                        ctx.moveTo(x + w * 0.2, sy);
+                        ctx.lineTo(x + w * 0.8, sy - 2);
+                        ctx.stroke();
+                    }
+
+                    ctx.fillStyle = '#ff2d2d';
+                    ctx.beginPath();
+                    ctx.arc(x + w * 0.4, y + h * 0.3, 1.4, 0, Math.PI * 2);
+                    ctx.arc(x + w * 0.6, y + h * 0.3, 1.4, 0, Math.PI * 2);
+                    ctx.fill();
+                    break;
+                }
+
+                case 'stealth': {
+                    const grad = ctx.createLinearGradient(x, y, x, y + h);
+                    grad.addColorStop(0, '#e8ecef');
+                    grad.addColorStop(0.5, '#8b939b');
+                    grad.addColorStop(1, '#2b2f33');
+                    ctx.shadowColor = 'rgba(180, 190, 200, 0.5)';
+                    ctx.shadowBlur = 6;
+                    ctx.fillStyle = grad;
+                    ctx.beginPath();
+                    ctx.moveTo(cx, y);
+                    ctx.lineTo(x + w, y + h * 0.5);
+                    ctx.lineTo(x + w * 0.55, y + h);
+                    ctx.lineTo(x + w * 0.45, y + h);
+                    ctx.lineTo(x, y + h * 0.5);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+
+                    ctx.fillStyle = 'rgba(20,20,25,0.7)';
+                    ctx.beginPath();
+                    ctx.moveTo(cx, y + 2);
+                    ctx.lineTo(cx + 2, y + h * 0.6);
+                    ctx.lineTo(cx - 2, y + h * 0.6);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    ctx.fillStyle = '#ff3131';
+                    ctx.shadowColor = '#ff3131';
+                    ctx.shadowBlur = 5;
+                    ctx.beginPath();
+                    ctx.arc(cx, y + 3, 1.3, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                    break;
+                }
+
+                case 'blade': {
+                    const grad = ctx.createLinearGradient(x, y, x, y + h);
+                    grad.addColorStop(0, '#ffd9f5');
+                    grad.addColorStop(0.5, '#ff3fc4');
+                    grad.addColorStop(1, '#7a0057');
+                    ctx.shadowColor = 'rgba(255, 63, 196, 0.65)';
+                    ctx.shadowBlur = 8;
+                    ctx.fillStyle = grad;
+                    ctx.beginPath();
+                    ctx.moveTo(cx, y - 2);
+                    ctx.lineTo(cx + w * 0.14, y + h * 0.65);
+                    ctx.lineTo(cx + w * 0.3, y + h);
+                    ctx.lineTo(cx - w * 0.3, y + h);
+                    ctx.lineTo(cx - w * 0.14, y + h * 0.65);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+
+                    ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(cx, y);
+                    ctx.lineTo(cx, y + h * 0.9);
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#4a0033';
+                    ctx.fillRect(x + 1, y + h * 0.7, 3, h * 0.25);
+                    ctx.fillRect(x + w - 4, y + h * 0.7, 3, h * 0.25);
+                    break;
+                }
+
+                case 'beetle': {
+                    const shellGrad = ctx.createRadialGradient(cx, y + h * 0.35, 1, cx, y + h * 0.4, w * 0.55);
+                    shellGrad.addColorStop(0, '#baffcf');
+                    shellGrad.addColorStop(0.55, '#1fae5c');
+                    shellGrad.addColorStop(1, '#053d1e');
+                    ctx.shadowColor = 'rgba(31, 174, 92, 0.6)';
+                    ctx.shadowBlur = 7;
+                    ctx.fillStyle = shellGrad;
+                    ctx.beginPath();
+                    ctx.ellipse(cx, y + h * 0.52, w * 0.5, h * 0.48, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+
+                    ctx.strokeStyle = 'rgba(5,40,20,0.7)';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(cx, y + h * 0.1);
+                    ctx.lineTo(cx, y + h * 0.95);
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#052912';
+                    ctx.beginPath();
+                    ctx.arc(cx, y + h * 0.14, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    break;
+                }
+
+                case 'sunset': {
+                    const grad = ctx.createLinearGradient(x, y, x + w, y);
+                    grad.addColorStop(0, '#ffd36e');
+                    grad.addColorStop(0.5, '#ff6f9c');
+                    grad.addColorStop(1, '#a94bff');
+                    ctx.shadowColor = 'rgba(255, 111, 156, 0.55)';
+                    ctx.shadowBlur = 7;
+                    ctx.fillStyle = grad;
+                    ctx.beginPath();
+                    ctx.moveTo(cx, y + h * 0.15);
+                    ctx.lineTo(x + w, y + h * 0.85);
+                    ctx.lineTo(x + w * 0.65, y + h);
+                    ctx.lineTo(x + w * 0.35, y + h);
+                    ctx.lineTo(x, y + h * 0.85);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+
+                    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+                    ctx.fillRect(cx - 3, y + h * 0.25, 6, h * 0.2);
+
+                    ctx.fillStyle = '#fff3b0';
+                    ctx.shadowColor = '#ffcf5c';
+                    ctx.shadowBlur = 5;
+                    ctx.beginPath();
+                    ctx.arc(x + w * 0.3, y + h - 1, 1.3, 0, Math.PI * 2);
+                    ctx.arc(x + w * 0.7, y + h - 1, 1.3, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                    break;
+                }
+
+                case 'phantom': {
+                    const prevAlpha = ctx.globalAlpha;
+                    ctx.globalAlpha = prevAlpha * 0.72;
+                    const grad = ctx.createLinearGradient(x, y, x, y + h);
+                    grad.addColorStop(0, '#ffffff');
+                    grad.addColorStop(0.5, '#cfe8ff');
+                    grad.addColorStop(1, '#8fb8dd');
+                    ctx.shadowColor = 'rgba(210, 235, 255, 0.8)';
+                    ctx.shadowBlur = 10;
+                    ctx.fillStyle = grad;
+                    ctx.beginPath();
+                    ctx.moveTo(cx, y);
+                    ctx.quadraticCurveTo(x + w, y + h * 0.3, x + w * 0.65, y + h);
+                    ctx.quadraticCurveTo(cx, y + h * 0.8, x + w * 0.35, y + h);
+                    ctx.quadraticCurveTo(x, y + h * 0.3, cx, y);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+
+                    ctx.strokeStyle = 'rgba(220,240,255,0.5)';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(x + w * 0.4, y + h);
+                    ctx.lineTo(x + w * 0.4, y + h + 5);
+                    ctx.moveTo(x + w * 0.6, y + h);
+                    ctx.lineTo(x + w * 0.6, y + h + 5);
+                    ctx.stroke();
+
+                    ctx.globalAlpha = prevAlpha;
+                    break;
+                }
+
+                default: {
+                    const bodyGrad = ctx.createLinearGradient(x, y, x, y + h);
+                    bodyGrad.addColorStop(0, '#d9fff3');
+                    bodyGrad.addColorStop(0.5, '#7cf3d6');
+                    bodyGrad.addColorStop(1, '#2e9e85');
+                    ctx.fillStyle = bodyGrad;
+                    ctx.shadowColor = 'rgba(124, 243, 214, 0.6)';
+                    ctx.shadowBlur = 6;
+                    ctx.beginPath();
+                    ctx.moveTo(x + w / 2, y);
+                    ctx.lineTo(x + w, y + h);
+                    ctx.lineTo(x, y + h);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.fillStyle = '#ff6f61';
+                    ctx.fillRect(x, y + h - 5, 5, 5);
+                    ctx.fillRect(x + w - 5, y + h - 5, 5, 5);
+                }
+            }
+        }
+
         function drawPlayer() {
-            // Draw spaceship body
-            ctx.fillStyle = '#7cf3d6';
+            // Berserk: shield invisibility gets a glowing outline instead of just fading
+            if (playerInvisible) {
+                ctx.save();
+                ctx.strokeStyle = `rgba(124, 243, 214, ${0.5 + Math.sin(gameTick / 6) * 0.3})`;
+                ctx.lineWidth = 2;
+                ctx.shadowColor = '#7cf3d6';
+                ctx.shadowBlur = 12;
+                ctx.beginPath();
+                ctx.moveTo(player.x + player.width / 2, player.y - 2);
+                ctx.lineTo(player.x + player.width + 2, player.y + player.height + 2);
+                ctx.lineTo(player.x - 2, player.y + player.height + 2);
+                ctx.closePath();
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            // Donut shield: spinning dashed ring around the ship
+            if (chaosEffects.shield > 0) {
+                ctx.save();
+                ctx.strokeStyle = 'rgba(255, 200, 80, 0.85)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([6, 4]);
+                ctx.lineDashOffset = -gameTick;
+                ctx.beginPath();
+                ctx.arc(player.x + player.width / 2, player.y + player.height / 2, player.width * 0.9, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.restore();
+            }
+
+            // Ship body drawn around its own center so banking tilt can rotate it
+            const cx = player.x + player.width / 2;
+            const cy = player.y + player.height / 2;
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(player.tilt || 0);
+            ctx.translate(-cx, -cy);
+
+            // Animated thrust flame (flickers, stretches a bit with a sine wave)
+            const flicker = 3 + Math.sin(gameTick / 3) * 1.5 + Math.random() * 1.2;
+            const flameGrad = ctx.createLinearGradient(cx, player.y + player.height, cx, player.y + player.height + flicker + 6);
+            flameGrad.addColorStop(0, 'rgba(255, 200, 120, 0.9)');
+            flameGrad.addColorStop(1, 'rgba(255, 111, 97, 0)');
+            ctx.fillStyle = flameGrad;
             ctx.beginPath();
-            ctx.moveTo(player.x + player.width / 2, player.y);
-            ctx.lineTo(player.x + player.width, player.y + player.height);
-            ctx.lineTo(player.x, player.y + player.height);
+            ctx.moveTo(cx - 4, player.y + player.height);
+            ctx.quadraticCurveTo(cx, player.y + player.height + flicker + 6, cx + 4, player.y + player.height);
             ctx.closePath();
             ctx.fill();
 
-            // Draw cockpit
-            ctx.fillStyle = '#ffffff';
-            ctx.beginPath();
-            ctx.arc(player.x + player.width / 2, player.y + player.height / 2, 4, 0, Math.PI * 2);
-            ctx.fill();
+            // Draw the selected ship skin's body, centered on the same hitbox
+            drawShipBody(selectedShipSkin, player.x, player.y, player.width, player.height, cx, cy);
 
-            // Draw fins
-            ctx.fillStyle = '#ff6f61';
-            ctx.fillRect(player.x, player.y + player.height - 5, 5, 5);
-            ctx.fillRect(player.x + player.width - 5, player.y + player.height - 5, 5, 5);
-            
-            // Draw engine glow
-            ctx.fillStyle = 'rgba(255, 111, 97, 0.5)';
-            ctx.beginPath();
-            ctx.arc(player.x + player.width / 2, player.y + player.height + 3, 3, 0, Math.PI);
-            ctx.fill();
+            ctx.restore();
         }
 
         function updateAlienPosition(alien) {
             const config = levelConfigs[currentLevel];
-            
+
+            // Lorem Ipsum: the placeholder text briefly "forgets to render" -
+            // during that window the alien can't be hit, forcing the player
+            // to time shots between flickers instead of just spraying.
+            if (alien.type === 'latin') {
+                alien.isFlickering = ((gameTick + alien.wordFlickerAt) % 90) < 4;
+            }
+
             switch(config.movement) {
                 case "zigzag":
-                    // Zigzag movement for Level 2
-                    alien.movePattern += 0.05 * (deltaTime / 16);
+                    // Zigzag movement for Level 2 - each car drifts at its own rhythm
+                    alien.movePattern += 0.05 * alien.driftSpeed * (deltaTime / 16);
                     alien.x = alien.originalX + Math.sin(alien.movePattern) * 30;
-                    alien.y += config.speed * (deltaTime / 16);
+                    alien.y += config.speed * alien.driftSpeed * (deltaTime / 16);
                     break;
-                    
+
                 case "chaotic":
                     // Random movement for chaotic aliens (Level 8)
                     alien.x += (Math.random() - 0.5) * 3 * (deltaTime / 16);
                     alien.y += config.speed * (0.8 + Math.random() * 0.4) * (deltaTime / 16);
                     break;
-                    
-                default:
-                    // Straight descent for other levels
-                    alien.y += config.speed * (deltaTime / 16);
+
+                default: {
+                    // Cake Was A Lie: cupcakes get a random "sugar rush" burst of speed
+                    const rush = (alien.type === 'cupcake' && Math.sin(gameTick / 15 + alien.bobSeed) > 0.9) ? 2.4 : 1;
+                    alien.y += config.speed * rush * (deltaTime / 16);
+                }
             }
+        }
+
+        function drawRoundedRect(x, y, w, h, r) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.arcTo(x + w, y, x + w, y + h, r);
+            ctx.arcTo(x + w, y + h, x, y + h, r);
+            ctx.arcTo(x, y + h, x, y, r);
+            ctx.arcTo(x, y, x + w, y, r);
+            ctx.closePath();
         }
 
         function drawAlien(alien) {
             // Handle invisibility effect
             ctx.globalAlpha = (chaosEffects.invisible > 0) ? 0.3 : 1;
 
+            const bob = Math.sin(gameTick / 12 + (alien.bobSeed || 0)) * 1.4;
+            const x = alien.x;
+            const y = alien.y + bob;
+            const w = alien.width;
+            const h = alien.height;
+            const cx = x + w / 2;
+            const cy = y + h / 2;
+
+            ctx.save();
+
             // Apply different styles based on alien type
-            switch(alien.type) {
-                case "car":
-                    // Car body
-                    ctx.fillStyle = '#ff3333';
-                    ctx.fillRect(alien.x, alien.y, alien.width, alien.height);
-                    // Windows
-                    ctx.fillStyle = '#000';
-                    ctx.fillRect(alien.x + 5, alien.y + 3, alien.width - 10, 3);
+            switch (alien.type) {
+                case "car": {
+                    const neon = (Math.floor(alien.x) % 2 === 0) ? '#ff2fd0' : '#2fe0ff';
+                    ctx.shadowColor = neon;
+                    ctx.shadowBlur = 10;
+                    ctx.fillStyle = neon;
+                    ctx.globalAlpha *= 0.55;
+                    ctx.fillRect(x - 2, y + h - 2, w + 4, 3);
+                    ctx.globalAlpha = (chaosEffects.invisible > 0) ? 0.3 : 1;
+
+                    const bodyGrad = ctx.createLinearGradient(x, y, x, y + h);
+                    bodyGrad.addColorStop(0, '#ff7a6b');
+                    bodyGrad.addColorStop(0.5, '#ff3333');
+                    bodyGrad.addColorStop(1, '#a30000');
+                    ctx.fillStyle = bodyGrad;
+                    ctx.shadowBlur = 6;
+                    drawRoundedRect(x, y + h * 0.2, w, h * 0.65, 3);
+                    ctx.fill();
+
+                    // Windshield / cabin
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = 'rgba(20,30,50,0.85)';
+                    drawRoundedRect(x + w * 0.22, y, w * 0.56, h * 0.45, 2);
+                    ctx.fill();
+                    ctx.fillStyle = 'rgba(160,220,255,0.5)';
+                    ctx.fillRect(x + w * 0.26, y + h * 0.08, w * 0.2, h * 0.12);
+
+                    // Headlights glow
+                    ctx.fillStyle = '#fff6b0';
+                    ctx.beginPath();
+                    ctx.arc(x + 3, y + h * 0.55, 2, 0, Math.PI * 2);
+                    ctx.arc(x + w - 3, y + h * 0.55, 2, 0, Math.PI * 2);
+                    ctx.fill();
+
                     // Wheels
-                    ctx.fillStyle = '#000';
-                    ctx.fillRect(alien.x + 3, alien.y + alien.height - 3, 4, 3);
-                    ctx.fillRect(alien.x + alien.width - 7, alien.y + alien.height - 3, 4, 3);
-                    // Headlights
-                    ctx.fillStyle = '#ffff00';
-                    ctx.fillRect(alien.x + 2, alien.y + 2, 2, 2);
-                    ctx.fillRect(alien.x + alien.width - 4, alien.y + 2, 2, 2);
+                    ctx.fillStyle = '#111';
+                    ctx.fillRect(x + 2, y + h - 3, 4, 3);
+                    ctx.fillRect(x + w - 6, y + h - 3, 4, 3);
                     break;
-                    
-                case "latin":
-                    // Purple block with Latin text
-                    ctx.fillStyle = '#800080';
-                    ctx.fillRect(alien.x, alien.y, alien.width, alien.height);
-                    ctx.fillStyle = 'white';
-                    ctx.font = '10px Arial';
-                    ctx.fillText(latinChars[Math.floor(Math.random() * latinChars.length)], 
-                                alien.x + 2, alien.y + alien.height/2 + 3);
+                }
+
+                case "latin": {
+                    const flicker = !!alien.isFlickering;
+                    const label = flicker
+                        ? latinChars[Math.floor(Math.random() * latinChars.length)]
+                        : alien.word;
+
+                    ctx.shadowColor = 'rgba(180,120,255,0.6)';
+                    ctx.shadowBlur = flicker ? 4 : 7;
+                    ctx.globalAlpha *= flicker ? 0.35 : 1;
+
+                    const panelGrad = ctx.createLinearGradient(x, y, x, y + h);
+                    panelGrad.addColorStop(0, 'rgba(130,60,180,0.9)');
+                    panelGrad.addColorStop(1, 'rgba(60,20,90,0.9)');
+                    ctx.fillStyle = panelGrad;
+                    drawRoundedRect(x, y, w, h, 5);
+                    ctx.fill();
+
+                    ctx.strokeStyle = flicker ? 'rgba(255,255,255,0.9)' : 'rgba(210,150,255,0.6)';
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash(flicker ? [3, 2] : []);
+                    drawRoundedRect(x + 0.5, y + 0.5, w - 1, h - 1, 5);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = '#f3e6ff';
+                    ctx.font = '9px monospace';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(label, cx + (flicker ? (Math.random() * 2 - 1) : 0), cy + 3);
+                    ctx.textAlign = 'left';
                     break;
-                    
-                case "toaster":
-                    // Toaster body - silver metallic
-                    const gradient = ctx.createLinearGradient(alien.x, alien.y, alien.x, alien.y + alien.height);
-                    gradient.addColorStop(0, '#d4d4d4');
-                    gradient.addColorStop(0.5, '#f0f0f0');
-                    gradient.addColorStop(1, '#b0b0b0');
-                    ctx.fillStyle = gradient;
-                    ctx.fillRect(alien.x, alien.y, alien.width, alien.height);
-                    
-                    // Toaster slots - dark with bread
+                }
+
+                case "toaster": {
+                    ctx.shadowColor = 'rgba(255,200,120,0.55)';
+                    ctx.shadowBlur = 8;
+
+                    const bodyGrad = ctx.createLinearGradient(x, y, x, y + h);
+                    bodyGrad.addColorStop(0, '#f2f2f2');
+                    bodyGrad.addColorStop(0.5, '#d8d8d8');
+                    bodyGrad.addColorStop(1, '#a0a0a0');
+                    ctx.fillStyle = bodyGrad;
+                    drawRoundedRect(x, y + 4, w, h - 4, 4);
+                    ctx.fill();
+
+                    ctx.shadowBlur = 0;
+                    // Shine strip
+                    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+                    ctx.fillRect(x + 2, y + 6, 2, h - 10);
+
+                    // Slots
                     ctx.fillStyle = '#333';
-                    ctx.fillRect(alien.x + 5, alien.y + 7, alien.width - 10, 4);
-                    
-                    // Bread - realistic toast texture
-                    ctx.fillStyle = '#deb887';
-                    ctx.fillRect(alien.x + 7, alien.y - 5, alien.width - 14, 5);
-                    
-                    // Bread texture - toast lines
-                    ctx.fillStyle = '#d2b48c';
+                    ctx.fillRect(x + 5, y + 8, w - 10, 4);
+
+                    // Toast popping up, bobbing slightly more than body
+                    const toastBob = Math.sin(gameTick / 10 + (alien.bobSeed || 0)) * 1.2;
+                    ctx.fillStyle = '#e0a868';
+                    ctx.fillRect(x + 6, y - 5 - toastBob, w - 12, 6);
+                    ctx.fillStyle = '#c98d4f';
                     for (let i = 0; i < 3; i++) {
-                        ctx.fillRect(alien.x + 8 + i*5, alien.y - 4, 3, 3);
+                        ctx.fillRect(x + 7 + i * 5, y - 4 - toastBob, 3, 3);
                     }
-                    
-                    // Toaster controls
+
+                    // Dial glow
                     ctx.fillStyle = '#ff6f61';
                     ctx.beginPath();
-                    ctx.arc(alien.x + alien.width - 5, alien.y + 5, 2, 0, Math.PI * 2);
+                    ctx.arc(x + w - 5, y + h - 5, 2, 0, Math.PI * 2);
                     ctx.fill();
+
+                    // Feet
+                    ctx.fillStyle = '#555';
+                    ctx.fillRect(x + 2, y + h, 3, 2);
+                    ctx.fillRect(x + w - 5, y + h, 3, 2);
                     break;
-                    
-                case "grapefruit":
-                    // Grapefruit body - realistic texture
-                    ctx.fillStyle = '#ff6b6b';
+                }
+
+                case "grapefruit": {
+                    ctx.shadowColor = 'rgba(255,107,129,0.6)';
+                    ctx.shadowBlur = 9;
+
+                    const rindGrad = ctx.createRadialGradient(cx, cy, w * 0.1, cx, cy, w / 2);
+                    rindGrad.addColorStop(0, '#ffb3b3');
+                    rindGrad.addColorStop(0.65, '#ff6b6b');
+                    rindGrad.addColorStop(1, '#c23b5a');
+                    ctx.fillStyle = rindGrad;
                     ctx.beginPath();
-                    ctx.arc(alien.x + alien.width/2, alien.y + alien.height/2, alien.width/2, 0, Math.PI * 2);
+                    ctx.arc(cx, cy, w / 2, 0, Math.PI * 2);
                     ctx.fill();
-                    
-                    // Grapefruit texture - pitted surface
-                    ctx.fillStyle = 'rgba(255,255,255,0.2)';
-                    for (let i = 0; i < 8; i++) {
-                        const angle = (i / 8) * Math.PI * 2;
-                        const x = alien.x + alien.width/2 + Math.cos(angle) * (alien.width/3);
-                        const y = alien.y + alien.height/2 + Math.sin(angle) * (alien.height/3);
-                        ctx.beginPath();
-                        ctx.arc(x, y, 1, 0, Math.PI * 2);
-                        ctx.fill();
-                    }
-                    
-                    // Grapefruit segments
-                    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+
+                    ctx.shadowBlur = 0;
+                    // Segment lines
+                    ctx.strokeStyle = 'rgba(255,255,255,0.45)';
                     ctx.lineWidth = 1;
-                    for (let i = 0; i < 4; i++) {
-                        const angle = (i / 4) * Math.PI;
+                    for (let i = 0; i < 5; i++) {
+                        const angle = (i / 5) * Math.PI * 2;
                         ctx.beginPath();
-                        ctx.moveTo(alien.x + alien.width/2, alien.y + alien.height/2);
-                        ctx.lineTo(
-                            alien.x + alien.width/2 + Math.cos(angle) * (alien.width/2),
-                            alien.y + alien.height/2 + Math.sin(angle) * (alien.height/2)
-                        );
+                        ctx.moveTo(cx, cy);
+                        ctx.lineTo(cx + Math.cos(angle) * (w / 2 - 1), cy + Math.sin(angle) * (h / 2 - 1));
                         ctx.stroke();
                     }
-                    break;
-                    
-                case "cupcake":
-                    // Cupcake bottom - paper wrapper
-                    ctx.fillStyle = '#634832';
-                    ctx.fillRect(alien.x, alien.y + alien.height/2, alien.width, alien.height/2);
-                    
-                    // Paper wrapper pattern
-                    ctx.fillStyle = '#8b5a2b';
-                    ctx.fillRect(alien.x, alien.y + alien.height/2, alien.width, 2);
-                    ctx.fillRect(alien.x, alien.y + alien.height - 5, alien.width, 2);
-                    
-                    // Frosting - pink with swirls
-                    ctx.fillStyle = '#ffc0cb';
+
+                    // Shine highlight
+                    ctx.fillStyle = 'rgba(255,255,255,0.55)';
                     ctx.beginPath();
-                    ctx.arc(alien.x + alien.width/2, alien.y + alien.height/2, alien.width/2, Math.PI, 0, false);
+                    ctx.arc(cx - w * 0.18, cy - h * 0.2, w * 0.12, 0, Math.PI * 2);
                     ctx.fill();
-                    
-                    // Frosting texture - realistic swirl
-                    ctx.fillStyle = '#ff9eb5';
-                    ctx.beginPath();
-                    for (let i = 0; i < 8; i++) {
-                        const angle = (i / 8) * Math.PI;
-                        const x = alien.x + alien.width/2 + Math.cos(angle) * (alien.width/3);
-                        const y = alien.y + alien.height/3 + Math.sin(angle) * 2;
-                        if (i === 0) ctx.moveTo(x, y);
-                        else ctx.lineTo(x, y);
+                    break;
+                }
+
+                case "cupcake": {
+                    ctx.shadowColor = 'rgba(255,182,217,0.6)';
+                    ctx.shadowBlur = 8;
+
+                    // Fluted wrapper
+                    const wrapperY = y + h * 0.5;
+                    const wrapperH = h * 0.5;
+                    ctx.fillStyle = '#7a5238';
+                    ctx.fillRect(x, wrapperY, w, wrapperH);
+                    ctx.shadowBlur = 0;
+                    const flutes = 6;
+                    for (let i = 0; i < flutes; i++) {
+                        ctx.fillStyle = i % 2 === 0 ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.12)';
+                        ctx.fillRect(x + (i * w) / flutes, wrapperY, w / flutes, wrapperH);
                     }
-                    ctx.fill();
-                    
-                    // Cherry - realistic with shine
-                    ctx.fillStyle = '#ff0000';
+
+                    // Frosting swirl (smooth bezier dome)
+                    const frostingGrad = ctx.createLinearGradient(x, y, x, wrapperY);
+                    frostingGrad.addColorStop(0, '#ffe3ec');
+                    frostingGrad.addColorStop(1, '#ff9eb8');
+                    ctx.fillStyle = frostingGrad;
                     ctx.beginPath();
-                    ctx.arc(alien.x + alien.width/2, alien.y + alien.height/4, 3, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    // Cherry shine
-                    ctx.fillStyle = 'rgba(255,255,255,0.7)';
-                    ctx.beginPath();
-                    ctx.arc(alien.x + alien.width/2 - 1, alien.y + alien.height/4 - 1, 1, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    // Cherry stem
-                    ctx.strokeStyle = '#006400';
-                    ctx.lineWidth = 1;
-                    ctx.beginPath();
-                    ctx.moveTo(alien.x + alien.width/2, alien.y + alien.height/4 - 3);
-                    ctx.lineTo(alien.x + alien.width/2 + 3, alien.y + alien.height/4 - 6);
-                    ctx.stroke();
-                    break;
-                    
-                case "armor":
-                    // Armor body - metallic with gradient
-                    const armorGradient = ctx.createLinearGradient(alien.x, alien.y, alien.x, alien.y + alien.height);
-                    armorGradient.addColorStop(0, '#777');
-                    armorGradient.addColorStop(0.5, '#999');
-                    armorGradient.addColorStop(1, '#666');
-                    ctx.fillStyle = armorGradient;
-                    ctx.fillRect(alien.x, alien.y, alien.width, alien.height);
-                    
-                    // Armor details - plates and joints
-                    ctx.fillStyle = '#555';
-                    ctx.fillRect(alien.x + 5, alien.y + 5, alien.width - 10, 5);
-                    ctx.fillRect(alien.x + 5, alien.y + alien.height - 10, alien.width - 10, 5);
-                    
-                    // Helmet - rounded with visor
-                    ctx.fillStyle = '#888';
-                    ctx.beginPath();
-                    ctx.arc(alien.x + alien.width/2, alien.y + alien.height/2, alien.width/3, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    // Visor - dark with reflection
-                    ctx.fillStyle = '#333';
-                    ctx.fillRect(alien.x + alien.width/3, alien.y + alien.height/3, alien.width/3, 3);
-                    
-                    // Visor reflection
-                    ctx.fillStyle = 'rgba(255,255,255,0.3)';
-                    ctx.fillRect(alien.x + alien.width/3 + 2, alien.y + alien.height/3 + 1, 5, 1);
-                    break;
-                    
-                case "chaos":
-                    // Chaos alien with changing colors and energy effect
-                    ctx.fillStyle = `hsl(${gameTick % 360}, 100%, 50%)`;
-                    ctx.beginPath();
-                    ctx.arc(alien.x + alien.width/2, alien.y + alien.height/2, alien.width/2, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    // Chaos energy effect
-                    ctx.strokeStyle = `hsl(${(gameTick + 180) % 360}, 100%, 70%)`;
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.arc(alien.x + alien.width/2, alien.y + alien.height/2, alien.width/2 + 2, 0, Math.PI * 2);
-                    ctx.stroke();
-                    
-                    // Chaos symbol
-                    ctx.fillStyle = '#000';
-                    ctx.font = '16px Arial';
-                    ctx.fillText('?', alien.x + alien.width/2 - 4, alien.y + alien.height/2 + 5);
-                    break;
-                    
-                default:
-                    // Default alien (Level 1) - classic space invader design
-                    ctx.fillStyle = '#aaffaa';
-                    ctx.beginPath();
-                    ctx.moveTo(alien.x + alien.width/2, alien.y);
-                    ctx.lineTo(alien.x + alien.width, alien.y + alien.height/2);
-                    ctx.lineTo(alien.x, alien.y + alien.height/2);
+                    ctx.moveTo(x, wrapperY);
+                    ctx.bezierCurveTo(x, y - h * 0.1, x + w * 0.25, y - h * 0.25, cx, y + h * 0.05);
+                    ctx.bezierCurveTo(x + w * 0.75, y - h * 0.25, x + w, y - h * 0.1, x + w, wrapperY);
                     ctx.closePath();
                     ctx.fill();
-                    
-                    ctx.fillRect(alien.x + alien.width/4, alien.y + alien.height/2, alien.width/2, alien.height/2);
-                    
-                    // Alien eyes
+
+                    // Cherry
+                    ctx.fillStyle = '#ff2d55';
+                    ctx.beginPath();
+                    ctx.arc(cx, y + h * 0.12, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+                    ctx.beginPath();
+                    ctx.arc(cx - 1, y + h * 0.1, 1, 0, Math.PI * 2);
+                    ctx.fill();
+                    break;
+                }
+
+                case "armor": {
+                    ctx.shadowColor = 'rgba(255,80,80,0.55)';
+                    ctx.shadowBlur = 8;
+
+                    const armorGrad = ctx.createLinearGradient(x, y, x, y + h);
+                    armorGrad.addColorStop(0, '#aaa');
+                    armorGrad.addColorStop(0.5, '#888');
+                    armorGrad.addColorStop(1, '#555');
+                    ctx.fillStyle = armorGrad;
+                    drawRoundedRect(x + w * 0.15, y + h * 0.35, w * 0.7, h * 0.65, 2);
+                    ctx.fill();
+
+                    // Pauldrons (shoulders)
+                    ctx.fillStyle = '#777';
+                    ctx.beginPath();
+                    ctx.moveTo(x, y + h * 0.42);
+                    ctx.lineTo(x + w * 0.18, y + h * 0.35);
+                    ctx.lineTo(x + w * 0.18, y + h * 0.6);
+                    ctx.lineTo(x, y + h * 0.6);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.moveTo(x + w, y + h * 0.42);
+                    ctx.lineTo(x + w * 0.82, y + h * 0.35);
+                    ctx.lineTo(x + w * 0.82, y + h * 0.6);
+                    ctx.lineTo(x + w, y + h * 0.6);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    // Helmet
+                    ctx.shadowBlur = 4;
+                    ctx.fillStyle = '#999';
+                    ctx.beginPath();
+                    ctx.arc(cx, y + h * 0.32, w / 3.1, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Glowing visor slit
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = '#ff3b3b';
+                    ctx.shadowColor = '#ff3b3b';
+                    ctx.shadowBlur = 6;
+                    ctx.fillRect(x + w * 0.28, y + h * 0.28, w * 0.44, 3);
+                    break;
+                }
+
+                case "chaos": {
+                    const jitterX = (Math.random() - 0.5) * 1.5;
+                    const jitterY = (Math.random() - 0.5) * 1.5;
+                    const hue = gameTick % 360;
+
+                    ctx.shadowColor = `hsl(${hue}, 100%, 60%)`;
+                    ctx.shadowBlur = 12;
+
+                    // Outer pulsing rings
+                    for (let ring = 0; ring < 2; ring++) {
+                        const pulse = (Math.sin(gameTick / 8 + ring) + 1) / 2;
+                        ctx.strokeStyle = `hsl(${(hue + ring * 120) % 360}, 100%, 70%)`;
+                        ctx.lineWidth = 1.5;
+                        ctx.globalAlpha *= (0.5 + pulse * 0.3);
+                        ctx.beginPath();
+                        ctx.arc(cx + jitterX, cy + jitterY, w / 2 + 3 + ring * 4 + pulse * 2, 0, Math.PI * 2);
+                        ctx.stroke();
+                        ctx.globalAlpha = (chaosEffects.invisible > 0) ? 0.3 : 1;
+                    }
+
+                    ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
+                    ctx.beginPath();
+                    ctx.arc(cx + jitterX, cy + jitterY, w / 2, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.shadowBlur = 0;
                     ctx.fillStyle = '#000';
-                    ctx.fillRect(alien.x + alien.width/3, alien.y + alien.height/3, 3, 3);
-                    ctx.fillRect(alien.x + alien.width*2/3 - 3, alien.y + alien.height/3, 3, 3);
-                    
-                    // Alien mouth
-                    ctx.fillRect(alien.x + alien.width/3, alien.y + alien.height*2/3, alien.width/3, 2);
+                    ctx.font = '16px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('?', cx + jitterX, cy + jitterY + 5);
+                    ctx.textAlign = 'left';
+                    break;
+                }
+
+                default: {
+                    // Classic invader, level 1 - clean gradient dome + glow
+                    ctx.shadowColor = 'rgba(140,255,170,0.6)';
+                    ctx.shadowBlur = 8;
+
+                    const bodyGrad = ctx.createLinearGradient(x, y, x, y + h);
+                    bodyGrad.addColorStop(0, '#d8ffe4');
+                    bodyGrad.addColorStop(1, '#4fd67a');
+                    ctx.fillStyle = bodyGrad;
+
+                    ctx.beginPath();
+                    ctx.moveTo(x + w * 0.5, y);
+                    ctx.quadraticCurveTo(x + w, y, x + w, y + h * 0.5);
+                    ctx.lineTo(x, y + h * 0.5);
+                    ctx.quadraticCurveTo(x, y, x + w * 0.5, y);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.fillRect(x + w * 0.2, y + h * 0.5, w * 0.6, h * 0.5);
+
+                    ctx.shadowBlur = 0;
+                    // Glowing eyes
+                    ctx.fillStyle = '#0a2f18';
+                    ctx.beginPath();
+                    ctx.arc(x + w / 3, y + h / 3, 2, 0, Math.PI * 2);
+                    ctx.arc(x + (w * 2) / 3, y + h / 3, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#c8ffe0';
+                    ctx.beginPath();
+                    ctx.arc(x + w / 3, y + h / 3, 0.8, 0, Math.PI * 2);
+                    ctx.arc(x + (w * 2) / 3, y + h / 3, 0.8, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.fillStyle = '#0a2f18';
+                    ctx.fillRect(x + w / 3, y + h * 0.72, w / 3, 2);
+                }
             }
-            
+
+            ctx.restore();
             ctx.globalAlpha = 1; // Reset alpha
         }
 
@@ -2041,6 +4320,17 @@ if (allAliensDead) {
                     bullets.splice(i, 1);
                     continue;
                 }
+
+                // Fading motion trail
+                if (!bullets[i].trail) bullets[i].trail = [];
+                bullets[i].trail.push({ x: bullets[i].x, y: bullets[i].y });
+                if (bullets[i].trail.length > 4) bullets[i].trail.shift();
+                bullets[i].trail.forEach((pos, idx) => {
+                    ctx.globalAlpha = (idx / bullets[i].trail.length) * 0.35;
+                    ctx.fillStyle = bullets[i].color || '#7cf3d6';
+                    ctx.fillRect(pos.x, pos.y, bullets[i].width, bullets[i].height);
+                });
+                ctx.globalAlpha = 1;
 
                 // Draw bullets based on type
                 switch(bullets[i].type) {
@@ -2146,20 +4436,24 @@ if (allAliensDead) {
                         ctx.arc(bullets[i].x + bullets[i].width/2, bullets[i].y + bullets[i].height/2, 1, 0, Math.PI * 2);
                         ctx.fill();
                         break;
-                    default:
-                        // Default laser bullet - energy beam
-                        ctx.fillStyle = "#7cf3d6";
+                    default: {
+                        // Default laser bullet - energy beam, tinted to the firing ship's own color
+                        const beamColor = bullets[i].color || '#7cf3d6';
+                        ctx.fillStyle = beamColor;
                         ctx.fillRect(bullets[i].x, bullets[i].y, bullets[i].width, bullets[i].height);
-                        
+
                         // Laser glow effect
-                        ctx.fillStyle = "rgba(124, 243, 214, 0.5)";
+                        const glowHsla = parseColorToHsla(beamColor);
+                        ctx.fillStyle = glowHsla ? `hsla(${glowHsla.h}, ${glowHsla.s}%, ${glowHsla.l}%, 0.5)` : 'rgba(124, 243, 214, 0.5)';
                         ctx.fillRect(bullets[i].x - 1, bullets[i].y, bullets[i].width + 2, bullets[i].height);
+                    }
                 }
 
                 // Collision with aliens
                 for (let j = aliens.length - 1; j >= 0; j--) {
                     if (!aliens[j].alive) continue;
-                    
+                    if (aliens[j].isFlickering) continue; // Lorem Ipsum: untargetable mid-flicker
+
                     if (
                         bullets[i].x < aliens[j].x + aliens[j].width &&
                         bullets[i].x + bullets[i].width > aliens[j].x &&
@@ -2167,11 +4461,14 @@ if (allAliensDead) {
                         bullets[i].y + bullets[i].height > aliens[j].y
                     ) {
                         // Play explosion sound
-                        if (explosionSound) {
-                            explosionSound.currentTime = 0;
-                            explosionSound.play().catch(e => console.log("Audio play error:", e));
-                        }
-                        
+                        playSound(explosionSound, { volume: 0.85 });
+
+                        spawnExplosion(
+                            aliens[j].x + aliens[j].width / 2,
+                            aliens[j].y + aliens[j].height / 2,
+                            alienExplosionColor(aliens[j].type)
+                        );
+
                         aliens[j].alive = false;
                         bullets[i].active = false;
                         bullets.splice(i, 1);
@@ -2292,32 +4589,65 @@ if (allAliensDead) {
             continue;
         }
 
-        enemyBullets[i].y += 5 * (deltaTime / 16);
+        // Donut shield: bounce nearby bullets away instead of letting them connect
+        if (chaosEffects.shield > 0 && !enemyBullets[i].bounced) {
+            const dx = (enemyBullets[i].x + enemyBullets[i].width / 2) - (player.x + player.width / 2);
+            const dy = (enemyBullets[i].y + enemyBullets[i].height / 2) - (player.y + player.height / 2);
+            if (Math.sqrt(dx * dx + dy * dy) < player.width * 1.5) {
+                enemyBullets[i].bounced = true;
+                enemyBullets[i].vy = -Math.abs(levelConfigs[currentLevel].enemyBulletSpeed || 5) * 1.2;
+                enemyBullets[i].vx = (Math.random() - 0.5) * 7;
+                enemyBullets[i].color = '#7cf3d6';
+            }
+        }
+
+        if (enemyBullets[i].vy !== undefined) {
+            enemyBullets[i].y += enemyBullets[i].vy * (deltaTime / 16);
+        } else {
+            enemyBullets[i].y += (levelConfigs[currentLevel].enemyBulletSpeed || 5) * (deltaTime / 16);
+        }
+        if (enemyBullets[i].vx) {
+            enemyBullets[i].x += enemyBullets[i].vx * (deltaTime / 16);
+        }
 
         // Remove if out of bounds
-        if (enemyBullets[i].y > canvas.height) {
+        if (enemyBullets[i].y > canvas.height || enemyBullets[i].y < -20 || enemyBullets[i].x < -20 || enemyBullets[i].x > canvas.width + 20) {
             enemyBullets.splice(i, 1);
             continue;
         }
 
+        // Fading motion trail
+        if (!enemyBullets[i].trail) enemyBullets[i].trail = [];
+        enemyBullets[i].trail.push({ x: enemyBullets[i].x, y: enemyBullets[i].y });
+        if (enemyBullets[i].trail.length > 4) enemyBullets[i].trail.shift();
+        enemyBullets[i].trail.forEach((pos, idx) => {
+            ctx.globalAlpha = (idx / enemyBullets[i].trail.length) * 0.3;
+            ctx.fillStyle = enemyBullets[i].color;
+            ctx.beginPath();
+            ctx.arc(pos.x + enemyBullets[i].width / 2, pos.y + enemyBullets[i].height / 2, enemyBullets[i].width / 2, 0, Math.PI * 2);
+            ctx.fill();
+        });
+        ctx.globalAlpha = 1;
+
         // Draw enemy bullet with realistic effect
         ctx.fillStyle = enemyBullets[i].color;
         ctx.beginPath();
-        ctx.arc(enemyBullets[i].x + enemyBullets[i].width/2, 
-                enemyBullets[i].y + enemyBullets[i].height/2, 
+        ctx.arc(enemyBullets[i].x + enemyBullets[i].width/2,
+                enemyBullets[i].y + enemyBullets[i].height/2,
                 enemyBullets[i].width/2, 0, Math.PI * 2);
         ctx.fill();
-        
+
         // Bullet glow effect
         ctx.fillStyle = 'rgba(255, 111, 97, 0.5)';
         ctx.beginPath();
-        ctx.arc(enemyBullets[i].x + enemyBullets[i].width/2, 
-                enemyBullets[i].y + enemyBullets[i].height/2, 
+        ctx.arc(enemyBullets[i].x + enemyBullets[i].width/2,
+                enemyBullets[i].y + enemyBullets[i].height/2,
                 enemyBullets[i].width/2 + 1, 0, Math.PI * 2);
         ctx.fill();
 
         // Check for collision with player
         if (
+            !enemyBullets[i].bounced &&
             enemyBullets[i].x < player.x + player.width &&
             enemyBullets[i].x + enemyBullets[i].width > player.x &&
             enemyBullets[i].y < player.y + player.height &&
@@ -2344,14 +4674,15 @@ if (allAliensDead) {
                 });
             }
             
-            // Level 5: Lemon obstacles
+            // Level 5: Lemon obstacles - drift sideways so cover keeps shifting
             if (currentLevel === 4 && Math.random() < config.obstacleSpawnRate) {
                 obstacles.push({
                     x: Math.random() * (canvas.width - 20),
                     y: 0,
                     width: 20,
                     height: 20,
-                    type: 'lemon'
+                    type: 'lemon',
+                    driftSeed: Math.random() * Math.PI * 2
                 });
             }
                         // Level 6: Chocolate converters
@@ -2374,8 +4705,8 @@ if (allAliensDead) {
                 });
             }
             
-            // Level 8: Chaos objects
-            if (currentLevel === 7 && Math.random() < config.chaosSpawnRate) {
+            // Level 8: Chaos objects - also thinned out during slow-mo
+            if (currentLevel === 7 && Math.random() < config.chaosSpawnRate * worldSpeedFactor) {
                 const item = chaosItems[Math.floor(Math.random() * chaosItems.length)];
                 chaosObjects.push({
                     type: item.type,
@@ -2491,7 +4822,20 @@ if (allAliensDead) {
                 ctx.strokeStyle = '#8b4513';
                 ctx.lineWidth = 1;
                 ctx.strokeRect(chocolate.x, chocolate.y, chocolate.size, chocolate.size);
-                
+
+                // Stepping on a chocolate is a gamble - could help, could hurt
+                if (
+                    !respawning &&
+                    chocolate.x < player.x + player.width &&
+                    chocolate.x + chocolate.size > player.x &&
+                    chocolate.y < player.y + player.height &&
+                    chocolate.y + chocolate.size > player.y
+                ) {
+                    applyGambleEffect(chocolate.x + chocolate.size / 2, chocolate.y + chocolate.size / 2, 'chocolate');
+                    chocolates.splice(i, 1);
+                    continue;
+                }
+
                 // Remove offscreen
                 if (chocolate.y > canvas.height) chocolates.splice(i, 1);
             }
@@ -2500,9 +4844,12 @@ if (allAliensDead) {
         function updateObstacles() {
             for (let i = obstacles.length - 1; i >= 0; i--) {
                 const obs = obstacles[i];
-                
+
                 // Move
                 obs.y += 1 * (deltaTime / 16);
+                if (obs.type === 'lemon') {
+                    obs.x += Math.sin(gameTick / 25 + (obs.driftSeed || 0)) * 0.6;
+                }
                 
                 // Draw based on type
                 if (obs.type === 'lemon') {
@@ -2533,7 +4880,21 @@ if (allAliensDead) {
                     ctx.fillStyle = '#006400';
                     ctx.fillRect(obs.x + obs.width/2 - 1, obs.y, 2, 3);
                 }
-                
+
+                // Stepping on a lemon is a gamble - could help, could hurt
+                if (
+                    obs.type === 'lemon' &&
+                    !respawning &&
+                    obs.x < player.x + player.width &&
+                    obs.x + obs.width > player.x &&
+                    obs.y < player.y + player.height &&
+                    obs.y + obs.height > player.y
+                ) {
+                    applyGambleEffect(obs.x + obs.width / 2, obs.y + obs.height / 2, 'lemon');
+                    obstacles.splice(i, 1);
+                    continue;
+                }
+
                 // Remove offscreen
                 if (obs.y > canvas.height) obstacles.splice(i, 1);
             }
@@ -2599,36 +4960,119 @@ if (allAliensDead) {
                     chaosEffects.invisible = 180;
                     break;
                 case 'shield':
-                    // Donut: maybe make enemies temporarily invincible or bouncing bullets
+                    // Donut: spinning shield that bounces nearby enemy bullets away
+                    chaosEffects.shield = 300;
+                    showInGameMessage('shield up!');
                     break;
                 case 'grow':
                     // Blob handled in updateChaosObjects
+                    break;
+                case 'swirl':
+                    // Disorients the view - screen tilts and yanks sideways
+                    chaosEffects.tilt = 40;
+                    chaosEffects.shift = 40;
+                    break;
+                case 'shock':
+                    // A jolt that flips controls briefly
+                    chaosEffects.controlsInvert = 60;
+                    showInGameMessage('zapped!');
+                    break;
+                case 'lucky':
+                    // Rare relief - a brief window of untouchable dodging
+                    playerInvisible = true;
+                    invisibleTimer = Math.max(invisibleTimer, 60);
+                    break;
+            }
+        }
+
+        function applyChaosPick(pick) {
+            switch (pick) {
+                case 'invert':
+                    chaosEffects.invert = 40;
+                    playSound(glitchSound, { volume: 0.7, rate: 1.15 });
+                    break;
+                case 'tilt':
+                    chaosEffects.tilt = 40;
+                    playSound(explosionSound, { volume: 0.5, rate: 1.4 });
+                    break;
+                case 'thermal':
+                    chaosEffects.thermal = 55;
+                    playSound(glitchSound, { volume: 0.7, rate: 0.85 });
+                    break;
+                case 'neon':
+                    chaosEffects.neon = 55;
+                    playSound(glitchSound, { volume: 0.7, rate: 1.3 });
+                    break;
+                case 'shake':
+                    chaosEffects.shake = 30;
+                    playSound(explosionSound, { volume: 0.6, rate: 1.1 });
+                    break;
+                case 'static':
+                    chaosEffects.staticNoise = 14;
+                    playSound(glitchSound, { volume: 0.6, rate: 1.6 });
+                    break;
+                case 'controlsInvert':
+                    chaosEffects.controlsInvert = 130;
+                    showInGameMessage('controls flipped!!');
+                    playSound(glitchSound, { volume: 0.8, rate: 0.7 });
+                    break;
+                case 'hudHidden':
+                    chaosEffects.hudHidden = 60;
+                    playSound(glitchSound, { volume: 0.5, rate: 1.5 });
+                    break;
+                case 'fakeGameOver':
+                    triggerFakeGameOver();
+                    break;
+                case 'musicWobble':
+                    triggerMusicWobble();
+                    break;
+                case 'zoom':
+                    chaosEffects.zoom = 45;
+                    playSound(explosionSound, { volume: 0.5, rate: 0.75 });
+                    break;
+                case 'shift':
+                    chaosEffects.shift = 45;
+                    playSound(explosionSound, { volume: 0.5, rate: 1.25 });
+                    break;
+                case 'glitch':
+                    playSound(glitchSound);
                     break;
             }
         }
 
         function updateChaosEffects() {
-            // Apply chaos effects
+            // Apply chaos effects. Transform-based and filter-based effects are
+            // composed together in JS and applied as one inline style each,
+            // instead of toggling separate CSS classes - multiple classes
+            // setting the same property (transform/filter) would otherwise
+            // silently override each other instead of stacking (this was why
+            // tilt appeared to "never happen": zoom/shift were winning the
+            // CSS cascade whenever their timers overlapped with tilt's).
             let canvasClasses = [];
-            
+            let transforms = [];
+            let filters = [];
+
             // Invert screen effect
             if (chaosEffects.invert > 0) {
-                canvasClasses.push('chaos-invert');
+                filters.push('invert(1)');
                 chaosEffects.invert--;
             }
-            
+
             // Tilt screen effect
             if (chaosEffects.tilt > 0) {
-                canvasClasses.push('chaos-tilt');
+                transforms.push('rotate(5deg)');
                 chaosEffects.tilt--;
             }
-            
-            // Screen shake effect
+
+            // Screen shake effect (computed per-frame in JS so it can stack
+            // with tilt/zoom/shift instead of fighting them for the cascade)
             if (chaosEffects.shake > 0) {
-                canvasClasses.push('chaos-shake');
+                const jx = (Math.random() - 0.5) * 6;
+                const jy = (Math.random() - 0.5) * 6;
+                transforms.push(`translate(${jx.toFixed(1)}px, ${jy.toFixed(1)}px)`);
                 chaosEffects.shake--;
             }
-            
+
             // Cash overlay effect
             if (chaosEffects.cash > 0) {
                 let cashOverlay = document.getElementById('cash-effect');
@@ -2649,29 +5093,114 @@ if (allAliensDead) {
                 canvasClasses.push('invisible-aliens');
                 chaosEffects.invisible--;
             }
-            
-            // Random effects for Level 8 (RANDOMODIUM)
-            if (currentLevel === 7 && gameTick % 120 === 0) {
-                const randomEffect = Math.floor(Math.random() * 3);
-                switch (randomEffect) {
-                    case 0:
-                        chaosEffects.invert = 30;
-                        break;
-                    case 1:
-                        chaosEffects.tilt = 30;
-                        break;
-                    case 2:
-                        // Glitch music
-                        if (glitchSound) {
-                            glitchSound.currentTime = 0;
-                            glitchSound.play().catch(e => console.log("Audio play error:", e));
-                        }
-                        break;
+
+            // Thermal-vision palette swing
+            if (chaosEffects.thermal > 0) {
+                filters.push('hue-rotate(200deg) saturate(4) contrast(1.4) brightness(1.1)');
+                chaosEffects.thermal--;
+            }
+
+            // Vibrating neon rainbow palette swing (hue computed per-frame so
+            // it can combine with the other filters instead of replacing them)
+            if (chaosEffects.neon > 0) {
+                const hue = (gameTick * 6) % 360;
+                filters.push(`saturate(3.5) hue-rotate(${hue}deg) brightness(1.15)`);
+                chaosEffects.neon--;
+            }
+
+            // Controls-inverted counter (applied in gameLoop movement handling)
+            if (chaosEffects.controlsInvert > 0) {
+                chaosEffects.controlsInvert--;
+            }
+
+            // HUD flicker - briefly hide level/lives readout
+            if (chaosEffects.hudHidden > 0) {
+                levelNumber.closest('.level-indicator').classList.add('hud-hidden');
+                document.querySelector('.lives-indicator').classList.add('hud-hidden');
+                chaosEffects.hudHidden--;
+                if (chaosEffects.hudHidden <= 0) {
+                    levelNumber.closest('.level-indicator').classList.remove('hud-hidden');
+                    document.querySelector('.lives-indicator').classList.remove('hud-hidden');
                 }
             }
-            
-            // Apply all canvas classes
+
+            // Screen zoom
+            if (chaosEffects.zoom > 0) {
+                transforms.push('scale(1.18)');
+                chaosEffects.zoom--;
+            }
+
+            // Sideways canvas shift
+            if (chaosEffects.shift > 0) {
+                transforms.push('translateX(18px)');
+                chaosEffects.shift--;
+            }
+
+            // Donut spinning shield - just a duration counter, drawn in drawPlayer()
+            // and consumed by the bullet-bounce check in updateEnemyBullets()
+            if (chaosEffects.shield > 0) {
+                chaosEffects.shield--;
+            }
+
+            // Random effects for Level 8 (RANDOMODIUM) - the ultra-chaos finale.
+            // Fires often, sometimes stacking two at once, and picks from a
+            // wide pool so no two runs feel the same.
+            if (currentLevel === 7 && gameTick % 45 === 0) {
+                const pool = ['invert', 'tilt', 'thermal', 'neon', 'shake', 'static', 'controlsInvert', 'hudHidden', 'fakeGameOver', 'musicWobble', 'glitch', 'zoom', 'shift'];
+                const picks = [pool[Math.floor(Math.random() * pool.length)]];
+                if (Math.random() < 0.4) {
+                    picks.push(pool[Math.floor(Math.random() * pool.length)]);
+                }
+                picks.forEach(applyChaosPick);
+            }
+
+            // Tension cue when down to the last life
+            if (lives === 1) {
+                canvasClasses.push('low-lives');
+            }
+
+            // Apply composed transform/filter (so multiple effects stack
+            // instead of overriding each other), plus the remaining classes
+            // that don't touch transform/filter and so never conflict
+            canvas.style.transform = transforms.join(' ');
+            canvas.style.filter = filters.join(' ');
             canvas.className = canvasClasses.join(' ');
+        }
+
+        // RANDOMODIUM: a scare, not a real game over - never touches lives or gameActive
+        function triggerFakeGameOver() {
+            gameOverOverlay.style.display = 'flex';
+            playSound(glitchSound);
+            setTimeout(() => {
+                if (currentLevel === 7 && gameActive) {
+                    gameOverOverlay.style.display = 'none';
+                }
+            }, 500);
+        }
+
+        // RANDOMODIUM: briefly wobble the music's playback speed without ever
+        // stopping/restarting it, so the audio-continuity rule stays intact
+        function triggerMusicWobble() {
+            if (!bgMusic) return;
+            bgMusic.playbackRate = Math.random() < 0.5 ? 0.6 : 1.6;
+            setTimeout(() => {
+                bgMusic.playbackRate = 1;
+            }, 900);
+        }
+
+        // RANDOMODIUM: brief TV-static overlay drawn straight onto the canvas
+        function drawStaticNoise() {
+            if (chaosEffects.staticNoise <= 0) return;
+            for (let i = 0; i < 35; i++) {
+                const w = Math.random() * 30 + 5;
+                const h = Math.random() * 4 + 2;
+                const sx = Math.random() * canvas.width;
+                const sy = Math.random() * canvas.height;
+                ctx.fillStyle = Math.random() < 0.5
+                    ? 'rgba(255,255,255,0.5)'
+                    : `hsl(${Math.random() * 360}, 100%, 70%)`;
+                ctx.fillRect(sx, sy, w, h);
+            }
         }
 
         function showInGameMessage(text) {
@@ -2697,41 +5226,44 @@ if (allAliensDead) {
             }, 2000);
         }
 
-        function loseLife() {
+        function loseLives(n) {
     // Prevent multiple life loss in the same frame
     if (lives <= 0 || respawning) return;
-    
-    lives--;
+
+    lives = Math.max(0, lives - n);
     console.log('Life lost! Lives remaining:', lives);
-    
-    // Update lives display
+
+    // Update lives display, with a little "pop and fade" on the ones just lost
     const lifeElements = document.querySelectorAll('.life');
     for (let i = 0; i < lifeElements.length; i++) {
         lifeElements[i].style.opacity = i < lives ? '1' : '0.3';
+        if (i >= lives) {
+            lifeElements[i].classList.add('lost');
+        }
     }
-    
+
     if (lives <= 0) {
         gameOver();
         // Don't return here - let the gameOver function handle the state
     } else {
         // Set respawning state
         respawning = true;
-        
+
         // Show message that you lost a life
         showInGameMessage(`Ouch! ${lives} lives remaining`);
-        
+
         // Add a brief invincibility period
         playerInvisible = true;
         invisibleTimer = 180; // 3 seconds at 60fps
-        
+
         // Reset player position
         player.x = canvas.width / 2 - 15;
-        
+
         // After a short delay, allow playing again
         setTimeout(() => {
             respawning = false;
         }, 2000);
-        
+
         // IMPORTANT: Ensure game loop continues
         if (!gameActive) {
             gameActive = true;
@@ -2740,6 +5272,63 @@ if (allAliensDead) {
         }
     }
 }
+
+        function loseLife() {
+            loseLives(1);
+        }
+
+        // Grabbing a lemon or chocolate is a gamble - you can't tell which one
+        // you're getting until you touch it. Leans slightly risky on purpose,
+        // so dodging them is always a valid, safer choice.
+        function applyGambleEffect(x, y, label) {
+            const roll = Math.random();
+
+            if (roll < 0.20) {
+                // Lucky - gain a life (or a shield if already at full health)
+                if (lives < 3) {
+                    lives++;
+                    document.querySelectorAll('.life').forEach((life, index) => {
+                        life.style.opacity = index < lives ? '1' : '0.3';
+                        if (index < lives) life.classList.remove('lost');
+                    });
+                    showInGameMessage(`Lucky ${label}! +1 life`);
+                } else {
+                    playerInvisible = true;
+                    invisibleTimer = Math.max(invisibleTimer, 120);
+                    showInGameMessage(`Lucky ${label}! Shielded (full health)`);
+                }
+                spawnExplosion(x, y, '#8aff65');
+                if (matchSound) {
+                    matchSound.currentTime = 0;
+                    matchSound.play().catch(e => console.log("Audio play error:", e));
+                }
+            } else if (roll < 0.40) {
+                // Power - brief window of untouchable dodging
+                playerInvisible = true;
+                invisibleTimer = Math.max(invisibleTimer, 150);
+                showInGameMessage(`Power ${label}! Briefly untouchable`);
+                spawnExplosion(x, y, '#7cf3d6');
+                if (matchSound) {
+                    matchSound.currentTime = 0;
+                    matchSound.play().catch(e => console.log("Audio play error:", e));
+                }
+            } else if (roll < 0.75) {
+                // Bad - lose one life
+                spawnExplosion(x, y, '#ff5c5c');
+                showInGameMessage(`Bad ${label}! -1 life`);
+                playSound(explosionSound);
+                loseLives(1);
+            } else if (roll < 0.90) {
+                // Rotten - lose two lives at once
+                spawnExplosion(x, y, '#ff2222');
+                showInGameMessage(`Rotten ${label}! -2 lives`);
+                playSound(explosionSound, { volume: 1, rate: 0.85 });
+                loseLives(2);
+            } else {
+                // Nothing - just a dud
+                showInGameMessage(`Just a ${label}...`);
+            }
+        }
         function resetSpaceInvaders() {
     // Increment the attempt counter each time the player retries.
     gameState.attempts++;
@@ -2768,6 +5357,7 @@ if (allAliensDead) {
     
     document.querySelectorAll('.life').forEach(life => {
         life.style.opacity = '1';
+        life.classList.remove('lost');
     });
     
     currentLevel = 0;

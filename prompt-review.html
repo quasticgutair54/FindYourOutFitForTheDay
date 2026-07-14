@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Narrator Prompt Review (internal tool - not part of the site)</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; background: #111; color: #eee; }
+  h1 { font-size: 1.3rem; }
+  p.hint { color: #aaa; font-size: 0.9rem; }
+  .row { display: flex; align-items: center; gap: 1rem; padding: 0.8rem 0; border-bottom: 1px solid #333; }
+  .row .num { width: 2rem; color: #888; font-variant-numeric: tabular-nums; }
+  .row .txt { flex: 1; }
+  .row.flagged { background: rgba(255, 80, 80, 0.12); }
+  audio { height: 32px; }
+  .flag-btn { background: #333; color: #eee; border: 1px solid #555; border-radius: 6px; padding: 0.3rem 0.6rem; cursor: pointer; }
+  .row.flagged .flag-btn { background: #a33; border-color: #a33; }
+  #output { white-space: pre-wrap; background: #000; padding: 1rem; border-radius: 8px; margin-top: 1rem; font-family: monospace; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+  <h1>Narrator Prompt Review</h1>
+  <p class="hint">Play each clip and check it says what the text next to it says. Click "flag" on any that don't match - a summary list you can paste back to me will appear at the bottom.</p>
+  <div id="list"></div>
+  <h3>Flagged lines</h3>
+  <div id="output">(none yet)</div>
+
+  <script>
+    const lines = [
+      "So, how's the shirt treating you so far?",
+      "Be honest, you just wanted the free stuff, right?",
+      "This shirt is judging your outfit too.",
+      "You've stared at this longer than your ex deserved.",
+      "Somewhere, a marketing team is proud of you right now.",
+      "Nobody's watching... except, well, this.",
+      "Scientists would call this behavior concerning.",
+      "Your phone battery is dying for this?",
+      "You could be doing literally anything else right now.",
+      "Quick question: are you even good at this game?",
+      "Your thumbs must be tired by now.",
+      "Somewhere, a dev is actually watching you play this.",
+      "Be real, did you scan this out of pure boredom?",
+      "This is either genius marketing or a cry for help.",
+      "You do know this is just a shirt, right?",
+      "Weirdly invested in this, aren't you?",
+      "Your snacks are getting cold. Just saying.",
+      "Not to alarm you, but this game is judging your reflexes.",
+      "Would you tell your friends about this? Be honest.",
+      "This level's basically a personality test in disguise.",
+      "Blink and you'll miss the next surprise.",
+      "Statistically, most people quit by now. You didn't.",
+      "Are you scared of a few pixels, or nah?",
+      "This shirt has more charisma than your last outfit.",
+      "You're doing great. Probably. We don't actually track that.",
+      "Somewhere, someone's genuinely impressed you got this far.",
+      "This message means nothing. Or does it?",
+      "You ever wonder who wrote all this dialogue?",
+      "Careful, this level bites back.",
+      "You're one click away from something interesting.",
+      "This whole thing was designed to mess with you. Working?",
+      "Almost feels like we're having a real conversation, doesn't it?"
+    ];
+
+    const list = document.getElementById('list');
+    const output = document.getElementById('output');
+    const flagged = new Set();
+
+    lines.forEach((text, i) => {
+      const n = i + 1;
+      const row = document.createElement('div');
+      row.className = 'row';
+      row.innerHTML = `
+        <div class="num">#${n}</div>
+        <audio controls src="prompt${n}.mp3"></audio>
+        <div class="txt">${text}</div>
+        <button class="flag-btn" type="button">Flag mismatch</button>
+      `;
+      row.querySelector('.flag-btn').addEventListener('click', () => {
+        if (flagged.has(n)) {
+          flagged.delete(n);
+          row.classList.remove('flagged');
+        } else {
+          flagged.add(n);
+          row.classList.add('flagged');
+        }
+        renderOutput();
+      });
+      list.appendChild(row);
+    });
+
+    function renderOutput() {
+      if (flagged.size === 0) {
+        output.textContent = '(none yet)';
+        return;
+      }
+      const sorted = Array.from(flagged).sort((a, b) => a - b);
+      output.textContent = sorted.map(n => `#${n}: "${lines[n - 1]}" - what does the audio actually say instead?`).join('\n');
+    }
+  </script>
+</body>
+</html>

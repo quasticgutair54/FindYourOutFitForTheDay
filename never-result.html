@@ -3,128 +3,45 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Your Result – Never</title>
-  <link href="https://fonts.googleapis.com/css2?family=Tan+Nimbus&display=swap" rel="stylesheet" />
+  <title>Never Result</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tan+Nimbus&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="quiz-common.css">
   <style>
+    /* Core background stays exactly what it was before any of this editing -
+       the same shared image, same static (non-animated) treatment. The
+       outfit photo below is a separate floating element on top of it. */
     html, body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Tan Nimbus', sans-serif;
-      background-image: url('Untitled design (1).png');
+      background: url('Untitled Design (1).png') no-repeat center center fixed;
       background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      background-attachment: fixed;
-      min-height: 100vh;
+      animation: none;
       color: black;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-    }
-
-    .result-container {
-      background: rgba(255, 255, 255, 0.85);
-      padding: 2rem;
-      border-radius: 15px;
-      max-width: 600px;
-      width: 90%;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
-    }
-
-    h1 {
-      font-size: 2.4rem;
-      margin-bottom: 1.5rem;
-    }
-
-    p {
-      font-size: 1.2rem;
-      margin: 1rem 0;
-    }
-
-    .badge {
-      display: inline-block;
-      background: black;
-      color: white;
-      padding: 0.5rem 1rem;
-      border-radius: 8px;
-      font-size: 1rem;
-      margin: 1rem 0;
-    }
-
-    .cta-button {
-      display: inline-block;
-      margin-top: 2rem;
-      padding: 0.9rem 2rem;
-      background: black;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      text-decoration: none;
-      transition: background 0.3s ease;
-    }
-
-    .cta-button:hover {
-      background: #333;
-    }
-
-    @media (max-width: 600px) {
-      h1 {
-        font-size: 2rem;
-      }
-      p {
-        font-size: 1rem;
-      }
-      .cta-button {
-        width: 100%;
-      }
     }
   </style>
 </head>
 <body>
 
-<audio id="bg-music" src="running out of time.mp3" autoplay loop></audio>
+  <audio id="bg-music" src="personality-theme.mp3" loop></audio>
 
-<div class="result-container">
-  <h1>You’re effortlessly cool… and kind of invisible.</h1>
-  <p>You don’t chase trends — trends quietly hope you’ll notice them.</p>
-  <p>Comfort is your crown, and subtlety is your sword.</p>
-  <div class="badge">87% NotTheBest Certified</div>
-  <p>In the end, it’s your decision to choose what you choose. So be you.</p>
-  <a class="cta-button" href="https://www.notthebestplacetobuystuff.in/notthebest-t-shirt" target="_blank">Reveal your outfit</a>
-</div>
+  <div class="result-stage">
+    <div class="reveal-photo-frame">
+      <img src="never.jpeg" alt="Never outfit reveal">
+    </div>
 
-<script>
-  const audio = document.getElementById("bg-music");
-  const storedTime = localStorage.getItem("music-time");
-  if (storedTime) {
-    audio.currentTime = parseFloat(storedTime);
-  }
+    <div class="result-box">
+      <h1>You're effortlessly cool… and kind of invisible.</h1>
+      <p>You don't chase trends — trends quietly hope you'll notice them.<br>
+      Comfort is your crown, and subtlety is your sword.</p>
+      <p><strong>In the end, it's your decision to choose what you choose. So be you.</strong></p>
+      <div class="certified">87% NotTheBest Certified</div>
+      <br />
+      <a class="cta-button" href="https://www.notthebestplacetobuystuff.in/notthebest-t-shirt" target="_blank">Reveal your outfit</a>
+    </div>
+  </div>
 
-  window.addEventListener("load", () => {
-    audio.play().catch(() => {
-      const clickToPlay = () => {
-        audio.play();
-        document.removeEventListener("click", clickToPlay);
-      };
-      document.addEventListener("click", clickToPlay);
-    });
-  });
-
-  setInterval(() => {
-    if (!audio.paused) {
-      localStorage.setItem("music-time", audio.currentTime);
-    }
-  }, 500);
-
-  window.addEventListener("beforeunload", () => {
-    localStorage.setItem("music-time", audio.currentTime);
-  });
-</script>
+  <script src="quiz-common.js"></script>
+  <script>
+    initQuizResult({ pathName: 'never', emoji: '🧼' });
+  </script>
 
 </body>
 </html>
-
-
-
