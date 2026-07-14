@@ -618,8 +618,14 @@
 
         .mode-row {
             display: flex;
+            flex-wrap: wrap;
             gap: 8px;
             margin-bottom: 20px;
+        }
+
+        .mode-row .mode-btn {
+            flex: 1 1 calc(33.333% - 6px);
+            min-width: 90px;
         }
 
         .mode-btn {
@@ -724,6 +730,58 @@
         :root[data-visual-mode="neon"] .btn {
             background: linear-gradient(90deg, #ff00e6, #00fff2);
             box-shadow: 0 0 14px rgba(255, 0, 230, 0.6);
+        }
+
+        /* Monochrome: pure black/white/gray noir, high contrast */
+        :root[data-visual-mode="mono"] {
+            --accent: #cfcfcf;
+            --accent-2: #ffffff;
+            --glass: rgba(15, 15, 15, 0.85);
+            --glass-strong: rgba(5, 5, 5, 0.96);
+        }
+
+        :root[data-visual-mode="mono"] body {
+            background: linear-gradient(180deg, #050505 0%, #1c1c1c 100%);
+            color: #eaeaea;
+        }
+
+        :root[data-visual-mode="mono"] .modal {
+            background: rgba(15, 15, 15, 0.95);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.12);
+            color: #eaeaea;
+        }
+
+        :root[data-visual-mode="mono"] .btn {
+            background: linear-gradient(90deg, #4a4a4a, #d8d8d8);
+            color: #111;
+        }
+
+        /* Synthwave: retro 80s sunset - hot pink + gold on deep purple/navy */
+        :root[data-visual-mode="synth"] {
+            --accent: #ff2d95;
+            --accent-2: #ffae00;
+            --glass: rgba(26, 0, 51, 0.85);
+            --glass-strong: rgba(13, 0, 30, 0.96);
+        }
+
+        :root[data-visual-mode="synth"] body {
+            background: linear-gradient(180deg, #1a0033 0%, #2d0a4e 45%, #0d1b3a 100%);
+            color: #ffd9f0;
+        }
+
+        :root[data-visual-mode="synth"] .modal {
+            background: linear-gradient(160deg, rgba(40, 0, 70, 0.95), rgba(10, 15, 45, 0.95));
+            border-color: rgba(255, 45, 149, 0.5);
+            box-shadow: 0 0 25px rgba(255, 45, 149, 0.4), 0 0 45px rgba(255, 174, 0, 0.25);
+        }
+
+        :root[data-visual-mode="synth"] .modal h2 {
+            text-shadow: 0 0 10px rgba(255, 45, 149, 0.7), 0 0 20px rgba(255, 174, 0, 0.4);
+        }
+
+        :root[data-visual-mode="synth"] .btn {
+            background: linear-gradient(90deg, #ff2d95, #ffae00);
         }
 
         .btn {
@@ -1249,6 +1307,8 @@
                 <button class="mode-btn" data-mode="dark">Dark</button>
                 <button class="mode-btn" data-mode="light">Light</button>
                 <button class="mode-btn" data-mode="neon">Overly Colorful</button>
+                <button class="mode-btn" data-mode="mono">Monochrome</button>
+                <button class="mode-btn" data-mode="synth">Synthwave</button>
             </div>
 
             <button id="ship-launch-btn" class="btn">Launch</button>
@@ -1770,6 +1830,12 @@ const gameState = {
                 const saturation = stopPosition === 0 ? 22 : 42;
                 return `hsla(${hue}, ${saturation}%, ${lightness}%, ${hsla.a})`;
             }
+            if (visualMode === 'mono') {
+                // Strip all color but keep the source palette's own
+                // top/bottom contrast relationship instead of a flat gray
+                const lightness = stopPosition === 0 ? Math.max(8, hsla.l * 0.6) : Math.max(16, hsla.l * 0.85);
+                return `hsla(0, 0%, ${lightness}%, ${hsla.a})`;
+            }
             return `hsla(${hsla.h}, 100%, 62%, ${hsla.a})`;
         }
 
@@ -1785,6 +1851,11 @@ const gameState = {
                 return 'saturate(4.5) contrast(1.5) brightness(1.3) ' +
                     'drop-shadow(0 0 5px rgba(255,0,230,0.65)) ' +
                     'drop-shadow(0 0 12px rgba(0,255,242,0.5))';
+            }
+            if (visualMode === 'mono') return 'grayscale(1) contrast(1.3) brightness(1.08)';
+            if (visualMode === 'synth') {
+                return 'saturate(1.9) hue-rotate(-15deg) contrast(1.15) ' +
+                    'drop-shadow(0 0 6px rgba(255,60,180,0.55))';
             }
             return 'none';
         }
@@ -1806,6 +1877,8 @@ const gameState = {
                 let s1 = 55, l1 = 7, s2 = 65, l2 = 13;
                 if (visualMode === 'light') { s1 = 35; l1 = 92; s2 = 40; l2 = 86; }
                 else if (visualMode === 'neon') { s1 = 100; l1 = 55; s2 = 100; l2 = 62; }
+                else if (visualMode === 'mono') { s1 = 0; l1 = 10; s2 = 0; l2 = 20; }
+                else if (visualMode === 'synth') { s1 = 75; l1 = 22; s2 = 85; l2 = 32; }
                 const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
                 gradient.addColorStop(0, `hsl(${hue}, ${s1}%, ${l1}%)`);
                 gradient.addColorStop(1, `hsl(${(hue + 80) % 360}, ${s2}%, ${l2}%)`);
@@ -1823,6 +1896,19 @@ const gameState = {
                 gradient.addColorStop(0, `hsl(${(topHsla.h + drift) % 360}, 100%, 58%)`);
                 gradient.addColorStop(0.5, `hsl(${(topHsla.h + drift + 90) % 360}, 100%, 42%)`);
                 gradient.addColorStop(1, `hsl(${(bottomHsla.h + drift + 200) % 360}, 100%, 55%)`);
+                return gradient;
+            }
+
+            // Synthwave: a fixed retro sunset (purple -> magenta -> orange),
+            // static rather than drifting, with a small per-level hue wobble
+            // so levels still feel distinct from each other
+            if (visualMode === 'synth') {
+                const topHsla = parseColorToHsla(bg.top) || { h: 280 };
+                const wobble = (topHsla.h % 60) - 30;
+                const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                gradient.addColorStop(0, `hsl(${(255 + wobble + 360) % 360}, 65%, 18%)`);
+                gradient.addColorStop(0.55, `hsl(${(320 + wobble + 360) % 360}, 85%, 38%)`);
+                gradient.addColorStop(1, `hsl(${(25 + wobble + 360) % 360}, 90%, 55%)`);
                 return gradient;
             }
 
@@ -3168,7 +3254,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 height: bulletProps.height,
                 active: true,
                 color: bulletProps.color,
-                type: lastBulletType
+                type: lastBulletType,
+                speed: 7 * (shipProfile.speed || 1),
+                blocks: !!shipProfile.blocks
             });
         }
         function unlockPaths() {
@@ -3487,21 +3575,24 @@ if (allAliensDead) {
 
         // Per-ship "voice": a signature bullet color (used whenever the
         // level itself doesn't force a special bullet type, e.g. bread/lime/
-        // sword bullets still win on their own levels) and a shoot-sound
+        // sword bullets still win on their own levels), a shoot-sound
         // playback rate so every ship's shot sounds distinct even though
-        // they all share the one recorded sound effect.
+        // they all share the one recorded sound effect, and a bullet speed
+        // multiplier. `blocks` is a deliberately undocumented perk on 3 of
+        // the 11 ships - their bullets destroy an enemy bullet on contact
+        // instead of passing by it. Never surfaced in the UI - discover-only.
         const shipBulletProfiles = {
-            classic: { color: '#7cf3d6', rate: 1.0 },
-            crimson: { color: '#ff5c3d', rate: 0.85 },
-            saucer: { color: '#b26bff', rate: 1.15 },
-            falcon: { color: '#ffce3d', rate: 1.05 },
-            comet: { color: '#8be9ff', rate: 1.25 },
-            wasp: { color: '#a6e600', rate: 0.95 },
-            stealth: { color: '#c7ccd1', rate: 0.75 },
-            blade: { color: '#ff3fc4', rate: 1.3 },
-            beetle: { color: '#1fae5c', rate: 0.9 },
-            sunset: { color: '#ff6f9c', rate: 1.1 },
-            phantom: { color: '#cfe8ff', rate: 1.4 }
+            classic: { color: '#7cf3d6', rate: 1.0, speed: 1.0 },
+            crimson: { color: '#ff5c3d', rate: 0.85, speed: 1.15 },
+            saucer: { color: '#b26bff', rate: 1.15, speed: 0.9, blocks: true },
+            falcon: { color: '#ffce3d', rate: 1.05, speed: 1.2 },
+            comet: { color: '#8be9ff', rate: 1.25, speed: 1.35 },
+            wasp: { color: '#a6e600', rate: 0.95, speed: 1.1 },
+            stealth: { color: '#c7ccd1', rate: 0.75, speed: 0.75, blocks: true },
+            blade: { color: '#ff3fc4', rate: 1.3, speed: 1.4 },
+            beetle: { color: '#1fae5c', rate: 0.9, speed: 0.8, blocks: true },
+            sunset: { color: '#ff6f9c', rate: 1.1, speed: 1.05 },
+            phantom: { color: '#cfe8ff', rate: 1.4, speed: 1.25 }
         };
 
         function drawShipBody(skin, x, y, w, h, cx, cy, ctx = mainCtx) {
@@ -4312,13 +4403,36 @@ if (allAliensDead) {
                     continue;
                 }
 
-                // Move bullet
-                bullets[i].y -= 7 * (deltaTime / 16);
+                // Move bullet (speed varies per ship)
+                bullets[i].y -= (bullets[i].speed || 7) * (deltaTime / 16);
 
                 // Remove if out of bounds
                 if (bullets[i].y < 0) {
                     bullets.splice(i, 1);
                     continue;
+                }
+
+                // Undocumented perk on 3 ships: their bullets destroy an
+                // incoming enemy bullet on contact instead of missing it
+                if (bullets[i].blocks) {
+                    let blocked = false;
+                    for (let k = enemyBullets.length - 1; k >= 0; k--) {
+                        const eb = enemyBullets[k];
+                        if (
+                            bullets[i].x < eb.x + eb.width &&
+                            bullets[i].x + bullets[i].width > eb.x &&
+                            bullets[i].y < eb.y + eb.height &&
+                            bullets[i].y + bullets[i].height > eb.y
+                        ) {
+                            enemyBullets.splice(k, 1);
+                            blocked = true;
+                            break;
+                        }
+                    }
+                    if (blocked) {
+                        bullets.splice(i, 1);
+                        continue;
+                    }
                 }
 
                 // Fading motion trail
