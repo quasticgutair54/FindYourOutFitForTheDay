@@ -149,10 +149,12 @@
         .paths-panel {
             flex: 2;
             background: var(--glass);
-            border-radius: 15px;
-            padding: 15px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 18px 15px;
+            backdrop-filter: blur(16px) saturate(160%);
+            -webkit-backdrop-filter: blur(16px) saturate(160%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
             display: flex;
             flex-direction: column;
             min-height: 0;
@@ -1045,52 +1047,99 @@
 
         .paths-title {
             text-align: center;
-            margin-bottom: 15px;
+            margin-bottom: 4px;
             color: var(--accent-2);
-            font-size: 1.4rem;
+            font-size: clamp(1.5rem, 5vw, 2rem);
+            font-weight: 800;
+            letter-spacing: -0.01em;
         }
-        
+
         .lock-message {
             text-align: center;
             color: var(--accent);
             font-weight: bold;
             margin-top: 20px;
         }
-        
+
         .paths-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 12px;
             margin-top: 10px;
         }
-        
+
+        /* Each path is its own photo thumbnail - same brand-safety duotone
+           tint as the quiz pages (mix-blend-mode: color via --path-tint),
+           set per-link via inline style along with --path-photo, so a
+           player sees a preview of each result's vibe before choosing. */
         .path-item {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 15px 10px;
-            text-align: center;
+            position: relative;
+            isolation: isolate;
+            overflow: hidden;
+            border-radius: 16px;
+            aspect-ratio: 1 / 1.05;
             text-decoration: none;
             color: white;
-            transition: transform 0.2s, background 0.2s;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 8px;
+            justify-content: flex-end;
+            padding-bottom: 12px;
+            background-image: var(--path-photo, none);
+            background-size: cover;
+            background-position: center 18%;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            opacity: 0;
+            transform: translateY(16px);
+            animation: path-item-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
-        
+
+        .path-item:nth-child(1) { animation-delay: 0.08s; }
+        .path-item:nth-child(2) { animation-delay: 0.16s; }
+        .path-item:nth-child(3) { animation-delay: 0.24s; }
+        .path-item:nth-child(4) { animation-delay: 0.32s; }
+        .path-item:nth-child(5) { animation-delay: 0.4s; }
+
+        @keyframes path-item-in {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .path-item::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--path-tint, linear-gradient(135deg, #333, #999));
+            mix-blend-mode: color;
+            z-index: 1;
+        }
+
+        .path-item::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0%, rgba(0, 0, 0, 0.8) 100%);
+            z-index: 2;
+        }
+
         .path-item:hover {
-            transform: translateY(-3px);
-            background: rgba(124, 243, 214, 0.2);
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 14px 32px rgba(0, 0, 0, 0.45);
         }
-        
+
         .path-emoji {
-            font-size: 2rem;
-            filter: drop-shadow(0 0 5px rgba(0,0,0,0.5));
+            position: relative;
+            z-index: 3;
+            font-size: 1.7rem;
+            filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.7));
         }
-        
+
         .path-label {
+            position: relative;
+            z-index: 3;
             font-weight: bold;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
         }
         
         /* Chaos effects for Level 8 - transform/filter values are now composed
@@ -1454,23 +1503,23 @@
             <p class="lock-message">Complete the challenges to unlock your path</p>
 
             <div class="paths-grid">
-                <a href="allout-q1.html" class="path-item">
+                <a href="allout-q1.html" class="path-item" style="--path-photo: url('allout.jpeg'); --path-tint: linear-gradient(135deg, #ff0080, #ffff00);">
                     <span class="path-emoji">💥</span>
                     <span class="path-label">All Out</span>
                 </a>
-                <a href="somewhatout-q1.html" class="path-item">
+                <a href="somewhatout-q1.html" class="path-item" style="--path-photo: url('somewhatout.jpeg'); --path-tint: linear-gradient(135deg, #00ffcc, #00ff00);">
                     <span class="path-emoji">🤔</span>
                     <span class="path-label">Somewhat Out</span>
                 </a>
-                <a href="maybe-q1.html" class="path-item">
+                <a href="maybe-q1.html" class="path-item" style="--path-photo: url('maybe.jpeg'); --path-tint: linear-gradient(135deg, #9a00ff, #00fff0);">
                     <span class="path-emoji">🤷</span>
                     <span class="path-label">Maybe</span>
                 </a>
-                <a href="never-q1.html" class="path-item">
+                <a href="never-q1.html" class="path-item" style="--path-photo: url('never.jpeg'); --path-tint: linear-gradient(135deg, #000000, #ffffff);">
                     <span class="path-emoji">🚫</span>
                     <span class="path-label">Never</span>
                 </a>
-                <a href="twosides-q1.html" class="path-item">
+                <a href="twosides-q1.html" class="path-item" style="--path-photo: url('twosides.jpeg'); --path-tint: linear-gradient(135deg, #39ff14, #ffffff);">
                     <span class="path-emoji">☯️</span>
                     <span class="path-label">Two Sides</span>
                 </a>
