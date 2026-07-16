@@ -3458,8 +3458,11 @@ document.addEventListener("DOMContentLoaded", () => {
 if (allAliensDead) {
     gameActive = false; // Pause the game loop
 
-    // NEW: Checks for the shortcut condition (Level 2 complete on attempts 8-11)
-    if (currentLevel === 1 && gameState.attempts >= 8 && gameState.attempts <= 18) {
+    // Shortcut condition: the first 3 tries play normally, then the next 3
+    // tries (attempts 4-6) get bumped straight to the final level on
+    // finishing Level 2 instead of grinding through the middle levels again.
+    // Attempt 7+ gives up entirely (see the expiry check in resetSpaceInvaders).
+    if (currentLevel === 1 && gameState.attempts >= 4 && gameState.attempts <= 6) {
         
         showInGameMessage("You’ve earned a special chance! You’re now at the final level.");
         
@@ -5493,8 +5496,10 @@ if (allAliensDead) {
     // Increment the attempt counter each time the player retries.
     gameState.attempts++;
 
-    // Check if the player is on their 13th attempt or more.
-    if (gameState.attempts >= 13) { // Using 13 as per your last request
+    // 3 normal tries, then 3 tries where they get shortcut to the final
+    // level (attempts 4-6, see the check above). Attempt 7+ gives up and
+    // unlocks the personality path for them automatically.
+    if (gameState.attempts >= 7) {
         gameOverOverlay.style.display = 'none'; // Hide the "Game Over" screen
         
         // Prepare and show the final message
