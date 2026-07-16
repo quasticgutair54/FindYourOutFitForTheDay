@@ -34,12 +34,22 @@ const DEFAULT_JUDGMENTS = [
 ];
 
 // ===== Audio continuity across page reloads (localStorage-based resume) =====
-function setupQuizAudio() {
+// isEntryPoint is true only on each path's q1 - the actual moment the
+// player enters the personality pages after finishing Space Invaders. That
+// always starts the song from 0, even if a previous playthrough left a
+// stale position in localStorage. q2 onward (and the result page) still
+// resume from wherever the song was, so navigating within one playthrough
+// stays seamless.
+function setupQuizAudio(isEntryPoint) {
   const audio = document.getElementById('bg-music');
   if (!audio) return;
 
-  const storedTime = localStorage.getItem('quiz-music-time');
-  if (storedTime) audio.currentTime = parseFloat(storedTime);
+  if (isEntryPoint) {
+    localStorage.removeItem('quiz-music-time');
+  } else {
+    const storedTime = localStorage.getItem('quiz-music-time');
+    if (storedTime) audio.currentTime = parseFloat(storedTime);
+  }
 
   const tryPlay = () => audio.play().catch(() => {});
   window.addEventListener('load', tryPlay);
@@ -188,7 +198,7 @@ function balanceFlash(durationMs) {
 
 // ===== Wires up a question page =====
 function initQuizQuestion(config) {
-  setupQuizAudio();
+  setupQuizAudio(config.questionNumber === 1);
   if (config.questionNumber) renderProgressBar(config.questionNumber);
 
   const options = Array.from(document.querySelectorAll('.option'));
@@ -249,7 +259,7 @@ function startAmbientSparkles(emoji) {
 
 // ===== Wires up a result page =====
 function initQuizResult(config) {
-  setupQuizAudio();
+  setupQuizAudio(false);
   const photoCard = document.querySelector('.reveal-photo-frame');
   if (photoCard) enablePhotoCardTilt(photoCard);
   startAmbientSparkles(config.emoji);

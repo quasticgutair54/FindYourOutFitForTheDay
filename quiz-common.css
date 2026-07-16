@@ -376,16 +376,15 @@ h1 {
 }
 
 .result-box {
-  background: rgba(15, 15, 20, 0.55);
-  backdrop-filter: blur(18px) saturate(160%);
-  -webkit-backdrop-filter: blur(18px) saturate(160%);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 2.2rem 2rem;
-  border-radius: 24px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
-  max-width: 600px;
+  max-width: 640px;
   width: 90%;
+  padding: 1.6rem 1rem;
   color: #fff;
+  /* Result pages deliberately keep their original promo-graphic background
+     untouched (no body::before/after scrim like question pages get), so
+     text needs its own contrast aid. A soft radial vignette - no border,
+     no blur, no hard edge - reads as stage lighting, not a UI card. */
+  background: radial-gradient(ellipse 70% 65% at center, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.28) 55%, transparent 80%);
   opacity: 0;
   transform: translateY(20px);
   animation: q-fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.6s forwards;
@@ -393,6 +392,10 @@ h1 {
 
 .result-box h1 {
   color: #fff;
+}
+
+.result-box p {
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
 }
 
 .certified {
