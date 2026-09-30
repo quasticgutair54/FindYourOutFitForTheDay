@@ -37,7 +37,11 @@
     // Your Toast: bread visibly rises in a toaster, then POPS and falls at you; burnt (black) slices
     // stick to bunkers and patch them; a butter meter shows how close the "too much butter" restart is.
     3: { march: { step: 10, drop: 16, slow: 450, fast: 50 }, bunkers: 'loaf', bunkerColor: '#e0a458',
-         toast: { every: [1200, 2100], rise: 700, burnt: 0.3, double: 0.15 } }
+         toast: { every: [1200, 2100], rise: 700, burnt: 0.3, double: 0.15 } },
+    // Grapefruit x Lime: grapefruits split into two halves on the first hit; halves drip juice that
+    // pools into sticky puddles (slows your ship); falling lemons that reach the bunker line settle as extra cover.
+    4: { march: { step: 10, drop: 16, slow: 460, fast: 55 }, bunkers: 'wedge', bunkerColor: '#9be15d',
+         citrus: { puddle: 4200, slow: 0.45, maxLemons: 3 } }
   };
   const cfg = () => LEVELS[typeof currentLevel !== 'undefined' ? currentLevel : -1] || null;
 
@@ -238,7 +242,8 @@
     bunkers = [];
     if (!kind) return;
     const shapes = kind === 'ntb' ? ['N', 'T', 'B', '✦'] : kind === 'glyphs' ? (cfg() && cfg().glyphs || ['#'])
-      : kind === 'loaf' ? ['#loaf', '#loaf', '#loaf', '#loaf'] : ['#arch', '#arch', '#arch', '#arch'];
+      : kind === 'loaf' ? ['#loaf', '#loaf', '#loaf', '#loaf'] : kind === 'wedge' ? ['#wedge', '#wedge', '#wedge', '#wedge']
+      : ['#arch', '#arch', '#arch', '#arch'];
     const W = canvas.width, n = shapes.length;
     const bw = Math.min(66, Math.floor(W / (n * 1.75)));
     const bh = Math.round(bw * 0.78);
@@ -249,6 +254,15 @@
     shapes.forEach((ch, i) => {
       o.clearRect(0, 0, bw, bh);
       o.fillStyle = '#fff';
+      if (ch === '#wedge') {
+        // a citrus slice: half-moon, flat side down
+        o.beginPath();
+        o.moveTo(0, bh); o.arc(bw / 2, bh, bw / 2, Math.PI, 0); o.closePath();
+        o.fill();
+      }
+      if (ch === '#lemon') {
+        o.beginPath(); o.ellipse(bw / 2, bh / 2, bw / 2, bh / 2.2, 0, 0, Math.PI * 2); o.fill();
+      }
       if (ch === '#loaf') {
         // a slice of bread: puffy top, straight sides
         o.beginPath();
@@ -272,7 +286,7 @@
       o.textAlign = 'center';
       o.textBaseline = 'middle';
       o.font = `900 ${Math.round(bh * 1.15)}px "Arial Black", Impact, sans-serif`;
-      if (ch === '#arch' || ch === '#loaf') o.globalAlpha = 0; // shape already drawn; skip the text below
+      if (ch.startsWith('#')) o.globalAlpha = 0; // shape already drawn; skip the text below
       o.strokeStyle = '#fff';
       o.lineWidth = Math.max(3, bw * 0.09); // thicken the letters so the bunkers are chunky
       o.lineJoin = 'round';
@@ -289,6 +303,22 @@
       const x = Math.round((W / n) * (i + 0.5) - bw / 2);
       bunkers.push({ x, y, cols, rows, cells, map: new Map(cells.map(c => [c.q + ',' + c.r, c])) });
     });
+  }
+  function addShapeBunker(shape, x, y, bw, bh, color) {
+    const off = document.createElement('canvas');
+    off.width = bw; off.height = bh;
+    const o = off.getContext('2d', { willReadFrequently: true });
+    o.fillStyle = '#fff';
+    if (shape === 'lemon') { o.beginPath(); o.ellipse(bw / 2, bh / 2, bw / 2 - 0.5, bh / 2 - 0.5, 0, 0, Math.PI * 2); o.fill(); }
+    const data = o.getImageData(0, 0, bw, bh).data;
+    const cols = Math.floor(bw / CELL), rows = Math.floor(bh / CELL), cells = [];
+    for (let r = 0; r < rows; r++) for (let q = 0; q < cols; q++) {
+      const px = (r * CELL + 1) * bw + (q * CELL + 1);
+      if (data[px * 4 + 3] > 110) cells.push({ q, r, alive: true, tint: color });
+    }
+    const b = { x, y, cols, rows, cells, map: new Map(cells.map(c => [c.q + ',' + c.r, c])), extra: shape };
+    bunkers.push(b);
+    return b;
   }
   function bunkerHit(b, rx, ry, rw, rh) {
     // any live cell under the rectangle?
@@ -342,7 +372,8 @@
     c.fillStyle = color;
     c.shadowColor = color;
     c.shadowBlur = 6;
-    bunkers.forEach(b => b.cells.forEach(cell => { if (cell.alive && !cell.burnt && !cell.crust) c.fillRect(b.x + cell.q * CELL, b.y + cell.r * CELL, CELL, CELL); }));
+    bunkers.forEach(b => b.cells.forEach(cell => { if (cell.alive && !cell.burnt && !cell.crust && !cell.tint) c.fillRect(b.x + cell.q * CELL, b.y + cell.r * CELL, CELL, CELL); }));
+    bunkers.forEach(b => b.cells.forEach(cell => { if (cell.alive && cell.tint) { c.fillStyle = cell.tint; c.fillRect(b.x + cell.q * CELL, b.y + cell.r * CELL, CELL, CELL); } }));
     c.fillStyle = '#6b3b1a';
     bunkers.forEach(b => b.cells.forEach(cell => { if (cell.alive && cell.crust) c.fillRect(b.x + cell.q * CELL, b.y + cell.r * CELL, CELL, CELL); }));
     c.shadowBlur = 0;
@@ -545,6 +576,11 @@
   }
   function onKill(a) {
     const c = cfg();
+    if (c && c.citrus) {
+      if (a.type === 'grapefruit' && !a.half) splitGrapefruit(a);
+      else if (a.half) citrus.drips.push({ x: a.x + a.width / 2, y: a.y + a.height });
+      return;
+    }
     if (!c || !c.lorem || a.row === undefined) return;
     const rowLeft = aliens.some(z => z.alive && z.row === a.row);
     if (rowLeft || lorem.rowsDone.includes(a.row)) return;
@@ -660,6 +696,102 @@
     c.restore();
   }
 
+  // ================= GRAPEFRUIT x LIME =================
+  let citrus = { drips: [], puddles: [], lemons: 0, baseSpeed: 7 };
+  function splitGrapefruit(a) {
+    [-1, 1].forEach(side => {
+      const w = Math.round(a.width * 0.62), h = Math.round(a.height * 0.6);
+      const x = Math.max(4, Math.min(canvas.width - w - 4, a.x + (side < 0 ? 0 : a.width - w)));
+      aliens.push({ x, y: a.y + 4, width: w, height: h, type: 'gfhalf', side, half: true, alive: true, originalX: x,
+        points: 15, kick: side * 1.8, movePattern: 0, driftSpeed: 1, bobSeed: Math.random() * 6, isFlickering: false });
+    });
+    tone(300, 0.15, { type: 'triangle', vol: 0.08, slide: -160 });
+  }
+  function updateCitrus(C) {
+    const c = ctx;
+    // halves spring apart after a split
+    aliens.forEach(a => {
+      if (a.half && a.kick) {
+        a.x = Math.max(4, Math.min(canvas.width - a.width - 4, a.x + a.kick * (deltaTime / 16)));
+        a.originalX = a.x;
+        a.kick *= 0.88;
+        if (Math.abs(a.kick) < 0.05) a.kick = 0;
+      }
+    });
+    // juice drips fall straight down and pool on the floor
+    const floor = player.y + player.height - 3;
+    citrus.drips = citrus.drips.filter(d => {
+      d.y += 3.4 * (deltaTime / 16);
+      c.save(); c.fillStyle = '#ff7b93'; c.beginPath();
+      c.moveTo(d.x, d.y - 5); c.quadraticCurveTo(d.x + 4, d.y + 2, d.x, d.y + 3); c.quadraticCurveTo(d.x - 4, d.y + 2, d.x, d.y - 5); c.fill(); c.restore();
+      if (d.y >= floor) { citrus.puddles.push({ x: d.x, w: 40, life: C.puddle, born: C.puddle }); tone(140, 0.12, { type: 'sine', vol: 0.06 }); return false; }
+      return true;
+    });
+    let sticky = false;
+    citrus.puddles = citrus.puddles.filter(p => {
+      p.life -= deltaTime;
+      const k = Math.min(1, p.life / 600, (p.born - p.life) / 200);
+      c.save();
+      c.globalAlpha = 0.55 * k;
+      c.fillStyle = '#ff5f86';
+      c.beginPath(); c.ellipse(p.x, floor + 2, p.w / 2 * Math.min(1, (p.born - p.life) / 250), 4, 0, 0, Math.PI * 2); c.fill();
+      c.globalAlpha = 0.8 * k; c.fillStyle = '#ffd1dc';
+      c.beginPath(); c.ellipse(p.x - 6, floor + 1, 4, 1.2, 0, 0, Math.PI * 2); c.fill();
+      c.restore();
+      if (player.x + player.width > p.x - p.w / 2 && player.x < p.x + p.w / 2) sticky = true;
+      return p.life > 0;
+    });
+    player.speed = sticky ? citrus.baseSpeed * C.slow : citrus.baseSpeed;
+    if (sticky && !citrus.wasSticky) tone(200, 0.2, { type: 'sine', vol: 0.05, slide: -80 });
+    citrus.wasSticky = sticky;
+    // lemons that reach the bunker line settle there as extra round cover
+    if (Array.isArray(obstacles) && bunkers.length && citrus.lemons < C.maxLemons) {
+      const lineY = bunkers[0].y + 6;
+      for (let i = obstacles.length - 1; i >= 0; i--) {
+        const o = obstacles[i];
+        if (o.type !== 'lemon' || o.y + o.height < lineY - 14) continue;
+        const bw = 24, bh = 18, x = Math.max(4, Math.min(canvas.width - bw - 4, o.x + o.width / 2 - bw / 2));
+        const main = bunkers.filter(b => !b.extra);
+        const under = main.find(b => x + bw / 2 > b.x && x + bw / 2 < b.x + b.cols * CELL);
+        let y;
+        if (under) {
+          // no room beside it: the lemon perches on top of that bunker (one lemon per bunker)
+          if (under.lemonOnTop) continue;
+          under.lemonOnTop = true;
+          y = under.y - bh + 4;
+        } else {
+          if (bunkers.some(b => x < b.x + b.cols * CELL + 2 && x + bw > b.x - 2)) continue;
+          y = main[0].y + main[0].rows * CELL - bh;
+        }
+        obstacles.splice(i, 1);
+        addShapeBunker('lemon', x, y, bw, bh, '#fff45c');
+        citrus.lemons++;
+        tone(520, 0.1, { type: 'triangle', vol: 0.06 });
+        if (typeof showInGameMessage === 'function') showInGameMessage('A lemon took cover with you');
+      }
+    }
+  }
+  // grapefruit halves
+  if (typeof drawAlien === 'function') {
+    const orig2 = drawAlien;
+    window.drawAlien = drawAlien = function (alien) {
+      if (alien.type !== 'gfhalf') return orig2.apply(this, arguments);
+      const c = ctx, w = alien.width, h = alien.height, cx = alien.x + w / 2, cy = alien.y + h * 0.35;
+      c.save();
+      c.translate(cx, cy);
+      c.rotate(alien.side * 0.3);
+      c.shadowColor = 'rgba(255,107,129,0.6)'; c.shadowBlur = 8;
+      c.fillStyle = '#ff6b6b';
+      c.beginPath(); c.arc(0, 0, w / 2, 0, Math.PI); c.closePath(); c.fill();     // rind
+      c.shadowBlur = 0;
+      c.fillStyle = '#ff9aa8';
+      c.beginPath(); c.arc(0, 0, w / 2 - 2, 0, Math.PI); c.closePath(); c.fill();  // flesh
+      c.strokeStyle = 'rgba(255,255,255,0.7)'; c.lineWidth = 0.8;
+      for (let k = 1; k < 5; k++) { const an = (k / 5) * Math.PI; c.beginPath(); c.moveTo(0, 0); c.lineTo(Math.cos(an) * (w / 2 - 2), Math.sin(an) * (w / 2 - 2)); c.stroke(); }
+      c.restore();
+    };
+  }
+
   // ================= hooks =================
   // Runs every frame, right after the aliens are drawn
   if (typeof updateEnemyBullets === 'function') {
@@ -677,6 +809,7 @@
       if (c && c.headlights && Array.isArray(aliens)) updateHeadlights(c.headlights);
       if (c && c.lorem && Array.isArray(aliens)) updateLorem(c.lorem);
       if (c && c.toast && Array.isArray(aliens)) updateToast(c.toast);
+      if (c && c.citrus && Array.isArray(aliens)) updateCitrus(c.citrus);
       drawSmoke();
       const r = orig.apply(this, arguments);
       if (c && c.toast) { drawToastBullets(); drawButterMeter(); }
@@ -704,11 +837,14 @@
       march.drift = null; smoke = [];
       hl = { timer: 1800, warned: [] };
       toast = { timer: 1600, loading: [] };
+      if (player) { player.speed = citrus.baseSpeed || 7; }
+      citrus = { drips: [], puddles: [], lemons: 0, baseSpeed: 7, wasSticky: false };
       if (c && c.toast && levelConfigs[i]) levelConfigs[i].fireRate = 0; // toasters only fire by popping
       if (c && c.headlights && levelConfigs[i]) levelConfigs[i].fireRate = 0; // headlights decide who fires
       if (i === 1 && c) setTimeout(() => say('Watch the headlights. They blink before they shoot.'), 3000);
       if (i === 2 && c) setTimeout(() => say('Grey boxes are still loading. Your bullets go straight through them.'), 3000);
       if (i === 3 && c) setTimeout(() => say('Burnt toast still hurts. But it fixes your bunkers.'), 3000);
+      if (i === 4 && c) setTimeout(() => say('Grapefruits split. And the juice is sticky. Mind your step.'), 3000);
       if (i === 0 && c) setTimeout(() => say('Classic formation. They march. You shoot. Like 1978.'), 2500);
       return r;
     };
