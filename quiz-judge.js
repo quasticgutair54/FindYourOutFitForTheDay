@@ -356,6 +356,7 @@ function initLieDetector(chosenPath) {
     pad.classList.remove('holding');
     pad.classList.add('done');
     hint.textContent = 'Scan complete';
+    if (typeof noteDossier === 'function') noteDossier({ honesty: copy.pct, earned: result.earned });
     drawPaper(1);
 
     setTimeout(() => {

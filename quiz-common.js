@@ -289,8 +289,18 @@ function startAmbientSparkles(emoji) {
   }, 1400);
 }
 
+// ===== The dossier (dossier.js on the main page reads this back) =====
+function noteDossier(patch) {
+  try {
+    const d = JSON.parse(localStorage.getItem('ntb-dossier')) || {};
+    d.quiz = Object.assign(d.quiz || {}, patch);
+    localStorage.setItem('ntb-dossier', JSON.stringify(d));
+  } catch (e) {}
+}
+
 // ===== Wires up a result page =====
 function initQuizResult(config) {
+  noteDossier({ path: config.pathName, at: Date.now() });
   setupQuizAudio(false);
   const photoCard = document.querySelector('.reveal-photo-frame');
   if (photoCard) enablePhotoCardTilt(photoCard);
