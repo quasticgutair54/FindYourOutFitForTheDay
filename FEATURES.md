@@ -18,6 +18,30 @@ fails to load, the original game still works.
 | 9 | **Duel mode**: two phones, peer-to-peer, attacks fly between them | `duel.js` |
 | 10 | **Scratch card**: scratch off the outfit reveal, numbered certificate, shareable image | `scratch-card.js` |
 
+## Level upgrades (`levels-plus.js`)
+
+Every level now marches like real Space Invaders (side to side, dropping a row at
+each edge, speeding up as invaders die), with a score + saved high score and
+themed bunkers that crumble where they're hit.
+
+| Level | What's new |
+|-------|-----------|
+| 1 Notthebest OG | Classic 4-note heartbeat march, N·T·B·✦ bunkers, coat-hanger mystery ship (can drop a shirt = +1 life) |
+| 2 Initial D | Formation drifts into turns with smoke + screech, headlights flash before a car fires, skid burn marks on bunkers |
+| 3 Lorem Ipsum | Rows spell LOREM/IPSUM/DOLOR (word + sentence bonuses), "loading" skeleton panels you can't hit, typewriter carriage march |
+| 4 Your Toast | Toast rises and pops out of the toasters, burnt toast patches your bunkers, butter meter |
+| 5 Grapefruit x Lime | Grapefruits split into halves, juice puddles slow your ship, lemons settle as extra cover |
+| 6 Cake Was A Lie | Candle countdown to a synced volley, cake collapses a layer, the last cupcake flees across the top |
+| 7 Berserk | Two-hit armour (helmets fly off), red rage wave warning, sword barriers during rage, grab shields for invisibility |
+| 8 RANDOMODIUM | All original chaos, plus rotating GLITCH events: mirror decoys, level glitch, HUD invaders, reverse invasion, colour lock |
+
+Also: the game area scales to the screen, SYSTEM talks from its own slot above
+the game, and the recorded voiceover on floating prompts is off
+(`NARRATOR_CLIPS_ON` in `narrator.js` brings it back).
+
+Fixed along the way: the last kill of each level now scores, and a level's
+special bullets (e.g. Level 6's frosting laser) come back after a chocolate.
+
 Third-party libraries are bundled in `vendor/` (no CDN needed):
 qrcode-generator (MIT), jsQR (Apache-2.0), PeerJS (MIT).
 
@@ -30,9 +54,9 @@ qrcode-generator (MIT), jsQR (Apache-2.0), PeerJS (MIT).
 2. **Vault prize (feature 7).** At the top of `vault.js`, set
    `VAULT_REWARD.code` (a real single-use or limited discount code from your
    store) and `label`. Leave it empty to show "screenshot this and show us".
-3. **Two voice clips (feature 2).** `prompt13.mp3` and `prompt31.mp3` look
-   like the wrong recordings (by length), so they're muted in `VOICE_SKIP` at
-   the top of `narrator.js`. Check them in `prompt-review.html`.
+3. **Recorded voiceover (feature 2).** Currently switched off. If you turn it
+   back on, note that `prompt13.mp3` and `prompt31.mp3` look like the wrong
+   recordings (by length) and are muted in `VOICE_SKIP` in `narrator.js`.
 
 ## Printing shirt QR codes
 
