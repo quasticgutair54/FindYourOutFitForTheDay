@@ -342,6 +342,7 @@ const SHIRT_BOARD_API = '';
   // ---------- 4. end of run: sign the board ----------
   async function endRun(won) {
     if (run.submitted || !run.best) return;
+    if (window.ntbDuel && window.ntbDuel.connected) return; // duels have their own result screen
     run.submitted = true;
     const entry = { best: run.best, time: Math.round((Date.now() - run.start) / 1000), assisted: run.assisted };
     const improved = !sessionBest || better(entry, sessionBest) > 0;

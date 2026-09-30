@@ -290,7 +290,7 @@
     const orig = startLevel;
     window.startLevel = startLevel = function (i) {
       const r = orig.apply(this, arguments);
-      if (i === FINAL && !ranThisVisit) {
+      if (i === FINAL && !ranThisVisit && !(window.ntbDuel && window.ntbDuel.live)) { // never mid-duel: it would pause only one player
         const v = chooseVariant();
         if (v) {
           ranThisVisit = true;
