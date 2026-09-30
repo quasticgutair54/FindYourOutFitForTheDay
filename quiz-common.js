@@ -196,6 +196,35 @@ function balanceFlash(durationMs) {
   setTimeout(() => flash.remove(), durationMs);
 }
 
+// ===== Answer recording (read back by the lie detector on the result page) =====
+// One run = one trip through a path's 5 questions. Stored in sessionStorage
+// so it survives the page-to-page navigation but not a brand-new visit.
+const QUIZ_RUN_KEY = 'ntb-quiz-run';
+
+function readQuizRun() {
+  try { return JSON.parse(sessionStorage.getItem(QUIZ_RUN_KEY)) || null; } catch (e) { return null; }
+}
+
+function writeQuizRun(run) {
+  try { sessionStorage.setItem(QUIZ_RUN_KEY, JSON.stringify(run)); } catch (e) {}
+}
+
+function resetQuizRun(pathName) {
+  writeQuizRun({ path: pathName, answers: [] });
+}
+
+function recordQuizAnswer(pathName, questionNumber, optionIndex, text) {
+  let run = readQuizRun();
+  if (!run || run.path !== pathName) run = { path: pathName, answers: [] };
+  run.answers[questionNumber - 1] = {
+    q: questionNumber,
+    idx: optionIndex,
+    text,
+    question: (document.querySelector('h1') || {}).textContent || ''
+  };
+  writeQuizRun(run);
+}
+
 // ===== Wires up a question page =====
 function initQuizQuestion(config) {
   setupQuizAudio(config.questionNumber === 1);
@@ -205,8 +234,11 @@ function initQuizQuestion(config) {
   const nextBtn = document.getElementById('nextBtn');
   enable3DTilt(options);
 
-  options.forEach(option => {
+  if (config.questionNumber === 1) resetQuizRun(config.pathName);
+
+  options.forEach((option, optionIndex) => {
     option.addEventListener('click', () => {
+      recordQuizAnswer(config.pathName, config.questionNumber, optionIndex, option.textContent.trim());
       options.forEach(opt => opt.classList.remove('selected'));
       option.classList.add('selected');
       option.style.transform = '';
