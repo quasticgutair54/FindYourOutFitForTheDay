@@ -45,7 +45,12 @@
     // Cake Was A Lie: candles light one by one - at 8 the whole cake fires one volley to "Happy Birthday";
     // clearing the bottom layer makes the cake collapse a layer; the last cupcake flees across the top.
     5: { march: { step: 10, drop: 16, slow: 460, fast: 55 }, bunkers: 'cake', bunkerColor: '#ffb6d9',
-         cake: { lightEvery: [450, 800], volleyAt: 8, keepFire: 0.3 } }
+         cake: { lightEvery: [450, 800], volleyAt: 8, keepFire: 0.3 } },
+    // Berserk: knights take 2 hits (the first knocks the helmet off); a red rage wave rolls down the
+    // formation just before each berserk burst; during rage, swords slam into the ground as barriers;
+    // flying into a shield pickup now works too (not just shooting it).
+    6: { march: { step: 10, drop: 16, slow: 440, fast: 50 }, bunkers: 'shield', bunkerColor: '#c0c6cf',
+         berserk: { warnTicks: 70, swords: 3, swordLife: 190 } }
   };
   // The game used to delete a level's special bullet for good (e.g. shooting a chocolate on Level 6
   // lost the frosting laser until a page reload). Remember the originals and restore them each level.
@@ -169,7 +174,7 @@
     if (!Array.isArray(aliens)) return;
     if (!prevAlive || prevAlive.length !== aliens.length) { prevAlive = aliens.map(a => a.alive); return; }
     aliens.forEach((a, i) => {
-      if (prevAlive[i] && !a.alive) { addScore(a.points || 10, a.x + a.width / 2, a.y, '#fff'); onKill(a); }
+      if (prevAlive[i] && !a.alive) { if (onKill(a) !== 'absorbed') addScore(a.points || 10, a.x + a.width / 2, a.y, '#fff'); }
     });
     prevAlive = aliens.map(a => a.alive);
   }
@@ -251,7 +256,7 @@
     if (!kind) return;
     const shapes = kind === 'ntb' ? ['N', 'T', 'B', '✦'] : kind === 'glyphs' ? (cfg() && cfg().glyphs || ['#'])
       : kind === 'loaf' ? ['#loaf', '#loaf', '#loaf', '#loaf'] : kind === 'wedge' ? ['#wedge', '#wedge', '#wedge', '#wedge']
-      : kind === 'cake' ? ['#cake', '#cake', '#cake', '#cake']
+      : kind === 'cake' ? ['#cake', '#cake', '#cake', '#cake'] : kind === 'shield' ? ['#shield', '#shield', '#shield', '#shield']
       : ['#arch', '#arch', '#arch', '#arch'];
     const W = canvas.width, n = shapes.length;
     const bw = Math.min(66, Math.floor(W / (n * 1.75)));
@@ -263,6 +268,13 @@
     shapes.forEach((ch, i) => {
       o.clearRect(0, 0, bw, bh);
       o.fillStyle = '#fff';
+      if (ch === '#shield') {
+        // a heater shield
+        o.beginPath();
+        o.moveTo(bw * 0.05, 0); o.lineTo(bw * 0.95, 0); o.lineTo(bw * 0.95, bh * 0.45);
+        o.quadraticCurveTo(bw * 0.9, bh * 0.85, bw * 0.5, bh); o.quadraticCurveTo(bw * 0.1, bh * 0.85, bw * 0.05, bh * 0.45);
+        o.closePath(); o.fill();
+      }
       if (ch === '#cake') {
         // a two-tier cake
         o.fillRect(0, bh * 0.45, bw, bh * 0.55);
@@ -591,6 +603,7 @@
   }
   function onKill(a) {
     const c = cfg();
+    if (c && c.berserk) { if (a.type === 'armor' && a.helmet !== false) return knockHelmet(a); return; }
     if (c && c.cake) { cakeKill(a); return; }
     if (c && c.citrus) {
       if (a.type === 'grapefruit' && !a.half) splitGrapefruit(a);
@@ -909,6 +922,129 @@
     }
   }
 
+  // ================= BERSERK =================
+  let bz = { helmets: [], swords: [], wasRaging: false };
+  function knockHelmet(a) {
+    a.alive = true;           // the armour took the hit
+    a.helmet = false;
+    bz.helmets.push({ x: a.x + a.width / 2, y: a.y, vx: rand(-2.2, 2.2), vy: -3.2, rot: 0, vr: rand(-0.3, 0.3), life: 70 });
+    tone(1200, 0.08, { type: 'square', vol: 0.06 }); tone(700, 0.15, { type: 'triangle', vol: 0.05, slide: -300 });
+    addScore(5, a.x + a.width / 2, a.y, '#c0c6cf');
+    return 'absorbed';
+  }
+  function updateBerserk(Z) {
+    const c = ctx;
+    const raging = typeof berserkRage !== 'undefined' && berserkRage > 0;
+    const left = 300 - (gameTick % 300);
+    const alive = aliens.filter(a => a.alive);
+    const rows = [...new Set(alive.map(a => Math.round(a.y)))].sort((p, q) => p - q);
+    // the warning wave: rows glow red one after another, top to bottom
+    if (!raging && left <= Z.warnTicks) {
+      const k = 1 - left / Z.warnTicks;
+      const lit = Math.ceil(k * rows.length);
+      c.save();
+      alive.forEach(a => {
+        const r = rows.indexOf(Math.round(a.y));
+        if (r >= lit) return;
+        c.globalAlpha = 0.35 + 0.3 * Math.sin(performance.now() / 60);
+        c.fillStyle = '#ff2a2a';
+        c.shadowColor = '#ff2a2a'; c.shadowBlur = 14;
+        c.fillRect(a.x - 2, a.y - 2, a.width + 4, a.height + 4);
+      });
+      c.restore();
+      if (left === Z.warnTicks) tone(110, 0.9, { type: 'sawtooth', vol: 0.05, slide: 60, filter: 600 });
+    }
+    // rage: everyone glows and steams
+    if (raging) {
+      c.save();
+      alive.forEach(a => {
+        c.globalAlpha = 0.25 + 0.2 * Math.sin(performance.now() / 40 + a.x);
+        c.fillStyle = '#ff2a2a';
+        c.fillRect(a.x - 1, a.y - 1, a.width + 2, a.height + 2);
+      });
+      c.restore();
+    }
+    // rage just began: swords slam into the ground between you and them
+    if (raging && !bz.wasRaging) {
+      const top = alive.length ? Math.max(...alive.map(a => a.y + a.height)) + 20 : 200;
+      const bottom = bunkers.length ? bunkers[0].y - 34 : player.y - 90;
+      const y = Math.min(bottom, Math.max(top, (top + bottom) / 2));
+      for (let i = 0; i < Z.swords; i++) {
+        const x = canvas.width * ((i + 0.5) / Z.swords) + rand(-25, 25);
+        bz.swords.push({ x, y, h: 30, life: Z.swordLife, slam: 1 });
+      }
+      tone(70, 0.4, { type: 'sine', vol: 0.2 });
+      if (typeof chaosEffects !== 'undefined') chaosEffects.shake = 10;
+    }
+    bz.wasRaging = raging;
+    // swords: block your shots, then crumble
+    bz.swords = bz.swords.filter(sw => {
+      sw.life--;
+      sw.slam = Math.max(0, sw.slam - 0.12);
+      const yy = sw.y - sw.slam * 60;
+      c.save();
+      c.globalAlpha = Math.min(1, sw.life / 20);
+      c.fillStyle = '#dfe6ee'; c.shadowColor = '#fff'; c.shadowBlur = 6;
+      c.beginPath(); c.moveTo(sw.x - 3, yy); c.lineTo(sw.x + 3, yy); c.lineTo(sw.x + 3, yy + sw.h - 4); c.lineTo(sw.x, yy + sw.h); c.lineTo(sw.x - 3, yy + sw.h - 4); c.closePath(); c.fill(); // blade (point down)
+      c.shadowBlur = 0;
+      c.fillStyle = '#d4a93a'; c.fillRect(sw.x - 9, yy - 3, 18, 3);   // crossguard
+      c.fillStyle = '#6b3b1a'; c.fillRect(sw.x - 1.5, yy - 11, 3, 8); // grip
+      c.fillStyle = '#d4a93a'; c.beginPath(); c.arc(sw.x, yy - 12, 2.5, 0, Math.PI * 2); c.fill(); // pommel
+      c.restore();
+      if (Array.isArray(bullets)) {
+        for (let i = bullets.length - 1; i >= 0; i--) {
+          const b = bullets[i];
+          if (b.x < sw.x + 9 && b.x + b.width > sw.x - 9 && b.y < yy + sw.h && b.y + b.height > yy - 12) {
+            bullets.splice(i, 1);
+            tone(1800 + Math.random() * 400, 0.06, { type: 'square', vol: 0.04 });
+            if (typeof spawnExplosion === 'function') spawnExplosion(sw.x, yy + sw.h / 2, '#ffffff');
+          }
+        }
+      }
+      return sw.life > 0;
+    });
+    // flying helmets
+    bz.helmets = bz.helmets.filter(h => {
+      h.x += h.vx; h.y += h.vy; h.vy += 0.18; h.rot += h.vr; h.life--;
+      c.save(); c.translate(h.x, h.y); c.rotate(h.rot);
+      c.fillStyle = '#9aa3ad'; c.beginPath(); c.arc(0, 0, 6, Math.PI, 0); c.lineTo(6, 3); c.lineTo(-6, 3); c.closePath(); c.fill();
+      c.fillStyle = '#222'; c.fillRect(-4, -1, 8, 1.5);
+      c.restore();
+      return h.life > 0;
+    });
+    // PDF rule: flying INTO a shield pickup also grants invisibility
+    if (Array.isArray(shields)) {
+      for (let i = shields.length - 1; i >= 0; i--) {
+        const sh = shields[i];
+        if (sh.x < player.x + player.width && sh.x + sh.size > player.x && sh.y < player.y + player.height && sh.y + sh.size > player.y) {
+          shields.splice(i, 1);
+          playerInvisible = true;
+          invisibleTimer = Math.max(invisibleTimer || 0, 300);
+          if (typeof showInGameMessage === 'function') showInGameMessage('Shield grabbed! Invisible for 5 seconds');
+          tone(880, 0.3, { type: 'sine', vol: 0.07, slide: 440 });
+        }
+      }
+    }
+  }
+  // helmetless knights: cracked armour and glowing red eyes
+  if (typeof drawAlien === 'function') {
+    const orig3 = drawAlien;
+    window.drawAlien = drawAlien = function (alien) {
+      const r = orig3.apply(this, arguments);
+      if (alien.type === 'armor' && alien.helmet === false) {
+        const c = ctx, x = alien.x, y = alien.y, w = alien.width, h = alien.height;
+        c.save();
+        c.strokeStyle = 'rgba(20,20,20,0.9)'; c.lineWidth = 1.2;
+        c.beginPath(); c.moveTo(x + w * 0.3, y + h * 0.2); c.lineTo(x + w * 0.45, y + h * 0.5); c.lineTo(x + w * 0.35, y + h * 0.8);
+        c.moveTo(x + w * 0.7, y + h * 0.3); c.lineTo(x + w * 0.6, y + h * 0.6); c.stroke();
+        c.fillStyle = '#ff2a2a'; c.shadowColor = '#ff2a2a'; c.shadowBlur = 8;
+        c.fillRect(x + w * 0.28, y + h * 0.3, 3, 2); c.fillRect(x + w * 0.62, y + h * 0.3, 3, 2);
+        c.restore();
+      }
+      return r;
+    };
+  }
+
   // ================= hooks =================
   // Runs every frame, right after the aliens are drawn
   if (typeof updateEnemyBullets === 'function') {
@@ -928,6 +1064,7 @@
       if (c && c.toast && Array.isArray(aliens)) updateToast(c.toast);
       if (c && c.citrus && Array.isArray(aliens)) updateCitrus(c.citrus);
       if (c && c.cake && Array.isArray(aliens)) updateCake(c.cake);
+      if (c && c.berserk && Array.isArray(aliens)) updateBerserk(c.berserk);
       drawSmoke();
       const r = orig.apply(this, arguments);
       if (c && c.toast) { drawToastBullets(); drawButterMeter(); }
@@ -954,6 +1091,7 @@
       ufo = null; drops = [];
       ufoTimer = rand(7000, 12000);
       if (c && c.lorem) setupLorem(c.lorem);
+      bz = { helmets: [], swords: [], wasRaging: false };
       if (c && c.cake) { setupCake(); if (levelConfigs[i]) levelConfigs[i].fireRate = ORIGINAL_FIRE[i] * c.cake.keepFire; }
       assignPoints();
       buildBunkers(c && c.bunkers);
@@ -969,6 +1107,7 @@
       if (i === 3 && c) setTimeout(() => say('Burnt toast still hurts. But it fixes your bunkers.'), 3000);
       if (i === 4 && c) setTimeout(() => say('Grapefruits split. And the juice is sticky. Mind your step.'), 3000);
       if (i === 5 && c) setTimeout(() => say('Count the candles. At eight, they all fire. Happy birthday.'), 3000);
+      if (i === 6 && c) setTimeout(() => say('Armour takes two hits. And when you see red, hide.'), 3000);
       if (i === 0 && c) setTimeout(() => say('Classic formation. They march. You shoot. Like 1978.'), 2500);
       return r;
     };
