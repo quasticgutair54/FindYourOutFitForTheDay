@@ -282,7 +282,7 @@
   // ---------- what SYSTEM knows about you ----------
   const LEVEL_KILLERS = [
     'a basic laser', 'a drifting car', 'a Latin word', 'a slice of bread',
-    'a lime', 'frosting', 'a sword', 'pure chaos'
+    'a lime', 'frosting', 'a sword', 'pure chaos', 'a coat hanger'
   ];
   const LEVEL_TAUNTS = [
     'This is the tutorial level.',
@@ -292,7 +292,8 @@
     'Outplayed by citrus.',
     'Beaten by a cupcake. Twice.',
     'The knights are laughing at you.',
-    'Chaos is undefeated.'
+    'Chaos is undefeated.',
+    'Defeated by laundry.'
   ];
   const stats = {
     deathsByLevel: {},
