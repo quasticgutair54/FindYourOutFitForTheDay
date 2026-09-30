@@ -41,8 +41,16 @@
     // Grapefruit x Lime: grapefruits split into two halves on the first hit; halves drip juice that
     // pools into sticky puddles (slows your ship); falling lemons that reach the bunker line settle as extra cover.
     4: { march: { step: 10, drop: 16, slow: 460, fast: 55 }, bunkers: 'wedge', bunkerColor: '#9be15d',
-         citrus: { puddle: 4200, slow: 0.45, maxLemons: 3 } }
+         citrus: { puddle: 4200, slow: 0.45, maxLemons: 3 } },
+    // Cake Was A Lie: candles light one by one - at 8 the whole cake fires one volley to "Happy Birthday";
+    // clearing the bottom layer makes the cake collapse a layer; the last cupcake flees across the top.
+    5: { march: { step: 10, drop: 16, slow: 460, fast: 55 }, bunkers: 'cake', bunkerColor: '#ffb6d9',
+         cake: { lightEvery: [450, 800], volleyAt: 8, keepFire: 0.3 } }
   };
+  // The game used to delete a level's special bullet for good (e.g. shooting a chocolate on Level 6
+  // lost the frosting laser until a page reload). Remember the originals and restore them each level.
+  const ORIGINAL_SPECIAL = typeof levelConfigs !== 'undefined' ? levelConfigs.map(l => l.special) : [];
+  const ORIGINAL_FIRE = typeof levelConfigs !== 'undefined' ? levelConfigs.map(l => l.fireRate) : [];
   const cfg = () => LEVELS[typeof currentLevel !== 'undefined' ? currentLevel : -1] || null;
 
   // ---------- audio (tiny synth, no files) ----------
@@ -169,7 +177,7 @@
   // ================= MARCH =================
   const march = { dir: 1, acc: 0, total: 0, frame: -1 };
   function marchStep(settings) {
-    const alive = aliens.filter(a => a.alive);
+    const alive = aliens.filter(a => a.alive && !a.flee);
     if (!alive.length) return;
     const minX = Math.min(...alive.map(a => a.x));
     const maxX = Math.max(...alive.map(a => a.x + a.width));
@@ -223,7 +231,7 @@
           march.drift.acc += deltaTime;
           while (march.drift && march.drift.acc >= 45) {
             march.drift.acc -= 45;
-            aliens.forEach(a => { if (a.alive) { a.x += march.drift.dx; a.y += march.drift.dy; a.originalX = a.x; } });
+            aliens.forEach(a => { if (a.alive && !a.flee) { a.x += march.drift.dx; a.y += march.drift.dy; a.originalX = a.x; } });
             if (--march.drift.n <= 0) march.drift = null;
           }
           return;
@@ -243,6 +251,7 @@
     if (!kind) return;
     const shapes = kind === 'ntb' ? ['N', 'T', 'B', '✦'] : kind === 'glyphs' ? (cfg() && cfg().glyphs || ['#'])
       : kind === 'loaf' ? ['#loaf', '#loaf', '#loaf', '#loaf'] : kind === 'wedge' ? ['#wedge', '#wedge', '#wedge', '#wedge']
+      : kind === 'cake' ? ['#cake', '#cake', '#cake', '#cake']
       : ['#arch', '#arch', '#arch', '#arch'];
     const W = canvas.width, n = shapes.length;
     const bw = Math.min(66, Math.floor(W / (n * 1.75)));
@@ -254,6 +263,12 @@
     shapes.forEach((ch, i) => {
       o.clearRect(0, 0, bw, bh);
       o.fillStyle = '#fff';
+      if (ch === '#cake') {
+        // a two-tier cake
+        o.fillRect(0, bh * 0.45, bw, bh * 0.55);
+        o.fillRect(bw * 0.18, bh * 0.08, bw * 0.64, bh * 0.4);
+        o.beginPath(); o.arc(bw * 0.5, bh * 0.08, bw * 0.08, 0, Math.PI * 2); o.fill(); // cherry
+      }
       if (ch === '#wedge') {
         // a citrus slice: half-moon, flat side down
         o.beginPath();
@@ -576,6 +591,7 @@
   }
   function onKill(a) {
     const c = cfg();
+    if (c && c.cake) { cakeKill(a); return; }
     if (c && c.citrus) {
       if (a.type === 'grapefruit' && !a.half) splitGrapefruit(a);
       else if (a.half) citrus.drips.push({ x: a.x + a.width / 2, y: a.y + a.height });
@@ -792,6 +808,107 @@
     };
   }
 
+  // ================= CAKE WAS A LIE =================
+  let cake = { timer: 900, lit: 0, rows: 0, rowGap: 0, layersDone: [], liar: null };
+  function setupCake() {
+    const ys = [...new Set(aliens.map(a => Math.round(a.y)))].sort((a, b) => a - b);
+    cake = { timer: 900, lit: 0, rows: ys.length, rowGap: ys.length > 1 ? ys[1] - ys[0] : 34, layersDone: [], liar: null };
+    aliens.forEach(a => { a.row = ys.indexOf(Math.round(a.y)); a.candle = false; });
+  }
+  function drawCandle(a) {
+    const c = ctx, x = a.x + a.width / 2, top = a.y - 7;
+    c.save();
+    c.fillStyle = '#fff'; c.fillRect(x - 1, top, 2.4, 8);
+    c.fillStyle = '#ff5fa2'; c.fillRect(x - 1, top + 2, 2.4, 1.4); c.fillRect(x - 1, top + 5, 2.4, 1.4);
+    if (a.candle) {
+      const f = 1 + Math.sin(performance.now() / 70 + a.x) * 0.25;
+      c.shadowColor = '#ffb13b'; c.shadowBlur = 10;
+      c.fillStyle = '#ffd15c';
+      c.beginPath(); c.ellipse(x + 0.2, top - 3.5, 2.2, 3.8 * f, 0, 0, Math.PI * 2); c.fill();
+      c.fillStyle = '#fff6c2';
+      c.beginPath(); c.ellipse(x + 0.2, top - 2.5, 1, 1.8 * f, 0, 0, Math.PI * 2); c.fill();
+    }
+    c.restore();
+  }
+  function birthday() {
+    // the first line of "Happy Birthday", slightly out of tune
+    [[392, 0], [392, 150], [440, 300], [392, 520], [523, 740], [494, 960]].forEach(([f, t]) =>
+      setTimeout(() => tone(f * (0.97 + Math.random() * 0.06), 0.2, { type: 'triangle', vol: 0.06 }), t));
+  }
+  function updateCake(K) {
+    const alive = aliens.filter(a => a.alive && !a.flee);
+    // light one more candle
+    cake.timer -= deltaTime;
+    if (cake.timer <= 0 && !respawning) {
+      cake.timer = rand(K.lightEvery[0], K.lightEvery[1]);
+      const unlit = alive.filter(a => !a.candle);
+      if (unlit.length) { unlit[Math.floor(Math.random() * unlit.length)].candle = true; tone(1600, 0.04, { type: 'sine', vol: 0.03 }); }
+    }
+    cake.lit = alive.filter(a => a.candle).length;
+    const target = Math.min(K.volleyAt, alive.length);
+    alive.forEach(drawCandle);
+    if (target > 0 && cake.lit >= target) {
+      // the volley: every lit cupcake fires at once
+      birthday();
+      alive.filter(a => a.candle).forEach(a => {
+        enemyBullets.push({ x: a.x + a.width / 2 - 3, y: a.y + a.height, width: 6, height: 12, active: true, color: '#ff69b4', vx: 0 });
+        a.candle = false;
+      });
+      if (typeof showInGameMessage === 'function') showInGameMessage('Happy birthday to you…');
+      cake.lit = 0;
+      cake.timer = 1500;
+    }
+    // candle meter
+    const c = ctx;
+    c.save();
+    c.font = 'bold 12px "Courier New", monospace';
+    c.textBaseline = 'top'; c.textAlign = 'left';
+    c.fillStyle = cake.lit >= target - 2 ? (Math.floor(performance.now() / 220) % 2 ? '#ff69b4' : '#ffd15c') : 'rgba(255,255,255,0.8)';
+    c.fillText('CANDLES', 10, 26);
+    for (let i = 0; i < K.volleyAt; i++) {
+      c.fillStyle = i < cake.lit ? '#ffd15c' : 'rgba(255,255,255,0.18)';
+      c.fillRect(72 + i * 9, 27, 6, 9);
+    }
+    c.restore();
+    // the last cupcake runs away and zooms around the top
+    if (!cake.liar && alive.length === 1 && aliens.filter(a => a.alive).length === 1) {
+      const a = alive[0];
+      a.flee = true; a.candle = false; a.vx = 3.4; a.y = 34;
+      cake.liar = a;
+      tone(700, 0.4, { type: 'sine', vol: 0.06, slide: 500 });
+      if (typeof showInGameMessage === 'function') showInGameMessage('The last cupcake is running!');
+      say('The last cupcake is making a run for it. Of course it is.');
+    }
+    if (cake.liar && cake.liar.alive) {
+      const a = cake.liar;
+      a.x += a.vx * (deltaTime / 16);
+      a.y = 34 + Math.sin(performance.now() / 180) * 6;
+      if (a.x < 4) { a.x = 4; a.vx = Math.abs(a.vx); }
+      if (a.x + a.width > canvas.width - 4) { a.x = canvas.width - 4 - a.width; a.vx = -Math.abs(a.vx); }
+      a.originalX = a.x;
+    }
+  }
+  function cakeKill(a) {
+    if (a === cake.liar) {
+      addScore(300, a.x + a.width / 2, a.y + 16, '#ffd15c');
+      if (typeof showInGameMessage === 'function') showInGameMessage('It was hollow. THE CAKE WAS A LIE.');
+      say('Hollow. I told you. The cake was a lie.');
+      tone(196, 0.5, { type: 'sawtooth', vol: 0.06, slide: -80 });
+      return;
+    }
+    // bottom layer gone? the cake collapses one layer
+    const bottom = Math.max(...aliens.filter(z => z.alive && !z.flee).map(z => z.row).concat([-1]));
+    const remainingRows = [...new Set(aliens.filter(z => z.alive && !z.flee).map(z => z.row))];
+    if (!aliens.some(z => z.alive && !z.flee && z.row === a.row) && !cake.layersDone.includes(a.row) && a.row > bottom && remainingRows.length) {
+      cake.layersDone.push(a.row);
+      addScore(100, canvas.width / 2, a.y - 20, '#ffb6d9');
+      march.drift = { n: 5, dx: 0, dy: cake.rowGap / 5, acc: 0 };
+      if (typeof chaosEffects !== 'undefined') chaosEffects.shake = 12;
+      tone(80, 0.3, { type: 'sine', vol: 0.2 });
+      if (typeof showInGameMessage === 'function') showInGameMessage('A layer fell. The cake collapses.');
+    }
+  }
+
   // ================= hooks =================
   // Runs every frame, right after the aliens are drawn
   if (typeof updateEnemyBullets === 'function') {
@@ -810,6 +927,7 @@
       if (c && c.lorem && Array.isArray(aliens)) updateLorem(c.lorem);
       if (c && c.toast && Array.isArray(aliens)) updateToast(c.toast);
       if (c && c.citrus && Array.isArray(aliens)) updateCitrus(c.citrus);
+      if (c && c.cake && Array.isArray(aliens)) updateCake(c.cake);
       drawSmoke();
       const r = orig.apply(this, arguments);
       if (c && c.toast) { drawToastBullets(); drawButterMeter(); }
@@ -824,6 +942,10 @@
       // the game ends a level the instant the last invader dies, before our per-frame
       // hook runs - so settle the final kills (and any word/sentence bonus) first
       if (Array.isArray(aliens) && prevAlive) trackKills();
+      if (levelConfigs[i]) {
+        if (ORIGINAL_SPECIAL[i] !== undefined) levelConfigs[i].special = ORIGINAL_SPECIAL[i]; // chocolate bug fix
+        if (ORIGINAL_FIRE[i] !== undefined) levelConfigs[i].fireRate = ORIGINAL_FIRE[i];
+      }
       const r = orig.apply(this, arguments);
       const c = LEVELS[i];
       march.dir = 1; march.acc = 0; march.frame = -1;
@@ -832,6 +954,7 @@
       ufo = null; drops = [];
       ufoTimer = rand(7000, 12000);
       if (c && c.lorem) setupLorem(c.lorem);
+      if (c && c.cake) { setupCake(); if (levelConfigs[i]) levelConfigs[i].fireRate = ORIGINAL_FIRE[i] * c.cake.keepFire; }
       assignPoints();
       buildBunkers(c && c.bunkers);
       march.drift = null; smoke = [];
@@ -845,6 +968,7 @@
       if (i === 2 && c) setTimeout(() => say('Grey boxes are still loading. Your bullets go straight through them.'), 3000);
       if (i === 3 && c) setTimeout(() => say('Burnt toast still hurts. But it fixes your bunkers.'), 3000);
       if (i === 4 && c) setTimeout(() => say('Grapefruits split. And the juice is sticky. Mind your step.'), 3000);
+      if (i === 5 && c) setTimeout(() => say('Count the candles. At eight, they all fire. Happy birthday.'), 3000);
       if (i === 0 && c) setTimeout(() => say('Classic formation. They march. You shoot. Like 1978.'), 2500);
       return r;
     };
