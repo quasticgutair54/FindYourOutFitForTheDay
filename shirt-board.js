@@ -151,7 +151,7 @@ const SHIRT_BOARD_API = '';
     letter-spacing: 0.05em; white-space: nowrap; pointer-events: none; animation: sb-stamp 0.4s 0.5s cubic-bezier(0.2, 1.6, 0.4, 1) forwards; }
   @keyframes sb-stamp { to { opacity: 0.9; transform: rotate(-8deg) scale(1); } }
 
-  .sb-track { width: 100%; max-width: 600px; margin: 6px 0 2px; padding: 8px 10px 6px; border-radius: 10px;
+  .sb-track { width: 100%; max-width: 760px; margin: 6px 0 2px; padding: 8px 10px 6px; border-radius: 10px;
     background: rgba(0,0,0,0.45); border: 1px solid rgba(255,255,255,0.12); font-family: 'Courier New', monospace; color: #ddd; }
   .sb-track-head { display: flex; justify-content: space-between; font-size: 0.7rem; letter-spacing: 0.08em; margin-bottom: 6px; opacity: 0.85; }
   .sb-rail { position: relative; height: 26px; }

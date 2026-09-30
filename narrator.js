@@ -154,7 +154,10 @@
     unduck();
   }
 
-  if (typeof typeFloatingPrompt === 'function' && typeof promptLines !== 'undefined') {
+  // The recorded voiceover on the floating prompts is switched OFF (it talked over
+  // the game). The floating text still appears; only SYSTEM speaks. Set to true to bring it back.
+  const NARRATOR_CLIPS_ON = false;
+  if (NARRATOR_CLIPS_ON && typeof typeFloatingPrompt === 'function' && typeof promptLines !== 'undefined') {
     const origType = typeFloatingPrompt;
     window.typeFloatingPrompt = typeFloatingPrompt = function (line, hasUnlockWord) {
       const idx = promptLines.indexOf(line);

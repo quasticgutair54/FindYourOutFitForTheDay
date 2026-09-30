@@ -75,7 +75,7 @@
   .du-btn.wide { width: 100%; margin-top: 8px; }
   .du-or { font-size: 0.75rem; opacity: 0.6; margin: 14px 0 4px; }
 
-  .du-bar { width: 100%; max-width: 600px; margin: 6px 0 0; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px;
+  .du-bar { width: 100%; max-width: 760px; margin: 6px 0 0; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px;
     padding: 8px 10px; border-radius: 10px; background: rgba(0,0,0,0.5); border: 1px solid rgba(124,243,214,0.25); font-family: 'Courier New', monospace; color: #e8fff8; font-size: 0.75rem; }
   .du-side { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
   .du-side.them { text-align: right; align-items: flex-end; }
