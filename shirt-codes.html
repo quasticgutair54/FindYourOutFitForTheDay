@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Shirt QR Codes (internal tool - not part of the site)</title>
+<style>
+  :root { --ink: #111; --paper: #fff; --muted: #666; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, sans-serif; background: #f2f0ea; color: var(--ink); }
+  header { padding: 20px 16px 8px; max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 1.3rem; margin: 0 0 6px; }
+  p.hint { color: var(--muted); font-size: 0.9rem; margin: 0 0 12px; line-height: 1.45; }
+  .controls { display: grid; grid-template-columns: 1fr 110px; gap: 8px; max-width: 900px; margin: 0 auto; padding: 0 16px; }
+  .controls label { font-size: 0.75rem; color: var(--muted); display: block; margin-bottom: 3px; }
+  .controls input { width: 100%; padding: 9px 10px; font-size: 0.95rem; border: 1px solid #ccc; border-radius: 8px; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; max-width: 900px; margin: 10px auto 0; padding: 0 16px; }
+  button { font: inherit; font-weight: 600; padding: 9px 14px; border-radius: 8px; border: 1px solid var(--ink); background: var(--ink); color: #fff; cursor: pointer; }
+  button.ghost { background: transparent; color: var(--ink); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; max-width: 900px; margin: 16px auto 40px; padding: 0 16px; }
+  .tag { background: var(--paper); border: 1px dashed #bbb; border-radius: 10px; padding: 12px; text-align: center; break-inside: avoid; }
+  .tag svg { width: 100%; height: auto; display: block; }
+  .tag .line1 { font-weight: 900; letter-spacing: 0.12em; font-size: 0.8rem; margin-top: 6px; }
+  .tag .id { font-family: 'Courier New', monospace; font-size: 1.1rem; font-weight: bold; margin-top: 2px; }
+  .tag a { font-size: 0.7rem; color: var(--muted); }
+  @media print {
+    header, .controls, .row, .tag a { display: none !important; }
+    body { background: #fff; }
+    .grid { grid-template-columns: repeat(4, 1fr); margin: 0; }
+    .tag { border: 1px dashed #999; }
+  }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Shirt QR codes</h1>
+    <p class="hint">Each code gets its own shirt ID, so whoever scans that shirt is challenging its owner (see <code>shirt-board.js</code>).
+      Print these on hang tags or stickers, or send them to your print shop. Keep the downloaded list: the ID is the only link between a shirt and its leaderboard.</p>
+  </header>
+  <div class="controls">
+    <div><label for="base">Site address (where index.html lives)</label><input id="base"></div>
+    <div><label for="count">How many</label><input id="count" type="number" min="1" max="200" value="12"></div>
+  </div>
+  <div class="row">
+    <button id="gen">Generate new IDs</button>
+    <button id="print" class="ghost">Print</button>
+    <button id="csv" class="ghost">Download ID list (.csv)</button>
+  </div>
+  <div class="grid" id="grid"></div>
+
+  <script src="vendor/qrcode-generator.min.js"></script>
+  <script>
+    // No 0/O/1/I/L - IDs get read aloud and typed by hand
+    const ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+    const base = document.getElementById('base');
+    const count = document.getElementById('count');
+    const grid = document.getElementById('grid');
+    let current = [];
+
+    base.value = location.origin.startsWith('http') ? location.origin + location.pathname.replace(/[^/]*$/, 'index.html') : 'https://notthebest.in/index.html';
+
+    function newId() {
+      const bytes = new Uint8Array(6);
+      crypto.getRandomValues(bytes);
+      return Array.from(bytes, b => ALPHABET[b % ALPHABET.length]).join('');
+    }
+
+    function urlFor(id) {
+      const u = new URL(base.value.trim());
+      u.searchParams.set('shirt', id);
+      return u.toString();
+    }
+
+    function render() {
+      grid.innerHTML = '';
+      current.forEach(id => {
+        const url = urlFor(id);
+        const qr = qrcode(0, 'M');
+        qr.addData(url);
+        qr.make();
+        const tag = document.createElement('div');
+        tag.className = 'tag';
+        tag.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 2, scalable: true }) +
+          `<div class="line1">SCAN ME. BEAT ME.</div><div class="id">#${id}</div><a href="${url}" target="_blank" rel="noopener">test link</a>`;
+        grid.appendChild(tag);
+      });
+    }
+
+    function generate() {
+      const n = Math.max(1, Math.min(200, parseInt(count.value, 10) || 12));
+      const seen = new Set();
+      current = [];
+      while (current.length < n) { const id = newId(); if (!seen.has(id)) { seen.add(id); current.push(id); } }
+      render();
+    }
+
+    document.getElementById('gen').addEventListener('click', generate);
+    document.getElementById('print').addEventListener('click', () => window.print());
+    document.getElementById('csv').addEventListener('click', () => {
+      const rows = ['shirt_id,url', ...current.map(id => `${id},${urlFor(id)}`)];
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([rows.join('\n')], { type: 'text/csv' }));
+      a.download = 'shirt-ids.csv';
+      a.click();
+    });
+    base.addEventListener('change', render);
+    generate();
+  </script>
+</body>
+</html>
