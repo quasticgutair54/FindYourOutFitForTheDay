@@ -33,7 +33,11 @@
     // panels go "loading" (grey skeleton, can't be hit) for a moment; the formation moves like a
     // typewriter carriage - clack, clack, ding, and zip back.
     2: { march: { step: 10, drop: 18, slow: 470, fast: 55, typewriter: true }, bunkers: 'glyphs', glyphs: ['¶', '&', '§', '¶'],
-         bunkerColor: '#c9a6ff', lorem: { words: ['LOREM', 'IPSUM', 'DOLOR', 'SIT', 'AMET'], every: [2200, 3600], load: 1200, share: 0.3 } }
+         bunkerColor: '#c9a6ff', lorem: { words: ['LOREM', 'IPSUM', 'DOLOR', 'SIT', 'AMET'], every: [2200, 3600], load: 1200, share: 0.3 } },
+    // Your Toast: bread visibly rises in a toaster, then POPS and falls at you; burnt (black) slices
+    // stick to bunkers and patch them; a butter meter shows how close the "too much butter" restart is.
+    3: { march: { step: 10, drop: 16, slow: 450, fast: 50 }, bunkers: 'loaf', bunkerColor: '#e0a458',
+         toast: { every: [1200, 2100], rise: 700, burnt: 0.3, double: 0.15 } }
   };
   const cfg = () => LEVELS[typeof currentLevel !== 'undefined' ? currentLevel : -1] || null;
 
@@ -233,7 +237,8 @@
   function buildBunkers(kind) {
     bunkers = [];
     if (!kind) return;
-    const shapes = kind === 'ntb' ? ['N', 'T', 'B', '✦'] : kind === 'glyphs' ? (cfg() && cfg().glyphs || ['#']) : ['#arch', '#arch', '#arch', '#arch'];
+    const shapes = kind === 'ntb' ? ['N', 'T', 'B', '✦'] : kind === 'glyphs' ? (cfg() && cfg().glyphs || ['#'])
+      : kind === 'loaf' ? ['#loaf', '#loaf', '#loaf', '#loaf'] : ['#arch', '#arch', '#arch', '#arch'];
     const W = canvas.width, n = shapes.length;
     const bw = Math.min(66, Math.floor(W / (n * 1.75)));
     const bh = Math.round(bw * 0.78);
@@ -244,6 +249,18 @@
     shapes.forEach((ch, i) => {
       o.clearRect(0, 0, bw, bh);
       o.fillStyle = '#fff';
+      if (ch === '#loaf') {
+        // a slice of bread: puffy top, straight sides
+        o.beginPath();
+        o.moveTo(bw * 0.12, bh);
+        o.lineTo(bw * 0.12, bh * 0.42);
+        o.bezierCurveTo(-bw * 0.08, bh * 0.35, bw * 0.02, 0, bw * 0.3, bh * 0.04);
+        o.quadraticCurveTo(bw * 0.5, -bh * 0.06, bw * 0.7, bh * 0.04);
+        o.bezierCurveTo(bw * 0.98, 0, bw * 1.08, bh * 0.35, bw * 0.88, bh * 0.42);
+        o.lineTo(bw * 0.88, bh);
+        o.closePath();
+        o.fill();
+      }
       if (ch === '#arch') {
         // the 1978 bunker: flat top with bevelled corners and a notch underneath
         o.beginPath();
@@ -255,7 +272,7 @@
       o.textAlign = 'center';
       o.textBaseline = 'middle';
       o.font = `900 ${Math.round(bh * 1.15)}px "Arial Black", Impact, sans-serif`;
-      if (ch === '#arch') o.globalAlpha = 0; // shape already drawn; skip the text below
+      if (ch === '#arch' || ch === '#loaf') o.globalAlpha = 0; // shape already drawn; skip the text below
       o.strokeStyle = '#fff';
       o.lineWidth = Math.max(3, bw * 0.09); // thicken the letters so the bunkers are chunky
       o.lineJoin = 'round';
@@ -300,7 +317,11 @@
       for (const b of bunkers) {
         const cell = bunkerHit(b, s.x, s.y, s.width, s.height);
         if (!cell) continue;
-        if (cell.burnt) {
+        if (s.toast && s.burnt) {
+          // burnt toast sticks to the bunker and fills the holes around where it lands
+          b.cells.forEach(c => { if (!c.alive && Math.hypot(c.q - cell.q, c.r - cell.r) <= 3.2) { c.alive = true; c.crust = true; } });
+          tone(180, 0.08, { type: 'triangle', vol: 0.05 });
+        } else if (cell.burnt) {
           erode(b, cell, radius + 1.6); // burnt rubber crumbles
         } else if (burn && Math.abs(s.vx || 0) > 0.3) {
           // a skidding bullet scorches a streak across the bunker and only chips it
@@ -321,7 +342,9 @@
     c.fillStyle = color;
     c.shadowColor = color;
     c.shadowBlur = 6;
-    bunkers.forEach(b => b.cells.forEach(cell => { if (cell.alive && !cell.burnt) c.fillRect(b.x + cell.q * CELL, b.y + cell.r * CELL, CELL, CELL); }));
+    bunkers.forEach(b => b.cells.forEach(cell => { if (cell.alive && !cell.burnt && !cell.crust) c.fillRect(b.x + cell.q * CELL, b.y + cell.r * CELL, CELL, CELL); }));
+    c.fillStyle = '#6b3b1a';
+    bunkers.forEach(b => b.cells.forEach(cell => { if (cell.alive && cell.crust) c.fillRect(b.x + cell.q * CELL, b.y + cell.r * CELL, CELL, CELL); }));
     c.shadowBlur = 0;
     c.fillStyle = '#3a2a22';
     bunkers.forEach(b => b.cells.forEach(cell => { if (cell.alive && cell.burnt) c.fillRect(b.x + cell.q * CELL, b.y + cell.r * CELL, CELL, CELL); }));
@@ -561,6 +584,82 @@
     };
   }
 
+  // ================= YOUR TOAST =================
+  let toast = { timer: 1500, loading: [] };
+  function ding() { tone(2093, 0.35, { type: 'sine', vol: 0.06 }); setTimeout(() => tone(2637, 0.3, { type: 'sine', vol: 0.04 }), 40); }
+  function drawSlice(c, x, y, w, h, burnt, rot) {
+    c.save();
+    c.translate(x + w / 2, y + h / 2);
+    c.rotate(rot || 0);
+    c.fillStyle = burnt ? '#2b1a10' : '#e7b46a';
+    c.strokeStyle = burnt ? '#120a05' : '#9a5b22';
+    c.lineWidth = 1.2;
+    c.beginPath();
+    c.moveTo(-w / 2, h / 2); c.lineTo(-w / 2, -h * 0.1);
+    c.quadraticCurveTo(-w / 2, -h / 2, 0, -h / 2); c.quadraticCurveTo(w / 2, -h / 2, w / 2, -h * 0.1);
+    c.lineTo(w / 2, h / 2); c.closePath();
+    c.fill(); c.stroke();
+    if (!burnt) { c.fillStyle = '#f6dca8'; c.fillRect(-w / 2 + 2, -h * 0.1, w - 4, h / 2 + h * 0.1 - 2); }
+    c.restore();
+  }
+  function updateToast(T) {
+    toast.timer -= deltaTime;
+    if (toast.timer <= 0 && !respawning) {
+      const front = frontLine().filter(a => !toast.loading.includes(a));
+      if (front.length) {
+        const t = front[Math.floor(Math.random() * front.length)];
+        t.rise = 0; t.burntNext = Math.random() < T.burnt; t.doubleNext = Math.random() < T.double;
+        toast.loading.push(t);
+      }
+      const alive = aliens.filter(a => a.alive).length;
+      toast.timer = rand(T.every[0], T.every[1]) * (march.total ? 0.45 + 0.55 * alive / march.total : 1);
+    }
+    const c = ctx;
+    toast.loading = toast.loading.filter(t => {
+      if (!t.alive) return false;
+      t.rise += deltaTime;
+      const k = Math.min(1, t.rise / T.rise);
+      // slices poking out of the top of the toaster, rising (and shaking just before the pop)
+      const shake = k > 0.8 ? Math.sin(t.rise / 18) * 1.2 : 0;
+      const sw = t.width * 0.36, sh = 13;
+      const top = t.y - sh * k + 4;
+      drawSlice(c, t.x + t.width * (t.doubleNext ? 0.12 : 0.32) + shake, top, sw, sh, t.burntNext, 0);
+      if (t.doubleNext) drawSlice(c, t.x + t.width * 0.52 + shake, top, sw, sh, t.burntNext, 0);
+      if (k >= 1) {
+        ding();
+        const shots = t.doubleNext ? [-1.1, 1.1] : [0];
+        shots.forEach(vx => enemyBullets.push({ x: t.x + t.width / 2 - 5, y: t.y - 6, width: 10, height: 10, active: true,
+          color: t.burntNext ? '#2b1a10' : '#e7b46a', vx, vy: -3.2, toast: true, burnt: t.burntNext, spin: rand(-0.2, 0.2) }));
+        return false;
+      }
+      return true;
+    });
+  }
+  // popped slices fly up, arc over and fall with gravity; drawn as toast on top of the game's dot
+  function drawToastBullets() {
+    enemyBullets.forEach(b => {
+      if (!b.toast) return;
+      if (b.vy !== undefined && !b.bounced) b.vy = Math.min(b.vy + 0.16 * (deltaTime / 16), 5.2);
+      b.rot = (b.rot || 0) + b.spin;
+      drawSlice(ctx, b.x - 1, b.y - 1, 12, 12, b.burnt, b.rot);
+    });
+  }
+  function drawButterMeter() {
+    const n = typeof levelButterHits !== 'undefined' ? levelButterHits : 0;
+    const c = ctx;
+    c.save();
+    c.font = 'bold 12px "Courier New", monospace';
+    c.textBaseline = 'top';
+    c.textAlign = 'left';
+    c.fillStyle = n >= 3 ? (Math.floor(performance.now() / 250) % 2 ? '#ff5a6e' : '#ffe27a') : 'rgba(255,255,255,0.8)';
+    c.fillText('BUTTER', 10, 26);
+    for (let i = 0; i < 4; i++) {
+      c.fillStyle = i < n ? '#ffe27a' : 'rgba(255,255,255,0.18)';
+      c.fillRect(64 + i * 13, 27, 10, 9);
+    }
+    c.restore();
+  }
+
   // ================= hooks =================
   // Runs every frame, right after the aliens are drawn
   if (typeof updateEnemyBullets === 'function') {
@@ -577,8 +676,10 @@
       if (c) updateUfo(c);
       if (c && c.headlights && Array.isArray(aliens)) updateHeadlights(c.headlights);
       if (c && c.lorem && Array.isArray(aliens)) updateLorem(c.lorem);
+      if (c && c.toast && Array.isArray(aliens)) updateToast(c.toast);
       drawSmoke();
       const r = orig.apply(this, arguments);
+      if (c && c.toast) { drawToastBullets(); drawButterMeter(); }
       drawScore();
       return r;
     };
@@ -602,9 +703,12 @@
       buildBunkers(c && c.bunkers);
       march.drift = null; smoke = [];
       hl = { timer: 1800, warned: [] };
+      toast = { timer: 1600, loading: [] };
+      if (c && c.toast && levelConfigs[i]) levelConfigs[i].fireRate = 0; // toasters only fire by popping
       if (c && c.headlights && levelConfigs[i]) levelConfigs[i].fireRate = 0; // headlights decide who fires
       if (i === 1 && c) setTimeout(() => say('Watch the headlights. They blink before they shoot.'), 3000);
       if (i === 2 && c) setTimeout(() => say('Grey boxes are still loading. Your bullets go straight through them.'), 3000);
+      if (i === 3 && c) setTimeout(() => say('Burnt toast still hurts. But it fixes your bunkers.'), 3000);
       if (i === 0 && c) setTimeout(() => say('Classic formation. They march. You shoot. Like 1978.'), 2500);
       return r;
     };
