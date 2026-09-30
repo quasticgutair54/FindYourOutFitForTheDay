@@ -24,7 +24,11 @@
 
   // Per-level settings. Levels not listed keep their original behaviour.
   const LEVELS = {
-    0: { march: { step: 10, drop: 18, slow: 520, fast: 55 }, bunkers: 'ntb', mystery: 'hanger' }
+    0: { march: { step: 10, drop: 18, slow: 520, fast: 55 }, bunkers: 'ntb', mystery: 'hanger' },
+    // Initial D: the formation drifts into every turn; headlights flash before a car fires;
+    // skidding bullets leave burn marks that weaken the bunkers.
+    1: { march: { step: 12, drop: 16, slow: 430, fast: 50, drift: true }, bunkers: 'arch', bunkerColor: '#aab4be', burn: true,
+         headlights: { every: [1500, 2600], warn: 420, skid: 1.6 } }
   };
   const cfg = () => LEVELS[typeof currentLevel !== 'undefined' ? currentLevel : -1] || null;
 
@@ -51,6 +55,37 @@
       o.stop(a.currentTime + dur + 0.02);
     } catch (e) {}
   }
+  function screech() {
+    const a = audio();
+    if (!a) return;
+    try {
+      const len = 0.4, buf = a.createBuffer(1, a.sampleRate * len, a.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+      const src = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
+      f.type = 'bandpass'; f.Q.value = 9;
+      f.frequency.setValueAtTime(2600, a.currentTime); f.frequency.linearRampToValueAtTime(1300, a.currentTime + len);
+      g.gain.value = 0.07;
+      src.buffer = buf; src.connect(f).connect(g).connect(a.destination); src.start();
+    } catch (e) {}
+  }
+  let smoke = [];
+  function puff(x, y) {
+    for (let i = 0; i < 4; i++) smoke.push({ x: x + rand(-4, 4), y: y + rand(-3, 3), r: rand(3, 6), vx: rand(-0.5, 0.5), vy: rand(-0.6, -0.1), life: rand(30, 55) });
+  }
+  function drawSmoke() {
+    if (!smoke.length) return;
+    const c = ctx;
+    c.save();
+    smoke = smoke.filter(p => p.life > 0);
+    smoke.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.r += 0.18; p.life--;
+      c.globalAlpha = Math.min(0.45, p.life / 90);
+      c.fillStyle = '#c9ccd2';
+      c.beginPath(); c.arc(p.x, p.y, p.r, 0, Math.PI * 2); c.fill();
+    });
+    c.restore();
+  }
+
   const HEART = [98, 87, 78, 73]; // the descending 4-note march
   let heartIdx = 0;
   function heartbeat() { tone(HEART[heartIdx++ % 4], 0.11, { vol: 0.16, filter: 420 }); }
@@ -116,6 +151,17 @@
     const maxX = Math.max(...alive.map(a => a.x + a.width));
     const margin = 8;
     if ((march.dir > 0 && maxX + settings.step > canvas.width - margin) || (march.dir < 0 && minX - settings.step < margin)) {
+      if (settings.drift) {
+        // slide into the turn: a few quick micro-steps that ease toward the wall while dropping
+        const room = march.dir > 0 ? (canvas.width - 3) - maxX : minX - 3;
+        march.drift = { n: 4, dx: march.dir * Math.max(0, Math.min(3, room / 4)), dy: settings.drop / 4, acc: 0 };
+        screech();
+        const back = alive.filter(a => a.y >= Math.max(...alive.map(z => z.y)) - 1);
+        back.forEach(a => puff(march.dir > 0 ? a.x : a.x + a.width, a.y + a.height * 0.7));
+        march.dir *= -1;
+        heartbeat();
+        return;
+      }
       march.dir *= -1;
       alive.forEach(a => { a.y += settings.drop; });
     } else {
@@ -137,6 +183,15 @@
       // the formation moves once per frame, not once per alien
       if (march.frame !== lastFrameTime) {
         march.frame = lastFrameTime;
+        if (march.drift) {
+          march.drift.acc += deltaTime;
+          while (march.drift && march.drift.acc >= 45) {
+            march.drift.acc -= 45;
+            aliens.forEach(a => { if (a.alive) { a.x += march.drift.dx; a.y += march.drift.dy; a.originalX = a.x; } });
+            if (--march.drift.n <= 0) march.drift = null;
+          }
+          return;
+        }
         march.acc += deltaTime;
         const iv = marchInterval(c.march);
         if (march.acc >= iv) { march.acc = 0; marchStep(c.march); }
@@ -150,7 +205,7 @@
   function buildBunkers(kind) {
     bunkers = [];
     if (!kind) return;
-    const shapes = kind === 'ntb' ? ['N', 'T', 'B', '✦'] : ['■', '■', '■', '■'];
+    const shapes = kind === 'ntb' ? ['N', 'T', 'B', '✦'] : ['#arch', '#arch', '#arch', '#arch'];
     const W = canvas.width, n = shapes.length;
     const bw = Math.min(66, Math.floor(W / (n * 1.75)));
     const bh = Math.round(bw * 0.78);
@@ -161,14 +216,24 @@
     shapes.forEach((ch, i) => {
       o.clearRect(0, 0, bw, bh);
       o.fillStyle = '#fff';
+      if (ch === '#arch') {
+        // the 1978 bunker: flat top with bevelled corners and a notch underneath
+        o.beginPath();
+        o.moveTo(bw * 0.2, 0); o.lineTo(bw * 0.8, 0); o.lineTo(bw, bh * 0.25); o.lineTo(bw, bh);
+        o.lineTo(bw * 0.72, bh); o.quadraticCurveTo(bw * 0.5, bh * 0.45, bw * 0.28, bh);
+        o.lineTo(0, bh); o.lineTo(0, bh * 0.25); o.closePath();
+        o.fill();
+      }
       o.textAlign = 'center';
       o.textBaseline = 'middle';
       o.font = `900 ${Math.round(bh * 1.15)}px "Arial Black", Impact, sans-serif`;
+      if (ch === '#arch') o.globalAlpha = 0; // shape already drawn; skip the text below
       o.strokeStyle = '#fff';
       o.lineWidth = Math.max(3, bw * 0.09); // thicken the letters so the bunkers are chunky
       o.lineJoin = 'round';
       o.strokeText(ch, bw / 2, bh / 2 + bh * 0.05);
       o.fillText(ch, bw / 2, bh / 2 + bh * 0.05);
+      o.globalAlpha = 1;
       const data = o.getImageData(0, 0, bw, bh).data;
       const cols = Math.floor(bw / CELL), rows = Math.floor(bh / CELL);
       const cells = [];
@@ -199,14 +264,26 @@
       if (d <= radius && Math.random() < 1.15 - d / (radius + 1)) c.alive = false;
     });
   }
-  function bunkersVs(list, radius) {
+  function bunkersVs(list, radius, burn) {
     if (!Array.isArray(list)) return;
     for (let i = list.length - 1; i >= 0; i--) {
       const s = list[i];
       if (!s) continue;
       for (const b of bunkers) {
         const cell = bunkerHit(b, s.x, s.y, s.width, s.height);
-        if (cell) { erode(b, cell, radius); list.splice(i, 1); break; }
+        if (!cell) continue;
+        if (cell.burnt) {
+          erode(b, cell, radius + 1.6); // burnt rubber crumbles
+        } else if (burn && Math.abs(s.vx || 0) > 0.3) {
+          // a skidding bullet scorches a streak across the bunker and only chips it
+          erode(b, cell, 1);
+          const dir = Math.sign(s.vx);
+          b.cells.forEach(c => { if (c.alive && Math.abs(c.r - cell.r) <= 1 && (c.q - cell.q) * dir >= -1 && (c.q - cell.q) * dir <= 7) c.burnt = true; });
+        } else {
+          erode(b, cell, radius);
+        }
+        list.splice(i, 1);
+        break;
       }
     }
   }
@@ -216,7 +293,10 @@
     c.fillStyle = color;
     c.shadowColor = color;
     c.shadowBlur = 6;
-    bunkers.forEach(b => b.cells.forEach(cell => { if (cell.alive) c.fillRect(b.x + cell.q * CELL, b.y + cell.r * CELL, CELL, CELL); }));
+    bunkers.forEach(b => b.cells.forEach(cell => { if (cell.alive && !cell.burnt) c.fillRect(b.x + cell.q * CELL, b.y + cell.r * CELL, CELL, CELL); }));
+    c.shadowBlur = 0;
+    c.fillStyle = '#3a2a22';
+    bunkers.forEach(b => b.cells.forEach(cell => { if (cell.alive && cell.burnt) c.fillRect(b.x + cell.q * CELL, b.y + cell.r * CELL, CELL, CELL); }));
     c.restore();
   }
   function aliensEatBunkers() {
@@ -318,6 +398,59 @@
     c.restore();
   }
 
+  // ================= HEADLIGHTS (telegraphed enemy fire) =================
+  // The level's own random fire is switched off; instead a front-line car flashes
+  // its headlights, then fires a skidding shot.
+  let hl = { timer: 1500, warned: [] };
+  function frontLine() {
+    const cols = {};
+    aliens.forEach(a => { if (!a.alive) return; const k = Math.round(a.x / 8); if (!cols[k] || a.y > cols[k].y) cols[k] = a; });
+    return Object.values(cols);
+  }
+  function updateHeadlights(h) {
+    hl.timer -= deltaTime;
+    if (hl.timer <= 0 && !respawning) {
+      const alive = aliens.filter(a => a.alive).length;
+      const front = frontLine();
+      if (front.length) {
+        const car = front[Math.floor(Math.random() * front.length)];
+        car.flash = h.warn;
+        hl.warned.push(car);
+        tone(1320, 0.05, { type: 'square', vol: 0.03 });
+      }
+      const speedUp = march.total ? 0.45 + 0.55 * (alive / march.total) : 1;
+      hl.timer = rand(h.every[0], h.every[1]) * speedUp;
+    }
+    const c = ctx;
+    hl.warned = hl.warned.filter(car => {
+      if (!car.alive) return false;
+      car.flash -= deltaTime;
+      // twin headlight beams pointing down at you
+      const a = Math.max(0, Math.min(1, car.flash / h.warn));
+      c.save();
+      c.globalAlpha = 0.25 + 0.5 * (1 - a) * (Math.sin(car.flash / 25) > 0 ? 1 : 0.6);
+      const g = c.createLinearGradient(0, car.y + car.height, 0, car.y + car.height + 70);
+      g.addColorStop(0, 'rgba(255,245,200,0.9)'); g.addColorStop(1, 'rgba(255,245,200,0)');
+      c.fillStyle = g;
+      [0.28, 0.72].forEach(f => {
+        const x = car.x + car.width * f;
+        c.beginPath(); c.moveTo(x - 1.5, car.y + car.height); c.lineTo(x + 1.5, car.y + car.height);
+        c.lineTo(x + 9, car.y + car.height + 70); c.lineTo(x - 9, car.y + car.height + 70); c.closePath(); c.fill();
+      });
+      c.globalAlpha = 1;
+      c.fillStyle = '#fff8d0';
+      c.fillRect(car.x + car.width * 0.2, car.y + car.height - 2, 3, 2);
+      c.fillRect(car.x + car.width * 0.72, car.y + car.height - 2, 3, 2);
+      c.restore();
+      if (car.flash <= 0) {
+        enemyBullets.push({ x: car.x + car.width / 2 - 2, y: car.y + car.height, width: 4, height: 10, active: true, color: '#ffd27a', vx: rand(-h.skid, h.skid) });
+        if (typeof playSound === 'function' && typeof shootSound !== 'undefined') playSound(shootSound, { volume: 0.35, rate: 0.7 });
+        return false;
+      }
+      return true;
+    });
+  }
+
   // ================= hooks =================
   // Runs every frame, right after the aliens are drawn
   if (typeof updateEnemyBullets === 'function') {
@@ -327,11 +460,13 @@
       trackKills();
       if (c && c.bunkers && bunkers.length) {
         bunkersVs(bullets, 1.6);      // your shots chip the top of the bunker
-        bunkersVs(enemyBullets, 2.4); // theirs blast bigger holes
+        bunkersVs(enemyBullets, 2.4, c.burn); // theirs blast bigger holes (or scorch, on Initial D)
         aliensEatBunkers();
         drawBunkers(c.bunkerColor || '#7cf3d6');
       }
       if (c) updateUfo(c);
+      if (c && c.headlights && Array.isArray(aliens)) updateHeadlights(c.headlights);
+      drawSmoke();
       const r = orig.apply(this, arguments);
       drawScore();
       return r;
@@ -350,6 +485,10 @@
       ufoTimer = rand(7000, 12000);
       assignPoints();
       buildBunkers(c && c.bunkers);
+      march.drift = null; smoke = [];
+      hl = { timer: 1800, warned: [] };
+      if (c && c.headlights && levelConfigs[i]) levelConfigs[i].fireRate = 0; // headlights decide who fires
+      if (i === 1 && c) setTimeout(() => say('Watch the headlights. They blink before they shoot.'), 3000);
       if (i === 0 && c) setTimeout(() => say('Classic formation. They march. You shoot. Like 1978.'), 2500);
       return r;
     };
