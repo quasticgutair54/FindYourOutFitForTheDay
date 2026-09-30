@@ -50,7 +50,10 @@
     // formation just before each berserk burst; during rage, swords slam into the ground as barriers;
     // flying into a shield pickup now works too (not just shooting it).
     6: { march: { step: 10, drop: 16, slow: 440, fast: 50 }, bunkers: 'shield', bunkerColor: '#c0c6cf',
-         berserk: { warnTicks: 70, swords: 3, swordLife: 190 } }
+         berserk: { warnTicks: 70, swords: 3, swordLife: 190 } },
+    // RANDOMODIUM: all the original chaos stays. On top, GLITCH events take over one at a time:
+    // mirror decoys, level glitch, HUD invaders, reverse invasion, colour-lock.
+    7: { randomodium: { first: 5500, gap: [2500, 4000] } }
   };
   // The game used to delete a level's special bullet for good (e.g. shooting a chocolate on Level 6
   // lost the frosting laser until a page reload). Remember the originals and restore them each level.
@@ -603,6 +606,7 @@
   }
   function onKill(a) {
     const c = cfg();
+    if (a.hudItem) return hudKill(a);
     if (c && c.berserk) { if (a.type === 'armor' && a.helmet !== false) return knockHelmet(a); return; }
     if (c && c.cake) { cakeKill(a); return; }
     if (c && c.citrus) {
@@ -1045,6 +1049,195 @@
     };
   }
 
+  // ================= RANDOMODIUM GLITCH EVENTS =================
+  const LOCK = ['#00f0ff', '#ff2bd6', '#ffe600'];
+  const GLITCH_TYPES = [
+    { type: 'normal', name: 'NOTTHEBEST OG' }, { type: 'car', name: 'INITIAL D' }, { type: 'latin', name: 'LOREM IPSUM' },
+    { type: 'toaster', name: 'YOUR TOAST' }, { type: 'grapefruit', name: 'GRAPEFRUIT x LIME' },
+    { type: 'cupcake', name: 'CAKE WAS A LIE' }, { type: 'armor', name: 'BERSERK' }
+  ];
+  const EVENTS = {
+    mirror:  { ms: 7000, title: 'MIRROR', sub: 'Only the real ones cast a shadow' },
+    glitch:  { ms: 6000, title: 'LEVEL GLITCH', sub: '' },
+    hud:     { ms: 9000, title: 'HUD BREACH', sub: 'Your HUD is invading. Careful what you shoot' },
+    reverse: { ms: 7000, title: 'REVERSE INVASION', sub: 'Everything is upside down' },
+    lock:    { ms: 8000, title: 'COLOUR LOCK', sub: 'Only hit invaders matching your colour' }
+  };
+  let rnd = { timer: 0, active: null, left: 0, bag: [], decoys: [], lockIdx: 0, lockTimer: 0 };
+  function glitchBanner(title, sub) {
+    const wrap = document.querySelector('.canvas-wrapper');
+    if (!wrap) return;
+    const b = document.createElement('div');
+    b.className = 'rx-banner';
+    b.innerHTML = `<small>⚠ GLITCH</small><b data-t="${title}">${title}</b>${sub ? `<i>${sub}</i>` : ''}`;
+    wrap.appendChild(b);
+    setTimeout(() => b.remove(), 2300);
+    tone(90, 0.3, { type: 'sawtooth', vol: 0.08, slide: 400 });
+    setTimeout(() => tone(1400, 0.1, { type: 'square', vol: 0.04 }), 120);
+  }
+  function startEvent(name, R) {
+    rnd.active = name;
+    const E = EVENTS[name];
+    rnd.left = E.ms;
+    const real = aliens.filter(a => a.alive && !a.hudItem);
+    if (name === 'mirror') {
+      rnd.decoys = real.map(a => ({ src: a, dx: (a.width + 10) / 2, dy: 12 }));
+      glitchBanner(E.title, E.sub);
+    } else if (name === 'glitch') {
+      const g = GLITCH_TYPES[Math.floor(Math.random() * GLITCH_TYPES.length)];
+      real.forEach(a => { a.glitchFrom = a.type; a.type = g.type; if (g.type === 'latin') a.word = ['LOREM', 'IPSUM', 'DOLOR'][Math.floor(Math.random() * 3)]; });
+      glitchBanner('RANDOMODIUM → ' + g.name, 'Wrong level. Same bullets.');
+    } else if (name === 'hud') {
+      const labels = [{ t: 'SCORE', k: 'score' }, { t: '♥', k: 'life' }, { t: 'LVL 8', k: 'level' }];
+      labels.forEach((L, i) => {
+        const w = L.k === 'life' ? 20 : 44, x = canvas.width * (0.2 + i * 0.3) - w / 2;
+        aliens.push({ x, y: 30, width: w, height: 16, type: 'hud', hudItem: L.k, label: L.t, alive: true, originalX: x,
+          movePattern: 0, driftSpeed: 1, bobSeed: Math.random() * 6, isFlickering: false, points: 0 });
+      });
+      document.querySelectorAll('.game-ui .level-indicator, .game-ui .lives-indicator').forEach(el => el.classList.add('rx-hud-gone'));
+      glitchBanner(E.title, E.sub);
+    } else if (name === 'reverse') {
+      const wrap = document.querySelector('.canvas-wrapper');
+      if (wrap) wrap.classList.add('rx-flip');
+      glitchBanner(E.title, E.sub);
+    } else if (name === 'lock') {
+      real.forEach(a => { a.lock = Math.floor(Math.random() * LOCK.length); });
+      rnd.lockIdx = 0; rnd.lockTimer = 1700;
+      glitchBanner(E.title, E.sub);
+    }
+    say({ mirror: 'Two of everything. Only one is real.', glitch: 'Wait, which level is this?', hud: 'Your score is attacking you. I would not shoot the heart.',
+          reverse: 'Up is down. You are welcome.', lock: 'Match the colours. Or waste your bullets.' }[name]);
+  }
+  function endEvent() {
+    const name = rnd.active;
+    rnd.active = null;
+    if (name === 'mirror') rnd.decoys = [];
+    if (name === 'glitch') aliens.forEach(a => { if (a.glitchFrom) { a.type = a.glitchFrom; delete a.glitchFrom; } });
+    if (name === 'hud') {
+      // leftover HUD invaders go back where they belong (removed, not killed)
+      for (let i = aliens.length - 1; i >= 0; i--) if (aliens[i].hudItem) aliens.splice(i, 1);
+      prevAlive = aliens.map(a => a.alive);
+      document.querySelectorAll('.rx-hud-gone').forEach(el => el.classList.remove('rx-hud-gone'));
+    }
+    if (name === 'reverse') { const w = document.querySelector('.canvas-wrapper'); if (w) w.classList.remove('rx-flip'); }
+    if (name === 'lock') aliens.forEach(a => { if (a.lock !== undefined) { delete a.lock; a.isFlickering = false; } });
+  }
+  function nextEventName() {
+    if (!rnd.bag.length) rnd.bag = Object.keys(EVENTS).sort(() => Math.random() - 0.5);
+    return rnd.bag.pop();
+  }
+  function updateRandomodium(R) {
+    const c = ctx;
+    if (!rnd.active) {
+      rnd.timer -= deltaTime;
+      if (rnd.timer <= 0 && !respawning && aliens.some(a => a.alive)) startEvent(nextEventName(), R);
+    } else {
+      rnd.left -= deltaTime;
+      if (rnd.left <= 0 || (rnd.active === 'hud' && !aliens.some(a => a.alive && a.hudItem))) {
+        endEvent();
+        rnd.timer = rand(R.gap[0], R.gap[1]);
+      }
+    }
+    const name = rnd.active;
+    // ---- mirror: decoys sit between the real invaders; real ones cast shadows
+    if (name === 'mirror') {
+      rnd.decoys = rnd.decoys.filter(d => d.src.alive || d.free);
+      rnd.decoys.forEach(d => {
+        const s0 = d.src;
+        const fake = Object.assign({}, s0, { x: (d.free ? d.x : s0.x + d.dx), y: (d.free ? d.y : s0.y + d.dy) });
+        d.x = fake.x; d.y = fake.y; d.w = s0.width; d.h = s0.height;
+        drawAlien(fake);
+      });
+      aliens.forEach(a => {
+        if (!a.alive || a.hudItem) return;
+        // space is dark, so the "shadow" is a pale glow under each REAL invader
+        c.save(); c.globalAlpha = 0.75; c.fillStyle = '#fff'; c.shadowColor = '#fff'; c.shadowBlur = 8;
+        c.beginPath(); c.ellipse(a.x + a.width / 2, a.y + a.height + 6, a.width * 0.42, 2.2, 0, 0, Math.PI * 2); c.fill(); c.restore();
+      });
+      if (Array.isArray(bullets)) {
+        for (let i = bullets.length - 1; i >= 0; i--) {
+          const b = bullets[i];
+          const hit = rnd.decoys.find(d => b.x < d.x + d.w && b.x + b.width > d.x && b.y < d.y + d.h && b.y + b.height > d.y);
+          if (!hit) continue;
+          bullets.splice(i, 1);
+          // shooting a fake makes more fakes
+          rnd.decoys.push({ src: hit.src, free: true, x: Math.max(4, Math.min(canvas.width - 30, hit.x + rand(-40, 40))), y: hit.y + rand(-16, 16), w: hit.w, h: hit.h });
+          tone(300, 0.12, { type: 'square', vol: 0.05, slide: 300 });
+          if (typeof showInGameMessage === 'function') showInGameMessage('Fake. It multiplied.');
+        }
+      }
+    }
+    // ---- colour lock: only invaders of the ship's current colour can be hit
+    if (name === 'lock') {
+      rnd.lockTimer -= deltaTime;
+      if (rnd.lockTimer <= 0) { rnd.lockIdx = (rnd.lockIdx + 1) % LOCK.length; rnd.lockTimer = 1700; tone(660 + rnd.lockIdx * 220, 0.08, { type: 'sine', vol: 0.05 }); }
+      const col = LOCK[rnd.lockIdx];
+      aliens.forEach(a => {
+        if (!a.alive || a.lock === undefined) return;
+        const match = a.lock === rnd.lockIdx;
+        a.isFlickering = !match;
+        c.save();
+        c.strokeStyle = LOCK[a.lock]; c.lineWidth = match ? 2.5 : 1;
+        c.globalAlpha = match ? 1 : 0.35;
+        c.shadowColor = LOCK[a.lock]; c.shadowBlur = match ? 12 : 0;
+        c.beginPath(); c.arc(a.x + a.width / 2, a.y + a.height / 2, Math.max(a.width, a.height) * 0.7, 0, Math.PI * 2); c.stroke();
+        c.restore();
+      });
+      c.save();
+      c.strokeStyle = col; c.lineWidth = 3; c.shadowColor = col; c.shadowBlur = 16;
+      c.beginPath(); c.arc(player.x + player.width / 2, player.y + player.height / 2, player.width * 0.85, 0, Math.PI * 2); c.stroke();
+      c.font = 'bold 12px "Courier New", monospace'; c.fillStyle = col; c.textAlign = 'left'; c.textBaseline = 'top';
+      c.fillText('LOCK ■', 10, 26);
+      c.restore();
+    }
+    // ---- reverse: while the screen is flipped, flip the controls so left still means left
+    if (name === 'reverse' && typeof chaosEffects !== 'undefined') chaosEffects.controlsInvert = Math.max(chaosEffects.controlsInvert, 2);
+  }
+  function hudKill(a) {
+    if (a.hudItem === 'life') {
+      if (typeof showInGameMessage === 'function') showInGameMessage('You shot your own life. Bold.');
+      say('You shot your own heart. I am speechless.');
+      setTimeout(() => { respawning = false; loseLives(1); }, 0);
+    } else if (a.hudItem === 'score') {
+      addScore(500, a.x + a.width / 2, a.y, '#00f0ff');
+      if (typeof showInGameMessage === 'function') showInGameMessage('Score shot. +500 for the audacity');
+    } else if (a.hudItem === 'level') {
+      if (typeof levelName !== 'undefined' && levelName) levelName.textContent = 'NOT THE BEST';
+      addScore(100, a.x + a.width / 2, a.y, '#ffe600');
+      if (typeof showInGameMessage === 'function') showInGameMessage('Level renamed. You did that.');
+    }
+    return 'absorbed';
+  }
+  if (typeof drawAlien === 'function') {
+    const orig4 = drawAlien;
+    window.drawAlien = drawAlien = function (alien) {
+      if (alien.type !== 'hud') return orig4.apply(this, arguments);
+      const c = ctx;
+      c.save();
+      const col = alien.hudItem === 'life' ? '#ff5a6e' : '#7cf3d6';
+      c.strokeStyle = col; c.fillStyle = 'rgba(0,0,0,0.55)'; c.lineWidth = 1.5; c.shadowColor = col; c.shadowBlur = 10;
+      drawRoundedRect(alien.x, alien.y, alien.width, alien.height, 4); c.fill(); c.stroke();
+      c.shadowBlur = 0; c.fillStyle = col; c.font = 'bold 10px "Courier New", monospace'; c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.fillText(alien.label, alien.x + alien.width / 2, alien.y + alien.height / 2 + 1);
+      c.restore();
+    };
+  }
+  const rxStyle = document.createElement('style');
+  rxStyle.textContent = `
+    .canvas-wrapper { transition: transform 0.6s cubic-bezier(0.7, 0, 0.3, 1); }
+    .canvas-wrapper.rx-flip { transform: rotate(180deg); }
+    .rx-hud-gone { opacity: 0.12 !important; filter: blur(1px); transition: opacity 0.3s; }
+    .rx-banner { position: absolute; left: 50%; top: 38%; transform: translate(-50%, -50%); z-index: 30; pointer-events: none; text-align: center;
+      width: 94%; font-family: 'Courier New', monospace; color: #fff; animation: rx-in 2.3s ease forwards; }
+    .rx-banner small { display: block; letter-spacing: 0.4em; font-size: 0.72rem; color: #ffe600; }
+    .rx-banner b { position: relative; display: block; font-family: Impact, 'Arial Black', sans-serif; font-weight: normal; font-size: clamp(1.5rem, 7vw, 2.4rem);
+      letter-spacing: 0.04em; text-shadow: 3px 0 #ff2bd6, -3px 0 #00f0ff; }
+    .rx-banner i { display: block; font-size: 0.78rem; margin-top: 4px; opacity: 0.9; }
+    @keyframes rx-in { 0% { opacity: 0; transform: translate(-50%, -50%) scale(1.6) skewX(-20deg); } 10% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      14% { transform: translate(-48%, -50%) skewX(12deg); } 18% { transform: translate(-50%, -50%); } 85% { opacity: 1; } 100% { opacity: 0; } }
+  `;
+  document.head.appendChild(rxStyle);
+
   // ================= hooks =================
   // Runs every frame, right after the aliens are drawn
   if (typeof updateEnemyBullets === 'function') {
@@ -1065,6 +1258,7 @@
       if (c && c.citrus && Array.isArray(aliens)) updateCitrus(c.citrus);
       if (c && c.cake && Array.isArray(aliens)) updateCake(c.cake);
       if (c && c.berserk && Array.isArray(aliens)) updateBerserk(c.berserk);
+      if (c && c.randomodium && Array.isArray(aliens)) updateRandomodium(c.randomodium);
       drawSmoke();
       const r = orig.apply(this, arguments);
       if (c && c.toast) { drawToastBullets(); drawButterMeter(); }
@@ -1092,6 +1286,8 @@
       ufoTimer = rand(7000, 12000);
       if (c && c.lorem) setupLorem(c.lorem);
       bz = { helmets: [], swords: [], wasRaging: false };
+      if (rnd.active) endEvent();
+      rnd = { timer: (c && c.randomodium) ? c.randomodium.first : 0, active: null, left: 0, bag: [], decoys: [], lockIdx: 0, lockTimer: 0 };
       if (c && c.cake) { setupCake(); if (levelConfigs[i]) levelConfigs[i].fireRate = ORIGINAL_FIRE[i] * c.cake.keepFire; }
       assignPoints();
       buildBunkers(c && c.bunkers);
@@ -1117,6 +1313,14 @@
     const orig = completeSpaceInvaders;
     window.completeSpaceInvaders = completeSpaceInvaders = function () {
       if (Array.isArray(aliens) && prevAlive) trackKills();
+      if (rnd.active) endEvent();
+      return orig.apply(this, arguments);
+    };
+  }
+  if (typeof gameOver === 'function') {
+    const orig = gameOver;
+    window.gameOver = gameOver = function () {
+      if (rnd.active) endEvent(); // never leave the screen flipped or the HUD hidden
       return orig.apply(this, arguments);
     };
   }
@@ -1128,5 +1332,6 @@
     window[name] = function () { score.now = 0; popups = []; return orig.apply(this, arguments); };
   });
 
-  window.ntbLevels = { score, march, get bunkers() { return bunkers; }, spawnUfo: () => spawnUfo(cfg() && cfg().mystery || 'hanger') };
+  window.ntbLevels = { score, march, rnd: () => rnd, forceEvent: n => { if (rnd.active) endEvent(); startEvent(n, LEVELS[7].randomodium); }, endEventNow: () => { if (rnd.active) endEvent(); rnd.timer = 999999; },
+    get bunkers() { return bunkers; }, spawnUfo: () => spawnUfo(cfg() && cfg().mystery || 'hanger') };
 })();
