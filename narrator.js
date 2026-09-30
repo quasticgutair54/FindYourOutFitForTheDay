@@ -29,10 +29,12 @@
 
   // ---------- styles ----------
   const css = `
+  /* SYSTEM talks from its own slot ABOVE the game, so it never covers play */
+  .sys-slot { width: 100%; max-width: 760px; height: 50px; display: flex; align-items: flex-end; }
   .sys-voice {
-    position: absolute; left: 10px; right: 10px; top: 18px; z-index: 25;
+    position: relative; width: 100%; z-index: 25;
     display: flex; align-items: center; gap: 10px;
-    padding: 8px 12px; border-radius: 8px;
+    padding: 6px 12px; border-radius: 8px; font-size: 0.78rem !important;
     background: rgba(8, 10, 12, 0.82);
     border: 1px solid rgba(255, 60, 80, 0.55);
     box-shadow: 0 0 18px rgba(255, 40, 70, 0.25);
@@ -69,7 +71,12 @@
   bar.className = 'sys-voice';
   bar.setAttribute('aria-live', 'polite');
   bar.innerHTML = '<span class="sys-tag">SYSTEM▸</span><span class="sys-text"></span><span class="sys-wave">' + '<i></i>'.repeat(7) + '</span>';
-  if (wrapper) wrapper.appendChild(bar);
+  if (wrapper) {
+    const slot = document.createElement('div');
+    slot.className = 'sys-slot';
+    slot.appendChild(bar);
+    wrapper.before(slot);
+  }
   const barText = bar.querySelector('.sys-text');
   const waveBars = Array.from(bar.querySelectorAll('.sys-wave i'));
 
