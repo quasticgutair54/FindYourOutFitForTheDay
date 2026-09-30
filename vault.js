@@ -169,7 +169,7 @@ const VAULT_REWARD = {
       onFinal = false;
       hideBadge();
       const r = orig.apply(this, arguments);
-      if (earned) { earned = false; setTimeout(openVault, 9300); } // after the win messages
+      if (earned) { earned = false; window.ntbVaultPending = true; setTimeout(openVault, 9300); } // after the win messages
       return r;
     };
   }
@@ -178,7 +178,7 @@ const VAULT_REWARD = {
     const orig = gameOver;
     window.gameOver = gameOver = function () {
       const r = orig.apply(this, arguments);
-      if (earned) { earned = false; setTimeout(openVault, 1500); }
+      if (earned) { earned = false; window.ntbVaultPending = true; setTimeout(openVault, 1500); }
       return r;
     };
   }
@@ -358,7 +358,7 @@ const VAULT_REWARD = {
     if (copy) copy.addEventListener('click', () => {
       (navigator.clipboard ? navigator.clipboard.writeText(code) : Promise.reject()).then(() => { copy.textContent = 'Copied'; }).catch(() => { copy.textContent = code; });
     });
-    ov.querySelector('[data-act="close"]').addEventListener('click', () => { window.removeEventListener('deviceorientation', orient); ov.remove(); });
+    ov.querySelector('[data-act="close"]').addEventListener('click', () => { window.removeEventListener('deviceorientation', orient); ov.remove(); window.ntbVaultPending = false; });
     if (!again) say('Flawless. I have never been more annoyed.');
   }
 

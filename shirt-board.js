@@ -326,7 +326,7 @@ const SHIRT_BOARD_API = '';
       const r = orig.apply(this, arguments);
       run.best = 9;
       moveTrack(9);
-      setTimeout(() => endRun(true), 8600); // after the win messages finish
+      setTimeout(() => whenScreenClear(() => endRun(true)), 8600); // after the win messages (and the vault, if earned)
       return r;
     };
   }
@@ -337,6 +337,13 @@ const SHIRT_BOARD_API = '';
       setTimeout(() => endRun(false), 700);
       return r;
     };
+  }
+
+  // Wait until no other full-screen moment (vault, fake crash, duel) is showing
+  function whenScreenClear(fn) {
+    const busy = () => window.ntbVaultPending || document.querySelector('.vx-overlay, .fc-layer, .du-overlay');
+    if (!busy()) { fn(); return; }
+    const t = setInterval(() => { if (!busy()) { clearInterval(t); setTimeout(fn, 400); } }, 300);
   }
 
   // ---------- 4. end of run: sign the board ----------
