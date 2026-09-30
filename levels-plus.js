@@ -28,7 +28,12 @@
     // Initial D: the formation drifts into every turn; headlights flash before a car fires;
     // skidding bullets leave burn marks that weaken the bunkers.
     1: { march: { step: 12, drop: 16, slow: 430, fast: 50, drift: true }, bunkers: 'arch', bunkerColor: '#aab4be', burn: true,
-         headlights: { every: [1500, 2600], warn: 420, skid: 1.6 } }
+         headlights: { every: [1500, 2600], warn: 420, skid: 1.6 } },
+    // Lorem Ipsum: rows spell words (clear a row = word bonus, in reading order = sentence bonus);
+    // panels go "loading" (grey skeleton, can't be hit) for a moment; the formation moves like a
+    // typewriter carriage - clack, clack, ding, and zip back.
+    2: { march: { step: 10, drop: 18, slow: 470, fast: 55, typewriter: true }, bunkers: 'glyphs', glyphs: ['¶', '&', '§', '¶'],
+         bunkerColor: '#c9a6ff', lorem: { words: ['LOREM', 'IPSUM', 'DOLOR', 'SIT', 'AMET'], every: [2200, 3600], load: 1200, share: 0.3 } }
   };
   const cfg = () => LEVELS[typeof currentLevel !== 'undefined' ? currentLevel : -1] || null;
 
@@ -86,6 +91,17 @@
     c.restore();
   }
 
+  function clack() {
+    const a = audio();
+    if (!a) return;
+    try {
+      const len = 0.03, buf = a.createBuffer(1, a.sampleRate * len, a.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 3);
+      const src = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
+      f.type = 'highpass'; f.frequency.value = 1800; g.gain.value = 0.25;
+      src.buffer = buf; src.connect(f).connect(g).connect(a.destination); src.start();
+    } catch (e) {}
+  }
   const HEART = [98, 87, 78, 73]; // the descending 4-note march
   let heartIdx = 0;
   function heartbeat() { tone(HEART[heartIdx++ % 4], 0.11, { vol: 0.16, filter: 420 }); }
@@ -137,7 +153,7 @@
     if (!Array.isArray(aliens)) return;
     if (!prevAlive || prevAlive.length !== aliens.length) { prevAlive = aliens.map(a => a.alive); return; }
     aliens.forEach((a, i) => {
-      if (prevAlive[i] && !a.alive) addScore(a.points || 10, a.x + a.width / 2, a.y, '#fff');
+      if (prevAlive[i] && !a.alive) { addScore(a.points || 10, a.x + a.width / 2, a.y, '#fff'); onKill(a); }
     });
     prevAlive = aliens.map(a => a.alive);
   }
@@ -150,6 +166,18 @@
     const minX = Math.min(...alive.map(a => a.x));
     const maxX = Math.max(...alive.map(a => a.x + a.width));
     const margin = 8;
+    if (settings.typewriter) {
+      if (maxX + settings.step > canvas.width - margin) {
+        // end of the line: ding, line feed, carriage return
+        tone(1760, 0.5, { type: 'sine', vol: 0.09 });
+        alive.forEach(a => { a.y += settings.drop; });
+        march.drift = { n: 6, dx: -(minX - margin) / 6, dy: 0, acc: 0 };
+      } else {
+        alive.forEach(a => { a.x += settings.step; a.originalX = a.x; });
+        clack();
+      }
+      return;
+    }
     if ((march.dir > 0 && maxX + settings.step > canvas.width - margin) || (march.dir < 0 && minX - settings.step < margin)) {
       if (settings.drift) {
         // slide into the turn: a few quick micro-steps that ease toward the wall while dropping
@@ -205,7 +233,7 @@
   function buildBunkers(kind) {
     bunkers = [];
     if (!kind) return;
-    const shapes = kind === 'ntb' ? ['N', 'T', 'B', '✦'] : ['#arch', '#arch', '#arch', '#arch'];
+    const shapes = kind === 'ntb' ? ['N', 'T', 'B', '✦'] : kind === 'glyphs' ? (cfg() && cfg().glyphs || ['#']) : ['#arch', '#arch', '#arch', '#arch'];
     const W = canvas.width, n = shapes.length;
     const bw = Math.min(66, Math.floor(W / (n * 1.75)));
     const bh = Math.round(bw * 0.78);
@@ -451,6 +479,88 @@
     });
   }
 
+  // ================= LOREM IPSUM =================
+  let lorem = { timer: 2500, rowsDone: [], letters: [] };
+  function setupLorem(L) {
+    lorem = { timer: 2500, rowsDone: [], letters: [], rows: 0 };
+    const ys = [...new Set(aliens.map(a => Math.round(a.y)))].sort((a, b) => a - b);
+    lorem.rows = ys.length;
+    aliens.forEach(a => {
+      a.row = ys.indexOf(Math.round(a.y));
+      a.word = L.words[a.row % L.words.length];
+      a.width = Math.max(a.width, 34); // room for the word
+      a.isFlickering = false;
+      a.loading = 0;
+    });
+    // re-centre after widening the panels
+    const cols = Math.round(aliens.length / lorem.rows);
+    const w = aliens[0].width, gap = 6, total = cols * w + (cols - 1) * gap, x0 = (canvas.width - total) / 2;
+    aliens.forEach((a, i) => { const q = i % cols; a.x = a.originalX = x0 + q * (w + gap); });
+  }
+  function updateLorem(L) {
+    lorem.timer -= deltaTime;
+    if (lorem.timer <= 0) {
+      lorem.timer = rand(L.every[0], L.every[1]);
+      aliens.forEach(a => { if (a.alive && !a.loading && Math.random() < L.share) { a.loading = L.load; a.isFlickering = true; } });
+    }
+    aliens.forEach(a => {
+      if (a.loading > 0) { a.loading -= deltaTime; if (a.loading <= 0) { a.loading = 0; a.isFlickering = false; } }
+    });
+    // flying letters from cleared words
+    const c = ctx;
+    c.save();
+    c.font = 'bold 16px "Courier New", monospace';
+    c.textAlign = 'center';
+    lorem.letters = lorem.letters.filter(l => l.life > 0);
+    lorem.letters.forEach(l => {
+      l.x += l.vx; l.y += l.vy; l.vy += 0.08; l.rot += l.vr; l.life--;
+      c.globalAlpha = Math.min(1, l.life / 30);
+      c.fillStyle = '#e7d4ff';
+      c.save(); c.translate(l.x, l.y); c.rotate(l.rot); c.fillText(l.ch, 0, 0); c.restore();
+    });
+    c.restore();
+  }
+  function onKill(a) {
+    const c = cfg();
+    if (!c || !c.lorem || a.row === undefined) return;
+    const rowLeft = aliens.some(z => z.alive && z.row === a.row);
+    if (rowLeft || lorem.rowsDone.includes(a.row)) return;
+    lorem.rowsDone.push(a.row);
+    const word = a.word;
+    addScore(100, canvas.width / 2, a.y - 22, '#c9a6ff');
+    word.split('').forEach((ch, k) => lorem.letters.push({ ch, x: canvas.width / 2 + (k - word.length / 2) * 14, y: a.y, vx: rand(-2, 2), vy: rand(-3.5, -1.5), vr: rand(-0.15, 0.15), rot: 0, life: 70 }));
+    tone(1320, 0.12, { type: 'triangle', vol: 0.07 }); setTimeout(() => tone(1760, 0.2, { type: 'triangle', vol: 0.07 }), 90);
+    if (typeof showInGameMessage === 'function') showInGameMessage(`"${word}" deleted`);
+    if (lorem.rowsDone.length === lorem.rows) {
+      const inOrder = lorem.rowsDone.every((r, k) => r === k);
+      if (inOrder) {
+        addScore(500, canvas.width / 2, canvas.height / 2, '#ffd27a');
+        setTimeout(() => { if (typeof showInGameMessage === 'function') showInGameMessage('Read in order. SENTENCE BONUS +500'); }, 2100);
+        say('You read it top to bottom. A scholar.');
+      }
+    }
+  }
+  // "loading" panels: a grey skeleton box with a moving shimmer
+  if (typeof drawAlien === 'function') {
+    const orig = drawAlien;
+    window.drawAlien = drawAlien = function (alien) {
+      if (!(alien.type === 'latin' && alien.loading > 0)) return orig.apply(this, arguments);
+      const c = ctx, x = alien.x, y = alien.y, w = alien.width, h = alien.height;
+      c.save();
+      c.globalAlpha = 0.55;
+      c.fillStyle = '#3b3a4a';
+      drawRoundedRect(x, y, w, h, 5); c.fill();
+      const t = (performance.now() / 600) % 1;
+      const g = c.createLinearGradient(x - w + t * w * 3, 0, x + t * w * 3, 0);
+      g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.5, 'rgba(255,255,255,0.35)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+      c.fillStyle = g;
+      drawRoundedRect(x, y, w, h, 5); c.fill();
+      c.fillStyle = 'rgba(255,255,255,0.25)';
+      c.fillRect(x + 5, y + h / 2 - 2, w - 10, 3);
+      c.restore();
+    };
+  }
+
   // ================= hooks =================
   // Runs every frame, right after the aliens are drawn
   if (typeof updateEnemyBullets === 'function') {
@@ -466,6 +576,7 @@
       }
       if (c) updateUfo(c);
       if (c && c.headlights && Array.isArray(aliens)) updateHeadlights(c.headlights);
+      if (c && c.lorem && Array.isArray(aliens)) updateLorem(c.lorem);
       drawSmoke();
       const r = orig.apply(this, arguments);
       drawScore();
@@ -476,6 +587,9 @@
   if (typeof startLevel === 'function') {
     const orig = startLevel;
     window.startLevel = startLevel = function (i) {
+      // the game ends a level the instant the last invader dies, before our per-frame
+      // hook runs - so settle the final kills (and any word/sentence bonus) first
+      if (Array.isArray(aliens) && prevAlive) trackKills();
       const r = orig.apply(this, arguments);
       const c = LEVELS[i];
       march.dir = 1; march.acc = 0; march.frame = -1;
@@ -483,14 +597,24 @@
       prevAlive = null;
       ufo = null; drops = [];
       ufoTimer = rand(7000, 12000);
+      if (c && c.lorem) setupLorem(c.lorem);
       assignPoints();
       buildBunkers(c && c.bunkers);
       march.drift = null; smoke = [];
       hl = { timer: 1800, warned: [] };
       if (c && c.headlights && levelConfigs[i]) levelConfigs[i].fireRate = 0; // headlights decide who fires
       if (i === 1 && c) setTimeout(() => say('Watch the headlights. They blink before they shoot.'), 3000);
+      if (i === 2 && c) setTimeout(() => say('Grey boxes are still loading. Your bullets go straight through them.'), 3000);
       if (i === 0 && c) setTimeout(() => say('Classic formation. They march. You shoot. Like 1978.'), 2500);
       return r;
+    };
+  }
+
+  if (typeof completeSpaceInvaders === 'function') {
+    const orig = completeSpaceInvaders;
+    window.completeSpaceInvaders = completeSpaceInvaders = function () {
+      if (Array.isArray(aliens) && prevAlive) trackKills();
+      return orig.apply(this, arguments);
     };
   }
 
